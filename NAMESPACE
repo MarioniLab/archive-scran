@@ -1,4 +1,4 @@
-useDynLib(AK47)
+useDynLib(scran)
 
 export(normalizeBySums,
         quickCluster)
