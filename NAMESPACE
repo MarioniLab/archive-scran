@@ -1,5 +1,8 @@
 useDynLib(scran)
 
 export(normalizeBySums,
-        quickCluster)
-importFrom("dynamicTreeCut",cutreeDynamic)
+        quickCluster,
+        DM)
+
+importFrom("dynamicTreeCut", cutreeDynamic)
+importFrom("zoo", zoo, rollapply)
