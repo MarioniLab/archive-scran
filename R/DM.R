@@ -24,7 +24,7 @@ quantile.loess <- function(y, x = NULL, nsplits=NULL, size=20, overlap=NULL, dis
     return(list(y = new.y, x = new.x))
 }
 
-DM <- function(mean, cv2, win.size=50, verbose=FALSE) 
+DM <- function(mean, cv2, win.size=50) 
 # Computes the distance to median for the CV2 values across all genes, 
 # after fitting an abundance-dependent trend.
 # 

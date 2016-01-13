@@ -5,14 +5,13 @@
 \description{Compute the distance-to-median statistic for the CV2 residuals of all genes}
 
 \usage{
-DM(mean, cv2, win.size=50, verbose=FALSE) 
+DM(mean, cv2, win.size=50)
 }
 
 \arguments{
 \item{mean}{A numeric vector of average counts for each gene.}
 \item{cv2}{A numeric vector of squared coefficients of variation for each gene.}
 \item{win.size}{An integer scalar specifying the window size for quantile-loess smoothing.}
-\item{verbose}{A logical scalar indicating whether a progress bar should be printed.}
 }
 
 \description{
