@@ -1,4 +1,4 @@
-quantile.loess <- function(y, x = NULL, nsplits=NULL, size=20, overlap=NULL, distance=NULL, quant=0.95,
+quantile.trend <- function(y, x = NULL, nsplits=NULL, size=20, overlap=NULL, distance=NULL, quant=0.95,
                           alignment="center", FUN=function(x) { quantile(x, quant) }, ...)
 # Fits a quantile loess curve to a response 'y' with respect to a covariate 'x'.
 #
@@ -36,7 +36,7 @@ DM <- function(mean, cv2, win.size=50)
     keep <- mean > 0 & !is.na(cv2) & cv2 > 0
     mean.expr <- log10(mean[keep])
     cv2.expr <- log10(cv2[keep])
-    qloess <- quantile.loess(cv2.expr, mean.expr, quant=.5, size=win.size, overlap=.5)
+    qloess <- quantile.trend(cv2.expr, mean.expr, quant=.5, size=win.size, overlap=.5)
     dm.out <- cv2.expr - approx(x=qloess$x, y=qloess$y, xout=mean.expr)$y
     DM <- rep(NA_real_, length(keep))
     DM[keep] <- dm.out
