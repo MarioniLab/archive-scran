@@ -11,7 +11,7 @@ DM(mean, cv2, win.size=50)
 \arguments{
 \item{mean}{A numeric vector of average counts for each gene.}
 \item{cv2}{A numeric vector of squared coefficients of variation for each gene.}
-\item{win.size}{An integer scalar specifying the window size for quantile-loess smoothing.}
+\item{win.size}{An integer scalar specifying the window size for median-based smoothing.}
 }
 
 \description{
