@@ -13,12 +13,16 @@ quickCluster <- function(counts, min.size = 200, ...)
         min.size <- as.integer((ncol(counts) / 5L))
         warning(paste("MinSize scaled down to", min.size))
     }
+
     distM <- as.dist( 1 - cor(counts, method = 'spearman'))
     htree <- hclust(distM, method = 'ward.D2')
-    clusters <- factor(unname(cutreeDynamic(htree, minClusterSize = min.size,distM = as.matrix(distM),verbose = 0, ...)))
-    if ( levels(clusters)[1] == 0) {
-        clusters[clusters == 0] <- NA
-        warning(paste(sum(is.na(clusters)), "cells are left unassaigned (NA)"))
+    clusters <- unname(cutreeDynamic(htree, minClusterSize = min.size,distM = as.matrix(distM),verbose = 0, ...))
+
+    unassigned <- clusters==0L
+    if (any(unassigned)) { 
+        clusters[unassigned] <- NA_integer_
+        warning(paste(sum(unassigned), "cells were not assigned to any cluster"))
     }
+    clusters <- factor(clusters)
     return(clusters)
 }

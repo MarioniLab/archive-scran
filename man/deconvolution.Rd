@@ -88,9 +88,9 @@ Aaron Lun and Karsten Bach
 
 \examples{
 set.seed(100)
-all.facs <- 2^rnorm(popsize, sd=0.5)
 popsize <- 800
 ngenes <- 10000
+all.facs <- 2^rnorm(popsize, sd=0.5)
 counts <- matrix(rnbinom(ngenes*popsize, mu=all.facs, size=1), ncol=popsize, byrow=TRUE)
 out.facs <- normalizeBySums(counts)
 
