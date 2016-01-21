@@ -42,3 +42,4 @@ dm.stat <- DM(means, cv2)
 Kolodziejczyk AA, Kim JK, Tsang JCH \emph{et al.} (2015). Single cell RNA-Sequencing of pluripotent states unlocks modular transcriptional variation. \emph{Cell Stem Cell} 17(4), 471--85.
 }
 
+\keyword{variance}

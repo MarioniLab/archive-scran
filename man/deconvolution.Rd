@@ -99,3 +99,5 @@ clusters <- quickCluster(counts)
 out.facs2 <- normalizeBySums(counts, clusters=clusters)
 out.facs3 <- normalizeBySums(counts, clusters=clusters, ref.clust="2")
 }
+
+\keyword{normalization}
