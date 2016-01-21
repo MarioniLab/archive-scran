@@ -2,7 +2,9 @@ useDynLib(scran)
 
 export(normalizeBySums,
         quickCluster,
-        DM)
+        DM, fitTechTrend, getBioVar)
 
 importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("zoo", zoo, rollapply)
+importFrom("edgeR", cpm.default)
+importFrom("stats", poly)
