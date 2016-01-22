@@ -8,6 +8,7 @@
 \usage{
 sandbag(is.G1, is.S, is.G2M, training.data, 
     gene.names=rownames(training.data), fraction=0.5)
+
 cyclone(test.data, pairs, gene.names=rownames(test.data), 
     iter=1000, min.iter=100, min.pairs=50, verbose=FALSE)
 }
@@ -80,6 +81,12 @@ col[is.G1] <- "red"
 col[is.G2M] <- "blue"
 col[is.S] <- "darkgreen"
 plot(assignments$score$G1, assignments$score$G2M, col=col, pch=16)
+}
+
+\references{
+Scialdone A, Natarajana KN, Saraiva LR \emph{et al.} (2015). 
+Computational assignment of cell-cycle stage from single-cell transcriptome data.
+\emph{Methods} 85:54--61
 }
 
 \keyword{clustering}
