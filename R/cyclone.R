@@ -62,10 +62,10 @@ classify.single <- function(cell, markers, Nmin.couples)
 }
 
 random.success <- function(cell, markers, N, Nmin, Nmin.couples)
-# Given a set of markers, a number N of trials and a cell, 
-# find the number of hits in each of the N randomised set of markers.
-# This returns the probability of randoml obtaining a fraction of hits 
-# lower than the observed fraction.
+# Given a set of markers, a number N of trials and a cell, find the number of hits in each of the N randomised set of markers.
+# This returns the probability of randoml obtaining a fraction of hits lower than the observed fraction.
+# The null hypothesis is that the expression of each gene is sampled from the empirical distribution in 'cell',
+# in a manner that is independent of the pairings between genes. We then calculate the classification based on those pairings.
 {
     success <- sapply(seq_len(N), function(x) {    
                       cell.random <- cell[sample(length(cell))]
@@ -73,7 +73,7 @@ random.success <- function(cell, markers, N, Nmin, Nmin.couples)
     })
   
     success <- success[!is.na(success)]
-    test <- classif.single(cell, markers, Nmin.couples)
+    test <- classify.single(cell, markers, Nmin.couples)
 
     if(length(success) < Nmin || is.na(test)) { 
         warning("not enough gene pairs with different expression values")
@@ -90,9 +90,9 @@ sandbag <- function(is.G1, is.S, is.G2M, training.data, gene.names=rownames(trai
 # based on code by Antonio Scialdone
 # created 22 January 2016 
 {
-    G1.marker.pairs <- find.markers(id1=id.G1, id2=id.S, id3=id.G2M, training.data=training.data, fraction=fraction, gene.names=gene.names)
-    S.marker.pairs <- find.markers(id1=id.S, id2=id.G1, id3=id.G2M, training.data=training.data, fraction=fraction, gene.names=gene.names)
-    G2M.marker.pairs <- find.markers(id1=id.G2M, id2=id.G1, id3=id.S, training.data=training.data, fraction=fraction, gene.names=gene.names)
+    G1.marker.pairs <- find.markers(id1=is.G1, id2=is.S, id3=is.G2M, training.data=training.data, fraction=fraction, gene.names=gene.names)
+    S.marker.pairs <- find.markers(id1=is.S, id2=is.G1, id3=is.G2M, training.data=training.data, fraction=fraction, gene.names=gene.names)
+    G2M.marker.pairs <- find.markers(id1=is.G2M, id2=is.G1, id3=is.S, training.data=training.data, fraction=fraction, gene.names=gene.names)
     return(list(G1=G1.marker.pairs, S=S.marker.pairs, G2M=G2M.marker.pairs))
 }
 
@@ -138,7 +138,7 @@ cyclone <- function(test.data, pairs, gene.names=rownames(test.data), iter=1000,
     score.G2M <- apply(best.test.data$G2M, 2, FUN=random.success, markers=pairs$G2M, N=iter, Nmin=min.iter, Nmin.couples=min.pairs)
     
     scores <- data.frame(G1=score.G1, S=score.S, G2M=score.G2M)
-    scores.normalised <- alloc$scores/rowSums(alloc$scores)
+    scores.normalised <- scores/rowSums(scores)
     return(list(scores=scores, normalized.scores=scores.normalised))  
 }
 
