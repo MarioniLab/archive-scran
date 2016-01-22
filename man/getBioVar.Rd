@@ -39,18 +39,9 @@ Unlike other methods for decomposition, this approach estimates the variance of 
 The log-transformation blunts the impact of large positive outliers and ensures that the HVG list is not dominated by genes with expression in just one cell.
 Moreover, it does not compromise interpretation -- highly variable genes will still be so, regardless of whether counts or log-CPMs are considered.
 
-% # Compare the pair - 'a' has higher CV2 and lower var(log), while 'b' has lower CV2 and higher var(log).
-% a <- integer(100)
-% a[1] <- 10000
-% mean(a)
-% var(a)/mean(a)^2
-% var(log(a+1))
-% b <- rep(c(0, 200), each=50)
-% mean(b)
-% var(b)/mean(b)^2
-% var(log(b+1))
-
 Note that this method is rather dependent on the quality of the spike-ins -- the fit will obviously be poor if the coverage of all spike-ins is low.
+Default normalization by the spike-in totals means that the computed variance will include the variance of the cell size across the data set.
+This will increase the biological component but should not affect the ranking, as the cell size variance should be the same for each gene.
 }
 
 \value{
@@ -108,6 +99,26 @@ lines(results$mean[o], results$tech[o], col="red", lwd=2)
 plot(results$mean, results$bio)
 }
 
-
-
 \keyword{variance}
+
+% # Compare the pair - 'a' has higher CV2 and lower var(log), while 'b' has lower CV2 and higher var(log).
+% a <- integer(100)
+% a[1] <- 10000
+% mean(a)
+% var(a)/mean(a)^2
+% var(log(a+1))
+% b <- rep(c(0, 200), each=50)
+% mean(b)
+% var(b)/mean(b)^2
+% var(log(b+1))
+%
+% # Another way of looking at it, assuming an outlier of size 'x' and n<-100 cells.
+% # Variance of the log for NB-distributed (disp=0.5) spike-ins is greater than the outlier at each mean.
+% # The same cannot be said for the CV2.
+% n <- 100
+% par(mfrow=c(1,2))
+% curve(log(1+1/(x/n)+0.5), xlim=c(1, 1000), ylim=c(0,2)) # variance of the log (based on second moment of log-normal -> NB)
+% curve(log(x)^2/100, add=TRUE, col="red") # variance of log for one outlier 'x'; analytically derived from mean 'x/n' + Bessel's correction.
+% curve(1/(x/n) + 0.5, xlim=c(1, 1000)) # CV2 of the spike-in counts.
+% abline(h=n, col="blue") # CV2; divide variance by '(x/n)^2'.
+
