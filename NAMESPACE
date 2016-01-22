@@ -1,8 +1,8 @@
 useDynLib(scran)
 
-export(normalizeBySums,
-        quickCluster,
-        DM, fitTechTrend, getBioVar)
+export(normalizeBySums, quickCluster,
+        DM, fitTechTrend, getBioVar,
+        sandbag, cyclone)
 
 importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("zoo", zoo, rollapply)
