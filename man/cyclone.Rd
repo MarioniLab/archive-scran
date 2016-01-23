@@ -31,7 +31,8 @@ In the \code{sandbag} function, pairs of genes (A, B) are identified from a trai
     the fraction of cells in phase G1 with expression of A > B (based on expression values in \code{training.data}) 
     and the fraction with B > A in each other phase exceeds \code{fraction}.
 These pairs are defined as the marker pairs for G1.
-This is repeated for each phase to obtain a separate marker set.
+This is repeated for each phase to obtain a separate marker pair set.
+Pre-defined sets of marker pairs are provided for mouse (see Examples).
 
 Phase assignment is then performed using the \code{cyclone} function.
 For each phase and each cell, the function calculates the proportion of all marker pairs where the expression of the first gene is greater than the second
@@ -39,16 +40,15 @@ For each phase and each cell, the function calculates the proportion of all mark
 A distribution of proportions is constructed by shuffling the expression values within the cell and recalculating the proportion at each iteration.
 The phase score for that cell is then defined as the lower tail probability of this distribution.
 
-By default, shuffling is performed \code{iter} times 
-    -- however, some iterations may not be used if there are fewer than \code{min.pairs} pairs with different expression,
-       such that the proportion cannot be calculated precisely.
-A score is only returned if the distribution is large enough for stable calculation of the tail probability, i.e., consists of results from at least \code{min.iter} iterations.
+By default, shuffling is performed \code{iter} times to obtain the distribution from which the score is estimated.
+However, some iterations may not be used if there are fewer than \code{min.pairs} pairs with different expression, such that the proportion cannot be calculated precisely.
+Also, a score is only returned if the distribution is large enough for stable calculation of the tail probability, i.e., consists of results from at least \code{min.iter} iterations.
 
 Cells with G1 and G2M scores above 0.5 should be assigned to the G1 and G2M phases, respectively.
 This is based on the interpretation of the score as 1 minus the p-value, under the null hypothesis of independent gene expression within each cell.
 Cells can be assigned to S phase based on the S phase score, but a more reliable approach is to define S phase cells based on those cells with G1 and G2M scores below 0.5.
 
-% The default implementation shuffles expression values from all genes in the training set, rather than only genes in the marker set for each phase.
+% The original implementation shuffled expression values from all genes in the training set, rather than only genes in the marker set for each phase.
 % In theory, this shouldn't matter, as the score calculation depends on the ranking of each gene.
 % That should be the same regardless of the distribution of expression values -- each set of rankings is equally likely, no matter what.
 % In practice, the number of ties will differ between different set of genes.
@@ -93,6 +93,10 @@ col[is.G1] <- "red"
 col[is.G2M] <- "blue"
 col[is.S] <- "darkgreen"
 plot(assignments$score$G1, assignments$score$G2M, col=col, pch=16)
+
+# Getting pre-trained marker sets
+mm.pairs <- readRDS(system.file("exdata", "mouse_cycle_markers.rds", package="scran"))
+# hs.pairs <- readRDS(system.file("exdata", "human_cycle_markers.rds", package="scran"))
 }
 
 \references{
