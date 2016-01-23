@@ -107,6 +107,11 @@ cyclone <- function(test.data, pairs, gene.names=rownames(test.data), iter=1000,
     if (length(gene.names)!=Ngenes) {
         stop("length of 'gene.names' vector must be equal to 'test.data' nrows")
     }
+    iter <- as.integer(iter)
+    min.iter <- as.integer(min.iter)
+    min.pairs <- as.integer(min.pairs)
+    test.data <- as.matrix(test.data)
+    storage.mode(test.data) <- "double"
 
     # Only keeping training pairs where both genes are in the test data;
     # and subsetting the test data to only the genes in the training pairs.
@@ -133,9 +138,12 @@ cyclone <- function(test.data, pairs, gene.names=rownames(test.data), iter=1000,
   
     # Run the allocation algorithm
     ncells <- ncol(test.data)
-    score.G1 <- apply(best.test.data$G1, 2, FUN=random.success, markers=pairs$G1, N=iter, Nmin=min.iter, Nmin.couples=min.pairs)
-    score.S <- apply(best.test.data$S, 2, FUN=random.success, markers=pairs$S, N=iter, Nmin=min.iter, Nmin.couples=min.pairs)
-    score.G2M <- apply(best.test.data$G2M, 2, FUN=random.success, markers=pairs$G2M, N=iter, Nmin=min.iter, Nmin.couples=min.pairs)
+    score.G1 <- .Call("shuffle_scores", ncells, nrow(best.test.data$G1), best.test.data$G1, pairs$G1[,1], pairs$G1[,2], iter, min.iter, min.pairs) 
+    score.S <- .Call("shuffle_scores", ncells, nrow(best.test.data$S), best.test.data$S, pairs$S[,1], pairs$S[,2], iter, min.iter, min.pairs) 
+    score.G2M <- .Call("shuffle_scores", ncells, nrow(best.test.data$G2M), best.test.data$G2M, pairs$G2M[,1], pairs$G2M[,2], iter, min.iter, min.pairs) 
+#    score.G1 <- apply(best.test.data$G1, 2, FUN=random.success, markers=pairs$G1, N=iter, Nmin=min.iter, Nmin.couples=min.pairs)
+#    score.S <- apply(best.test.data$S, 2, FUN=random.success, markers=pairs$S, N=iter, Nmin=min.iter, Nmin.couples=min.pairs)
+#    score.G2M <- apply(best.test.data$G2M, 2, FUN=random.success, markers=pairs$G2M, N=iter, Nmin=min.iter, Nmin.couples=min.pairs)
     
     scores <- data.frame(G1=score.G1, S=score.S, G2M=score.G2M)
     scores.normalised <- scores/rowSums(scores)

@@ -1,10 +1,5 @@
-#include "R.h"
-#include "Rinternals.h"
-#include <stdexcept>
-#include <algorithm>
+#include "scran.h"
 
-extern "C" {
-    
 SEXP forge_system (SEXP ng, SEXP nc, SEXP exprs, SEXP ordering, SEXP size, SEXP ref) try {
     // Checking inputs
     if (!isInteger(ng) || LENGTH(ng) > 1) { throw std::runtime_error("number of genes must be a positive integer"); }
@@ -82,4 +77,3 @@ try {
     return mkString(e.what());
 }
 
-}
