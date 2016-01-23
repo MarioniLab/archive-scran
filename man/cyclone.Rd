@@ -34,14 +34,26 @@ These pairs are defined as the marker pairs for G1.
 This is repeated for each phase to obtain a separate marker set.
 
 Phase assignment is then performed using the \code{cyclone} function.
-For each phase and each cell, the function calculates the proportion of all marker pairs where the expression of the first gene is greater than the second.
-A null distribution is then constructed by shuffling the expression values within the cell and recalculating these proportions.
-The phase score is then defined as the lower tail probability of this distribution.
-By default, shuffling is performed \code{iter} times -- however, some iterations may not be used if there are many pairs of marker genes with the same expression value.
-A score is only computed if at least \code{min.iter} iterations have at least \code{min.pairs} pairs with different expression.
+For each phase and each cell, the function calculates the proportion of all marker pairs where the expression of the first gene is greater than the second
+    (pairs with the same expression are ignored).
+A distribution of proportions is constructed by shuffling the expression values within the cell and recalculating the proportion at each iteration.
+The phase score for that cell is then defined as the lower tail probability of this distribution.
+
+By default, shuffling is performed \code{iter} times 
+    -- however, some iterations may not be used if there are fewer than \code{min.pairs} pairs with different expression,
+       such that the proportion cannot be calculated precisely.
+A score is only returned if the distribution is large enough for stable calculation of the tail probability, i.e., consists of results from at least \code{min.iter} iterations.
 
 Cells with G1 and G2M scores above 0.5 should be assigned to the G1 and G2M phases, respectively.
+This is based on the interpretation of the score as 1 minus the p-value, under the null hypothesis of independent gene expression within each cell.
 Cells can be assigned to S phase based on the S phase score, but a more reliable approach is to define S phase cells based on those cells with G1 and G2M scores below 0.5.
+
+% The default implementation shuffles expression values from all genes in the training set, rather than only genes in the marker set for each phase.
+% In theory, this shouldn't matter, as the score calculation depends on the ranking of each gene.
+% That should be the same regardless of the distribution of expression values -- each set of rankings is equally likely, no matter what.
+% In practice, the number of ties will differ between different set of genes.
+% The most appropriate comparison would involve the same number of ties as that used to calculate the observed score.
+% Thus, I would set the marker set genes as the empirical distribution, rather than the entire training set of genes.
 }
 
 \value{
