@@ -15,7 +15,7 @@ DM(mean, cv2, win.size=50)
 }
 
 \description{
-This function will compute the distance-to-median (DM) statistic described by Kolodziejczyk \emph{et al.} (2015).
+This function will compute the distance-to-median (DM) statistic described by Kolodziejczyk et al. (2015).
 Briefly, a median-based trend is fitted to the log-transformed \code{cv2} against the log-transformed \code{mean}.
 The DM is defined as the residual from the trend for each gene.
 This statistic is a measure of the relative variability of each gene, after accounting for the empirical mean-variance relationship.
@@ -39,7 +39,9 @@ dm.stat <- DM(means, cv2)
 }
 
 \references{
-Kolodziejczyk AA, Kim JK, Tsang JCH \emph{et al.} (2015). Single cell RNA-Sequencing of pluripotent states unlocks modular transcriptional variation. \emph{Cell Stem Cell} 17(4), 471--85.
+Kolodziejczyk AA, Kim JK, Tsang JCH et al. (2015). 
+Single cell RNA-sequencing of pluripotent states unlocks modular transcriptional variation. 
+\emph{Cell Stem Cell} 17(4), 471--85.
 }
 
 \keyword{variance}

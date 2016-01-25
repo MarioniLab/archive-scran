@@ -26,7 +26,7 @@ cyclone(test.data, pairs, gene.names=rownames(test.data),
 }
 
 \details{
-This function implements the pair-based prediction method described by Scialdone \emph{et al.} (2015).
+This function implements the pair-based prediction method described by Scialdone et al. (2015).
 In the \code{sandbag} function, pairs of genes (A, B) are identified from a training data set where in each pair,
     the fraction of cells in phase G1 with expression of A > B (based on expression values in \code{training.data}) 
     and the fraction with B > A in each other phase exceeds \code{fraction}.
@@ -103,7 +103,7 @@ mm.pairs <- readRDS(system.file("exdata", "mouse_cycle_markers.rds", package="sc
 }
 
 \references{
-Scialdone A, Natarajana KN, Saraiva LR \emph{et al.} (2015). 
+Scialdone A, Natarajana KN, Saraiva LR et al. (2015). 
 Computational assignment of cell-cycle stage from single-cell transcriptome data.
 \emph{Methods} 85:54--61
 }
