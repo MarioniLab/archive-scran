@@ -6,14 +6,18 @@
 \description{Compute the biological and technical components of the gene-specific variance in single-cell RNA-seq data.}
 
 \usage{
-fitTechTrend(spikes, size.factor=NULL, df=5, prior.count=1) 
+fitTechTrend(spikes, size.factor=NULL, trend=c("poly", "loess"), 
+    df=5, span=0.3, prior.count=1) 
+
 getBioVar(counts, tech.fit, size.factor=NULL)
 }
 
 \arguments{
 \item{spikes}{A numeric matrix of spike-in counts, where each column corresponds to a cell and each row corresponds to a spike-in gene.}
 \item{size.factor}{A numeric vector of size factors for all cells, defaults to the sum of spike-in counts for each cell.}
+\item{trend}{A string indicating whether the trend should be polynomial or loess-based.}
 \item{df}{An integer scalar specifying the degrees of freedom for polynomial fitting.}
+\item{span}{An numeric scalar specifying the span for loess fitting.}
 \item{prior.count}{A numeric scalar specifying the prior count to add before log-transformation.}
 \item{counts}{A numeric matrix of cellular counts, where each column corresponds to a cell and each row corresponds to a cellular gene.}
 \item{tech.fit}{A list containing the output of \code{fitTechTrend}.}
@@ -23,7 +27,7 @@ getBioVar(counts, tech.fit, size.factor=NULL)
 The strategy is to fit an abundance-dependent trend to the variance of the log-CPMs for the spike-in genes, using \code{fitTechTrend}.
 Log-CPMs are computed from the spike-in counts using \code{\link[edgeR]{cpm}} with the library sizes set to \code{size.factor} and the specified \code{prior.count}.
 The mean and variance of the log-CPMs is calculated for each spike-in gene.
-A polynomial with \code{df} degrees of freedom is then fitted to the variance against the mean for all genes.
+A trend (either a polynomial with \code{df} degrees of freedom, of a loess curve of span \code{span}) is then fitted to the variance against the mean for all genes.
 
 The variance of the log-CPMs for each cellular gene is similarly computed in \code{getBioVar}.
 The technical component of the variance for each gene is determined by interpolating the fitted trend at the mean log-CPM for that gene.
@@ -65,7 +69,8 @@ This will increase the biological component but should not affect the ranking, a
 
 \seealso{
 \code{\link[edgeR]{cpm}},
-\code{\link{poly}}
+\code{\link{poly}},
+\code{\link{loess}}
 }
 
 \author{
