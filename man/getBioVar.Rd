@@ -27,7 +27,7 @@ getBioVar(counts, tech.fit, size.factor=NULL)
 The strategy is to fit an abundance-dependent trend to the variance of the log-CPMs for the spike-in genes, using \code{fitTechTrend}.
 Log-CPMs are computed from the spike-in counts using \code{\link[edgeR]{cpm}} with the library sizes set to \code{size.factor} and the specified \code{prior.count}.
 The mean and variance of the log-CPMs is calculated for each spike-in gene.
-A trend (either a polynomial with \code{df} degrees of freedom, of a loess curve of span \code{span}) is then fitted to the variance against the mean for all genes.
+A polynomial or loess trend is then fitted to the variance against the mean for all genes.
 
 The variance of the log-CPMs for each cellular gene is similarly computed in \code{getBioVar}.
 The technical component of the variance for each gene is determined by interpolating the fitted trend at the mean log-CPM for that gene.
@@ -38,14 +38,21 @@ The size factors used to normalize the cellular counts should be the same as tho
 This ensures that the average abundances computed for the former are comparable to the abundance-dependent trend fitted to the variances of the latter.
 In \code{getBioVar}, \code{size.factor} is automatically taken from \code{tech.fit}.
 Users should only set it manually if, e.g., only subset of cells are used in \code{counts} and \code{tech.fit$size.factor} needs to be subsetted accordingly.
+}
 
+\section{Additional notes}{
 Unlike other methods for decomposition, this approach estimates the variance of the log-CPMs rather than of the counts themselves.
 The log-transformation blunts the impact of large positive outliers and ensures that the HVG list is not dominated by genes with expression in just one cell.
 Moreover, it does not compromise interpretation -- highly variable genes will still be so, regardless of whether counts or log-CPMs are considered.
+Default normalization by the spike-in totals also means that the computed variance will include the variance of the cell size across the data set.
+This will increase the biological component but should not affect the ranking, as the cell size component of the variance should be the same for each gene.
 
+By default, a polynomial trend with \code{df} degrees of freedom is fitted to the spike-in variances as it is more precise than the loess curve.
 Note that this method is rather dependent on the quality of the spike-ins -- the fit will obviously be poor if the coverage of all spike-ins is low.
-Default normalization by the spike-in totals means that the computed variance will include the variance of the cell size across the data set.
-This will increase the biological component but should not affect the ranking, as the cell size variance should be the same for each gene.
+However, \code{fitTechTrend} can also be applied directly to the cellular counts.
+Subtraction of the fitted value from the total variance yields the residual variance.
+This is helpful for ranking, by eliminating the effect of the mean-variance dependency when spike-ins are not available (assuming that such dependencies are uninteresting).
+In such cases, a loess curve is more robust to outlier variances that might be expected in real cellular data.
 }
 
 \value{
