@@ -12,7 +12,7 @@ fitTechTrend <- function(spikes, size.factor=NULL, trend=c("poly", "loess"), df=
     lmeans <- rowMeans(adjc)
     lvar <- apply(adjc, 1, var)
 
-    is.okay <- lvar > 0
+    is.okay <- lvar > 1e-8
     kept.means <- lmeans[is.okay]
     llvar <- log2(lvar)[is.okay]
     trend <- match.arg(trend)
