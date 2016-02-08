@@ -36,7 +36,7 @@ Alternatively, it can be set to the trend fitted to the cellular variances, whic
 
 Note that the test statistic is the (scaled) ratio of \code{total} over \code{null} for each gene.
 This may not be ideal when \code{null} is small, e.g., for high-abundance genes, where a high ratio/low p-value may not represent a large absolute increase in the variance.
-To avoid detecting irrelevant genes, users can modify \code{null} by adding a minimum threshold.
+To avoid detecting irrelevant genes, users can modify \code{null} by adding a minimum threshold of 0.5 to 1.
 This will favour significant genes that also have a large absolute increase in the variance.
 }
 
@@ -59,8 +59,18 @@ null <- 100/runif(1000, 50, 2000)
 df <- 30
 total <- null * rchisq(length(null), df=df)/df
 
+# Direct test:
 out <- testVar(total, null, df=df)
 hist(out)
+
+# Rejecting the null:
+alt <- null * 5 * rchisq(length(null), df=df)/df
+out <- testVar(alt, null, df=df)
+plot(alt[order(out)]-null)
+
+# Focusing on genes that have high absolute increases in variability:
+out <- testVar(alt, null+0.5, df=df)
+plot(alt[order(out)]-null)
 }
 
 \keyword{variance}
