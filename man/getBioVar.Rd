@@ -7,9 +7,9 @@
 
 \usage{
 fitTechTrend(counts, size.factor=NULL, trend=c("poly", "loess"), 
-    df=5, span=0.3, prior.count=1) 
+    df=5, span=0.3, prior.count=1, design=NULL) 
 
-getBioVar(counts, tech.fit, size.factor=NULL)
+getBioVar(counts, tech.fit, size.factor=NULL, design=NULL)
 }
 
 \arguments{
@@ -22,6 +22,7 @@ For \code{fitTechTrend}, these counts should be for spike-in genes, while for \c
 \item{df}{An integer scalar specifying the degrees of freedom for polynomial fitting.}
 \item{span}{An numeric scalar specifying the span for loess fitting.}
 \item{prior.count}{A numeric scalar specifying the prior count to add before log-transformation.}
+\item{design}{A numeric matrix describing the systematic factors contributing to expression in each cell.}
 \item{tech.fit}{A list containing the output of \code{fitTechTrend}.}
 }
 
@@ -40,6 +41,10 @@ The size factors used to normalize the cellular counts should be the same as tho
 This ensures that the average abundances computed for the former are comparable to the abundance-dependent trend fitted to the variances of the latter.
 In \code{getBioVar}, \code{size.factor} is automatically taken from \code{tech.fit}.
 Users should only set it manually if, e.g., only subset of cells are used in \code{counts} and \code{tech.fit$size.factor} needs to be subsetted accordingly.
+
+The design matrix can be set in \code{fitTechTrend} if there are factors that should be blocked, e.g., batch effects, known (and uninteresting) clusters.
+Otherwise, it will default to an all-ones matrix, effectively treating all cells as part of the same group.
+The same design matrix will be used in \code{getBioVar} unless otherwise specified.
 }
 
 \section{Additional notes}{

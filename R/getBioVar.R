@@ -1,16 +1,17 @@
-fitTechTrend <- function(counts, size.factor=NULL, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1) 
+fitTechTrend <- function(counts, size.factor=NULL, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1, design=NULL) 
 # Fits a polynomial trend to the technical variability of the log-CPMs,
 # against their abundance (i.e., average log-CPM).
 # 
 # written by Aaron Lun
 # created 21 January 2016
-# last modified 27 January 2016
+# last modified 9 February 2016
 {
     counts <- as.matrix(counts)
     if (is.null(size.factor)) { size.factor <- colSums(counts) } 
+    if (is.null(design)) { design <- as.matrix(rep(1, ncol(counts))) }
     adjc <- cpm.default(counts, lib.size=size.factor, prior.count=prior.count, log=TRUE)
     lmeans <- rowMeans(adjc)
-    lvar <- apply(adjc, 1, var)
+    lvar <- .estimateVariance(design, adjc)
 
     is.okay <- lvar > 1e-8
     kept.means <- lmeans[is.okay]
@@ -31,21 +32,28 @@ fitTechTrend <- function(counts, size.factor=NULL, trend=c("poly", "loess"), df=
         return(2^out)
     }
     return(list(mean=lmeans, var=lvar, trend=FUN, 
-                size.factor=size.factor, prior.count=prior.count))
+                size.factor=size.factor, prior.count=prior.count, design=design))
 }
 
-getBioVar <- function(counts, tech.fit, size.factor=NULL)
+getBioVar <- function(counts, tech.fit, size.factor=NULL, design=NULL)
 # Computes the biological variability of the log-CPMs by subtracting the
 # inferred technical variance from the total variance.
 #
 # written by Aaron Lun
 # created 21 January 2016 
+# last modified 9 February 2016
 {
     if (is.null(size.factor)) { size.factor <- tech.fit$size.factor }
+    if (is.null(design)) { design <- tech.fit$design }
     adjc <- cpm.default(counts, lib.size=size.factor, prior.count=tech.fit$prior.count, log=TRUE) 
     lmeans <- rowMeans(adjc)
-    lvar <- apply(adjc, 1, var)
+    lvar <- .estimateVariance(design, adjc)
     tech.var <- tech.fit$trend(lmeans)
     bio.var <- lvar - tech.var
     return(list(mean=lmeans, total=lvar, bio=bio.var, tech=tech.var))
+}
+
+.estimateVariance <- function(X, y) {
+    fit <- lm.fit(x=X, y=t(y))
+    return(colMeans(fit$effects[-seq_len(fit$rank),]^2))
 }
