@@ -70,6 +70,7 @@ In such cases, a loess curve is more robust to outlier variances that might be e
 \item{\code{trend}:}{A function that returns the fitted value of the trend at any mean log-CPM.}
 \item{\code{size.factor}:}{A numeric vector of the size factors used for normalization.}
 \item{\code{prior.count}:}{A numeric scalar of the prior count used.}
+\item{\code{design}:}{A numeric matrix, containing the design matrix that was used.}
 }
 
 \code{getBioVar} will also return a named list:
