@@ -57,3 +57,16 @@ getBioVar <- function(counts, tech.fit, size.factor=NULL, design=NULL)
     fit <- lm.fit(x=X, y=t(y))
     return(colMeans(fit$effects[-seq_len(fit$rank),]^2))
 }
+
+testVar <- function(total, null, df, design=NULL) 
+# Tests that total > null given variances estimated on 'df' degrees of freedom.
+# You can also give it the design matrix directly if you can't be bothered estimating 'df'.
+# Obviously there's an assumption of normality here, regarding the observations from which estimation was performed.
+#
+# written by Aaron Lun
+# created 9 February 2016    
+{
+    if (missing(df)) { df <- nrow(design) - qr(design)$rank }
+    pchisq(total/null*df, df=df, lower.tail=FALSE)
+}
+

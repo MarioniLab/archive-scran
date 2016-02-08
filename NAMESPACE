@@ -1,7 +1,7 @@
 useDynLib(scran)
 
 export(normalizeBySums, quickCluster,
-        DM, fitTechTrend, getBioVar,
+        DM, fitTechTrend, getBioVar, testVar,
         sandbag, cyclone)
 
 importFrom("dynamicTreeCut", cutreeDynamic)
