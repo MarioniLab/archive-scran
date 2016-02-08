@@ -1,4 +1,4 @@
-fitTechTrend <- function(spikes, size.factor=NULL, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1) 
+fitTechTrend <- function(counts, size.factor=NULL, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1) 
 # Fits a polynomial trend to the technical variability of the log-CPMs,
 # against their abundance (i.e., average log-CPM).
 # 
@@ -6,9 +6,9 @@ fitTechTrend <- function(spikes, size.factor=NULL, trend=c("poly", "loess"), df=
 # created 21 January 2016
 # last modified 27 January 2016
 {
-    spikes <- as.matrix(spikes)
-    if (is.null(size.factor)) { size.factor <- colSums(spikes) } 
-    adjc <- cpm.default(spikes, lib.size=size.factor, prior.count=prior.count, log=TRUE)
+    counts <- as.matrix(counts)
+    if (is.null(size.factor)) { size.factor <- colSums(counts) } 
+    adjc <- cpm.default(counts, lib.size=size.factor, prior.count=prior.count, log=TRUE)
     lmeans <- rowMeans(adjc)
     lvar <- apply(adjc, 1, var)
 

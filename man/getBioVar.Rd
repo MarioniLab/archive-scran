@@ -6,20 +6,22 @@
 \description{Compute the biological and technical components of the gene-specific variance in single-cell RNA-seq data.}
 
 \usage{
-fitTechTrend(spikes, size.factor=NULL, trend=c("poly", "loess"), 
+fitTechTrend(counts, size.factor=NULL, trend=c("poly", "loess"), 
     df=5, span=0.3, prior.count=1) 
 
 getBioVar(counts, tech.fit, size.factor=NULL)
 }
 
 \arguments{
-\item{spikes}{A numeric matrix of spike-in counts, where each column corresponds to a cell and each row corresponds to a spike-in gene.}
+\item{counts}{
+A numeric matrix of counts, where each column corresponds to a cell and each row corresponds to a gene.
+For \code{fitTechTrend}, these counts should be for spike-in genes, while for \code{getBioVar}, these should be for cellular genes.
+}
 \item{size.factor}{A numeric vector of size factors for all cells, defaults to the sum of spike-in counts for each cell.}
 \item{trend}{A string indicating whether the trend should be polynomial or loess-based.}
 \item{df}{An integer scalar specifying the degrees of freedom for polynomial fitting.}
 \item{span}{An numeric scalar specifying the span for loess fitting.}
 \item{prior.count}{A numeric scalar specifying the prior count to add before log-transformation.}
-\item{counts}{A numeric matrix of cellular counts, where each column corresponds to a cell and each row corresponds to a cellular gene.}
 \item{tech.fit}{A list containing the output of \code{fitTechTrend}.}
 }
 
