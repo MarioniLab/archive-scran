@@ -27,7 +27,10 @@ A design matrix, used to determine the degrees of freedom if \code{df} is missin
 \details{
 The null hypothesis states that the true variance for each gene is equal to \code{null}.
 Variance estimates should follow a scaled chi-squared distribution on \code{df} degrees of freedom, where the scaling factor is equal to \code{null} divided by \code{df}.
-This can be used to compute a p-value for \code{total} being greater than \code{null} (assuming that the original observations were normally distributed).
+This can be used to compute a p-value for \code{total} being greater than \code{null}.
+The assumption is that the original observations were normally distributed -- using log-CPMs tends to work reasonably well for count data.
+
+% Also protects against outliers, whereas using the CV2 (e.g., in Brennecke's test method) doesn't.
 
 The idea is to use this function to identify significantly highly variable genes.
 For example, the \code{null} vector can be set to the values of the trend fitted to the spike-in variances.
@@ -74,4 +77,10 @@ plot(alt[order(out)]-null)
 }
 
 \keyword{variance}
+
+\references{
+Law CW, Chen Y, Shi W and Smyth GK (2014).
+voom: precision weights unlock linear model analysis tools for RNA-seq read counts
+\emph{Genome Biol.} 15(2), R29. 
+}
 
