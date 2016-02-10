@@ -2,9 +2,11 @@ useDynLib(scran)
 
 export(normalizeBySums, quickCluster,
         DM, fitTechTrend, getBioVar, testVar,
-        sandbag, cyclone)
+        sandbag, cyclone,
+        buildNullRho, genePairRho)
 
 importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("zoo", zoo, rollapply)
 importFrom("edgeR", cpm.default)
 importFrom("stats", poly)
+import(BiocParallel)
