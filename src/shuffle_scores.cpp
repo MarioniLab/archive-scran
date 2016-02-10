@@ -50,6 +50,7 @@ SEXP shuffle_scores (SEXP ncells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP ma
         double curscore, newscore;
         int gene;
         int it, below, total;
+        Rx_random_seed my_seed;
 
         for (int cell=0; cell<nc; ++cell) {
             for (gene=0; gene<ng; ++gene) { reorder[gene+1]=gene; }
@@ -61,7 +62,7 @@ SEXP shuffle_scores (SEXP ncells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP ma
 
             below=total=0;
             for (it=0; it < nit; ++it) {
-                std::random_shuffle(reorder+1, reorder+ng+1);
+                Rx_shuffle(reorder+1, reorder+ng+1);
                 newscore=get_proportion(exp_ptrs[cell], reorder, npairs, minp, m1_ptr, m2_ptr);
                 if (!ISNA(newscore)) { 
                     if (newscore < curscore) { ++below; }

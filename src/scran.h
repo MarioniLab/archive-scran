@@ -14,4 +14,6 @@ SEXP shuffle_scores (SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 }
 
+#include "utils.hpp"
+
 #endif 
