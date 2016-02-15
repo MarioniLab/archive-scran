@@ -54,6 +54,7 @@ For \code{genePairRho}, a dataframe is returned with one row per gene pair and t
 \item{\code{rho}:}{A numeric field containing the approximate Spearman's rho.}
 \item{\code{p.value, FDR}:}{Numeric fields containing the permutation p-value and its BH-corrected equivalent.}
 } 
+Rows are sorted by increasing \code{p.value} and, if tied, decreasing absolute size of \code{rho}.
 }
 
 \author{

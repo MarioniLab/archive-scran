@@ -67,6 +67,9 @@ genePairRho <- function(exprs, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE
             gene2 <- newnames[gene2]
         }
     }
-    return(data.frame(gene1=gene1, gene2=gene2, rho=all.rho, p.value=all.pval, 
-                      FDR=p.adjust(all.pval, method="BH"), stringsAsFactors=FALSE))
+
+    out <- data.frame(gene1=gene1, gene2=gene2, rho=all.rho, p.value=all.pval, 
+                      FDR=p.adjust(all.pval, method="BH"), stringsAsFactors=FALSE)
+    out <- out[order(out$p.value, -abs(out$rho)),]
+    return(out)
 }
