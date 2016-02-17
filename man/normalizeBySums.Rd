@@ -87,7 +87,7 @@ set.seed(100)
 popsize <- 800
 ngenes <- 10000
 all.facs <- 2^rnorm(popsize, sd=0.5)
-counts <- matrix(rnbinom(ngenes*popsize, mu=all.facs, size=1), ncol=popsize, byrow=TRUE)
+counts <- matrix(rnbinom(ngenes*popsize, mu=all.facs*10, size=1), ncol=popsize, byrow=TRUE)
 out.facs <- normalizeBySums(counts)
 }
 

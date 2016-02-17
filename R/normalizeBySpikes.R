@@ -7,6 +7,7 @@ setMethod("normalizeBySpikes", "SummarizedExperiment0", function(x)
 # created 17 February 2016
 {
     if (is.null(x$spikes)) { stop("no 'spikes' are present in 'colData'") }
-    sapply(x$spikes, FUN=sum)
+    out <- log(sapply(x$spikes, FUN=sum))
+    exp(out - mean(out))
 })
 
