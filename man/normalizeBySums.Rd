@@ -1,24 +1,28 @@
 \name{Deconvolution Methods}
-\alias{quickCluster}
 \alias{normalizeBySums}
+\alias{normalizeBySums,ANY-method}
+\alias{normalizeBySums,SummarizedExperiment0-method}
 
 \title{Normalization by deconvolution}
 \description{Methods to normalize single-cell RNA-seq data by deconvolving size factors from cell pools.}
 
 \usage{
-normalizeBySums(counts, sizes=c(20, 40, 60, 80, 100), 
-    clusters=NULL, ref.clust=NULL, positive=FALSE) 
-quickCluster(counts, min.size=200, ...)
+\S4method{normalizeBySums}{ANY}(x, sizes=c(20, 40, 60, 80, 100), 
+    clusters=NULL, ref.clust=NULL, positive=FALSE)
+\S4method{normalizeBySums}{SummarizedExperiment0}(x, ..., i="counts")
 }
 
 \arguments{
-\item{counts}{A numeric count matrix where rows are genes and columns are cells.}
+\item{x}{
+    A numeric count matrix where rows are genes and columns are cells.
+    Alternatively, a SummarizedExperiment0 object containing such a matrix.
+}
 \item{sizes}{A numeric vector of pool sizes, i.e., number of cells per pool.}
 \item{clusters}{An optional factor specifying which cells belong to which cluster, for deconvolution within clusters.}
 \item{ref.clust}{A level of \code{clusters} to be used as the reference cluster for inter-cluster normalization.}
 \item{positive}{A logical scalar indicating whether linear inverse models should be used to enforce positive estimates.}
-\item{min.size}{An integer scalar specifying the minimum size of each cluster.}
-\item{...}{Additional arguments to be passed to \code{\link{cutreeDynamic}}.}
+\item{...}{Additional arguments to pass to \code{normalizeBySums,ANY-method}.}
+\item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
 }
 
 \section{Overview of the deconvolution method}{
@@ -42,12 +46,7 @@ In general, it is more appropriate to pool more similar cells to avoid violating
 This can be done by specifying the \code{clusters} argument where cells in each cluster have similar expression profiles.
 Deconvolution is subsequently applied on the cells within each cluster.
 Each cluster should contain a sufficient number of cells for pooling -- twice the maximum value of \code{sizes} is recommended.
-
-The \code{quickCluster} function provides a correlation-based approach to rapidly define clusters of a minimum size \code{min.size}.
-A distance matrix is constructed using Spearman's correlation on the counts between cells.
-Hierarchical clustering is performed and a dynamic tree cut is used to define clusters of cells.
-A correlation-based approach is preferred here as it is invariant to scaling normalization.
-This avoids circularity between normalization and clustering.
+A convenince function \code{\link{quickCluster}} is provided for rapid clustering based on Spearman's rank correlation.
 
 Size factors computed within each cluster must be rescaled for comparison between clusters.
 This is done by normalizing between clusters to identify the rescaling factor.
@@ -57,9 +56,9 @@ This can be specified using \code{ref.clust} if there is prior knowledge about w
 }
 
 \section{Additional details about pooling and deconvolution}{
-Within each cluster (if specified; otherwise, the entire data set is defined as a cluster), the library size is used as a rough proxy for cell similarity.
-Cells are sorted by increasing library size and a sliding window is applied to this ordering.
-Each location of the window defines a cell pool with similar library sizes -- and hopefully, similar expression profiles that are more appropriate for pooling.
+Within each cluster (if not specified, all cells are put into a single cluster), cells are sorted by increasing library size and a sliding window is applied to this ordering.
+Each location of the window defines a cell pool with similar library sizes.
+This avoids inflated estimation errors for very small cells when they are pooled with very large cells.
 Sliding the window will construct a linear system.
 This is repeated with all window sizes in \code{sizes} to obtain an over-determined system that can be solved with methods like the QR decomposition.
 
@@ -72,10 +71,7 @@ Such occurrences are unavoidable -- rather, the aim is to prevent negative value
 }
 
 \value{
-For \code{normalizeBySums}, a numeric vector of size factors for all cells in \code{counts} is returned.
-
-For \code{quickCluster}, a vector of cluster identities for each cell in \code{counts}.
-\code{NA} values are used to indicate cells that are not assigned to any cluster.
+A numeric vector of size factors for all cells in \code{x} is returned.
 }
 
 \author{
@@ -83,7 +79,7 @@ Aaron Lun and Karsten Bach
 }
 
 \seealso{
-\code{\link{cutreeDynamic}}
+\code{\link{quickCluster}}
 }
 
 \examples{
@@ -93,11 +89,6 @@ ngenes <- 10000
 all.facs <- 2^rnorm(popsize, sd=0.5)
 counts <- matrix(rnbinom(ngenes*popsize, mu=all.facs, size=1), ncol=popsize, byrow=TRUE)
 out.facs <- normalizeBySums(counts)
-
-# The joys of clustering:
-clusters <- quickCluster(counts)
-out.facs2 <- normalizeBySums(counts, clusters=clusters)
-out.facs3 <- normalizeBySums(counts, clusters=clusters, ref.clust="2")
 }
 
 \keyword{normalization}

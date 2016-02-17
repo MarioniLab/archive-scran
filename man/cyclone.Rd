@@ -1,40 +1,33 @@
 \name{cyclone}
 \alias{cyclone}
-\alias{sandbag}
+\alias{cyclone,ANY-method}
+\alias{cyclone,SummarizedExperiment0-method}
 
 \title{Cell cycle phase classification}
 \description{Classify single cells into their cell cycle phases based on gene expression data.}
 
 \usage{
-sandbag(is.G1, is.S, is.G2M, training.data, 
-    gene.names=rownames(training.data), fraction=0.5)
-
-cyclone(test.data, pairs, gene.names=rownames(test.data), 
-    iter=1000, min.iter=100, min.pairs=50, verbose=FALSE)
+\S4method{cyclone}{ANY}(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, verbose=FALSE)
+\S4method{cyclone}{SummarizedExperiment0}(x, ..., i="counts")
 }
 
 \arguments{
-\item{is.GI, is.S, is.G2M}{A vector indicating which cells are in each phase of the cell cycle.}
-\item{training.data, test.data}{A numeric matrix of gene expression values where rows are genes and columns are cells.}
-\item{pairs}{A list of data.frames produced by \code{sandbag}.}
-\item{gene.names}{A character vector of gene names.}
-\item{fraction}{A numeric scalar specifying the minimum fraction to define a marker gene pair.}
+\item{x}{
+    A numeric matrix of gene expression values where rows are genes and columns are cells.
+    Alternatively, a SummarizedExperiment0 object containing such a matrix.
+}
+\item{pairs}{A list of data.frames produced by \code{\link{sandbag}}, containing pairs of marker genes.}
 \item{iter}{An integer scalar specifying the number of iterations for random sampling to obtain a cycle score.}
 \item{min.iter}{An integer scalar specifying the minimum number of iterations for score estimation.}
 \item{min.pairs}{An integer scalar specifying the minimum number of pairs for cycle estimation.}
 \item{verbose}{A logical scalar specifying whether diagnostics should be printed to screen.}
+\item{...}{Additional arguments to pass to \code{cyclone,ANY-method}.}
+\item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
 }
 
 \details{
-This function implements the pair-based prediction method described by Scialdone et al. (2015).
-In the \code{sandbag} function, pairs of genes (A, B) are identified from a training data set where in each pair,
-    the fraction of cells in phase G1 with expression of A > B (based on expression values in \code{training.data}) 
-    and the fraction with B > A in each other phase exceeds \code{fraction}.
-These pairs are defined as the marker pairs for G1.
-This is repeated for each phase to obtain a separate marker pair set.
-Pre-defined sets of marker pairs are provided for mouse (see Examples).
-
-Phase assignment is then performed using the \code{cyclone} function.
+This function implements the classification step of the pair-based prediction method described by Scialdone et al. (2015).
+Pairs of marker genes are trained with \code{\link{sandbag}}, where the sign of the relative expression between gene in each pair changes across phases.
 For each phase and each cell, the function calculates the proportion of all marker pairs where the expression of the first gene is greater than the second
     (pairs with the same expression are ignored).
 A distribution of proportions is constructed by shuffling the expression values within the cell and recalculating the proportion at each iteration.
@@ -60,10 +53,7 @@ Cells can be assigned to S phase based on the S phase score, but a more reliable
 }
 
 \value{
-For \code{sandbag}, a named list of data.frames. 
-Each data frame corresponds to a cell cycle phase and contains the names of the genes in each marker pair.
-
-For \code{cyclone}, a list of two data.frames -- 
+A list of two data frames is returned -- 
     \code{scores}, containing the phase scores for each phase and cell; 
     and \code{normalized.scores}, containing the row-normalized scores (i.e., where the row sum for each cell is equal to 1).
 }
@@ -73,20 +63,14 @@ Antonio Scialdone,
 with modifications by Aaron Lun
 }
 
+\seealso{
+\code{\link{sandbag}}
+}
+
 \examples{
-ncells <- 50
-ngenes <- 20
-training <- matrix(rnorm(ncells*ngenes), ncol=ncells)
-rownames(training) <- paste0("X", seq_len(ngenes))
+example(sandbag)
 
-is.G1 <- 1:20
-is.S <- 21:30
-is.G2M <- 31:50
-
-# Training
-out <- sandbag(is.G1, is.S, is.G2M, training) 
-
-# Classifying (obviously, you would use something else in real data)
+# Classifying (note: test.data!=training.data in real cases)
 test <- training 
 assignments <- cyclone(test, out)
 
@@ -96,10 +80,6 @@ col[is.G1] <- "red"
 col[is.G2M] <- "blue"
 col[is.S] <- "darkgreen"
 plot(assignments$score$G1, assignments$score$G2M, col=col, pch=16)
-
-# Getting pre-trained marker sets
-mm.pairs <- readRDS(system.file("exdata", "mouse_cycle_markers.rds", package="scran"))
-# hs.pairs <- readRDS(system.file("exdata", "human_cycle_markers.rds", package="scran"))
 }
 
 \references{
