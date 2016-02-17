@@ -6,7 +6,8 @@ countsToSE <- function(counts, spikes)
 # created 17 February 2016
 {
     libs <- colSums(counts)
-    colData <- DataFrame(lib.size=libs, size.factor=libs)
+    llibs <- log(libs)
+    colData <- DataFrame(lib.size=libs, size.factor=exp(llibs - mean(llibs)))
     if (!missing(spikes)) {
         colData <- DataFrame(colData, .breakToList(spikes, "spikes"))
     } 

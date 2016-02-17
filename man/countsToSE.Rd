@@ -15,7 +15,7 @@ countsToSE(counts, spikes)
 
 \details{
 This function constructs a SummarizedExperiment0 object with a read count matrix for endogenous genes as the assay.
-Library sizes and size factors are included in the \code{colData}.
+Library sizes and size factors are included in the \code{colData} (by default, the mean-centered library sizes are used as the size factors).
 If spike-in counts are supplied, this are also placed in the \code{colData}.
 They are not stored with the counts for the endogenous genes, to avoid having to continually remove spike-in transcripts from the results for downstream analyses.
 }
