@@ -1,5 +1,7 @@
 \name{genePairRho}
 \alias{genePairRho}
+\alias{genePairRho,ANY-method}
+\alias{genePairRho,SummarizedExperiment0-method}
 \alias{buildNullRho}
 
 \title{Test for significant correlations}
@@ -7,20 +9,29 @@
 
 \usage{
 buildNullRho(ncells, iters=1e6) 
-genePairRho(exprs, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE)
+
+\S4method{genePairRho}{ANY}(x, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE)
+\S4method{genePairRho}{SummarizedExperiment0}(x, ..., i="exprs")
 }
 
 \arguments{
 \item{ncells}{An integer scalar indicating the number of cells in the data set.}
 \item{iters}{An integer scalar specifying the number of observations in the null distribution.}
-\item{exprs}{A numeric matrix of (normalized) expression values, where rows are genes and columns are cells.}
+\item{x}{
+    A numeric matrix of normalized expression values, where rows are genes and columns are cells.
+    Alternatively, a SummarizedExperiment0 object containing such a matrix.
+}
 \item{null.dist}{A numeric vector of rho values under the null hypothesis.}
 \item{BPPARAM}{A BiocParallelParam object to use in \code{bplapply} for parallel processing.}
-\item{use.names}{A logical scalar specifying whether the row names of \code{exprs} should be used in the output.}
+\item{use.names}{
+    A logical scalar specifying whether the row names of \code{exprs} should be used in the output.
+    Alternatively, a character vector containing the names to use.
+}
+\item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
 }
 
 \details{
-The aim of the \code{genePairRho} function is to identify significant correlations between all pairs of genes in \code{exprs}.
+The aim of the \code{genePairRho} function is to identify significant correlations between all pairs of genes in \code{x}.
 This allows prioritization of genes that are driving systematic substructure in the data set.
 By definition, such genes should be correlated as they are behaving in the same manner across cells.
 In contrast, genes driven by random noise should not exhibit any correlations with other genes.
@@ -35,11 +46,11 @@ Note that the approximation is that any tied values are randomly assigned untied
 This means that a common empirical distribution can be used for all gene pairs, rather than having to do new permutations for every pair to account for the different pattern of ties.
 Generally, this modification has little effect on the results - some correlations may end up being spuriously large, but this is handled by the error control machinery.
 
-Users should select their genes in \code{exprs} with some care.
+Users should select their genes in \code{x} with some care.
 Using a top set of 100-200 highly variable genes (HVGs) is recommended.
 This will focus on genes contributing to cell-to-cell heterogeneity (and thus more likely to be involved in driving substructure).
 There is no need to account for HVG pre-selection in multiple testing, because rank correlations are unaffected by the variance.
-For more genes, set \code{BPPARAM} to use more workers.
+For more genes, set \code{BPPARAM} to use more workers and reduce computational time.
 
 For \code{genePairRho}, a pre-computed empirical distribution can be supplied as \code{null.dist} if available.
 Otherwise, it will be automatically constructed via \code{buildNullRho} with \code{ncells} set to the number of columns in \code{exprs}.
@@ -50,7 +61,10 @@ For \code{buildNullRho}, a numeric vector of length \code{iters} is returned con
 
 For \code{genePairRho}, a dataframe is returned with one row per gene pair and the following fields:
 \describe{
-\item{\code{gene1, gene2}:}{Character or integer fields (depending on \code{use.names}) specifying the genes in the pair.}
+\item{\code{gene1, gene2}:}{
+    Character or integer fields specifying the genes in the pair.
+    If \code{use.names=FALSE}, integer row indices are returned, otherwise gene names are returned.
+}
 \item{\code{rho}:}{A numeric field containing the approximate Spearman's rho.}
 \item{\code{p.value, FDR}:}{Numeric fields containing the permutation p-value and its BH-corrected equivalent.}
 } 

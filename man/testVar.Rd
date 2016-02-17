@@ -1,6 +1,5 @@
 \name{testVar}
 \alias{testVar}
-\alias{fitTechTrend}
 
 \title{Test for significantly large variances}
 \description{Test for whether the total variance exceeds that expected under some null hypothesis, for sample variances estimated from normally distributed observations.}
