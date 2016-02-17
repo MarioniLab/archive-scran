@@ -27,6 +27,7 @@ buildNullRho(ncells, iters=1e6)
     A logical scalar specifying whether the row names of \code{exprs} should be used in the output.
     Alternatively, a character vector containing the names to use.
 }
+\item{...}{Additional arguments to pass to \code{genePairRho,ANY-method}.}
 \item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
 }
 

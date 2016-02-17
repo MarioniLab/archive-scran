@@ -14,9 +14,12 @@ exportMethods(
 )
 
 importFrom("dynamicTreeCut", cutreeDynamic)
-importFrom("zoo", zoo, rollapply)
+importFrom("zoo", zoo, rollapply, index)
 importFrom("edgeR", cpm.default)
 importFrom("stats", poly)
+importFrom("BiocGenerics", normalize)
+
 import(BiocParallel)
 import(SummarizedExperiment)
-importFrom("BiocGenerics", normalize)
+import(methods, S4Vectors)
+

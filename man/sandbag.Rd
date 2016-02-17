@@ -16,7 +16,7 @@
     A numeric matrix of gene expression values where rows are genes and columns are cells.
     Alternatively, a SummarizedExperiment0 object containing such a matrix.
 }
-\item{is.GI, is.S, is.G2M}{A vector indicating which cells are in each phase of the cell cycle.}
+\item{is.G1, is.S, is.G2M}{A vector indicating which cells are in each phase of the cell cycle.}
 \item{gene.names}{A character vector of gene names.}
 \item{fraction}{A numeric scalar specifying the minimum fraction to define a marker gene pair.}
 \item{...}{Additional arguments to pass to \code{sandbag,ANY-method}.}
@@ -56,9 +56,7 @@ rownames(training) <- paste0("X", seq_len(ngenes))
 is.G1 <- 1:20
 is.S <- 21:30
 is.G2M <- 31:50
-
-# Training
-out <- sandbag(is.G1, is.S, is.G2M, training) 
+out <- sandbag(training, is.G1, is.S, is.G2M) 
 
 # Getting pre-trained marker sets
 mm.pairs <- readRDS(system.file("exdata", "mouse_cycle_markers.rds", package="scran"))

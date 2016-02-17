@@ -1,8 +1,8 @@
-\name{Deconvolution Methods}
+\name{Spike-in normalization}
 \alias{normalizeBySpikes}
 \alias{normalizeBySpikes,SummarizedExperiment0-method}
 
-\title{Normalization by spikes}
+\title{Normalization with spike-in counts}
 \description{Compute size factors based on the coverage of spike-in transcripts.}
 
 \usage{

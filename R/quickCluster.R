@@ -29,5 +29,5 @@ setMethod("quickCluster", "ANY", function(x, min.size=200, ...)
     return(clusters)
 })
 
-setMethod("quickCluster", "SummarizedExperiment0", function(x, ..., i="counts") { .quickCluster(assay(x, i=i), ...) } )
+setMethod("quickCluster", "SummarizedExperiment0", function(x, ..., i="counts") { quickCluster(assay(x, i=i), ...) } )
 

@@ -1,4 +1,4 @@
-\name{Deconvolution Methods}
+\name{Quick clustering}
 \alias{quickCluster}
 \alias{quickCluster,ANY-method}
 \alias{quickCluster,SummarizedExperiment0-method}

@@ -18,6 +18,6 @@ SEXP compute_rho(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 }
 
-#include "utils.hpp"
+#include "utils.h"
 
 #endif 

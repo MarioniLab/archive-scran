@@ -21,10 +21,10 @@ setMethod("normalizeBySums", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), cl
 # created 23 November 2015
 # last modified 1 December 2015
 {
-    ncells <- ncol(counts)
+    ncells <- ncol(x)
     if (!is.null(clusters)) {
         if (ncells!=length(clusters)) { 
-            stop("'counts' ncols is not equal to 'clusters' length")
+            stop("'x' ncols is not equal to 'clusters' length")
         }
         is.okay <- !is.na(clusters)
         indices <- split(which(is.okay), clusters[is.okay])
@@ -39,8 +39,8 @@ setMethod("normalizeBySums", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), cl
     } 
 
     # Computing the necessary statistics.
-    lib.sizes <- colSums(counts)
-    exprs <- t(t(counts)/lib.sizes)
+    lib.sizes <- colSums(x)
+    exprs <- t(t(x)/lib.sizes)
     clust.nf <- clust.profile <- clust.libsize <- list()
 
     # Computing normalization factors within each cluster first.

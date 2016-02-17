@@ -14,7 +14,7 @@ DM(mean, cv2, win.size=50)
 \item{win.size}{An integer scalar specifying the window size for median-based smoothing.}
 }
 
-\description{
+\details{
 This function will compute the distance-to-median (DM) statistic described by Kolodziejczyk et al. (2015).
 Briefly, a median-based trend is fitted to the log-transformed \code{cv2} against the log-transformed \code{mean}.
 The DM is defined as the residual from the trend for each gene.

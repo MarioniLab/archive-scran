@@ -1,7 +1,7 @@
 \name{decomposeVar}
 \alias{decomposeVar}
 \alias{decomposeVar,ANY,list-method}
-\alias{decomposeVar,ANY,SummarizedExperiment0-method}
+\alias{decomposeVar,SummarizedExperiment0,list-method}
 
 \title{Decompose the gene-level variance}
 \description{Decompose the gene-specific variance into biological and technical components for single-cell RNA-seq data.}

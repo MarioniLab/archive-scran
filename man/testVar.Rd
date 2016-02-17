@@ -47,8 +47,8 @@ A numeric vector of p-values for all genes.
 }
 
 \seealso{
-\code{\link{getBioVar}},
-\code{\link{fitTechTrend}}
+\code{\link{trendVar}},
+\code{\link{decomposeVar}}
 }
 
 \author{

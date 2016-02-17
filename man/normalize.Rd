@@ -15,6 +15,7 @@
 \item{size.factor}{A numeric vector of size factors.}
 \item{log}{A logical scalar specifying whether the expression should be log-transformed.}
 \item{prior.count}{A numeric scalar indicating the prior count to add prior to log-transformation, to avoid undefined values from zero counts.}
+\item{...}{Additional arguments to pass to \code{normalize,ANY-method}.}
 }
 
 \details{

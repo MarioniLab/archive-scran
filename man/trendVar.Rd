@@ -1,5 +1,7 @@
 \name{trendVar}
 \alias{trendVar}
+\alias{trendVar,ANY-method}
+\alias{trendVar,SummarizedExperiment0-method}
 
 \title{Get the biological variability}
 \description{Compute the biological and technical components of the gene-specific variance in single-cell RNA-seq data.}
@@ -14,7 +16,6 @@
     A numeric matrix of normalized expression values, where each column corresponds to a cell and each row corresponds to a spike-in transcript.
     Alternatively, a SummarizedExperiment0 object that contains such values.
 }
-\item{size.factor}{A numeric vector of size factors for all cells, defaults to the sum of spike-in counts for each cell.}
 \item{trend}{A string indicating whether the trend should be polynomial or loess-based.}
 \item{df}{An integer scalar specifying the degrees of freedom for polynomial fitting.}
 \item{span}{An numeric scalar specifying the span for loess fitting.}
