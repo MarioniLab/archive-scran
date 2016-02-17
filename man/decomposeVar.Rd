@@ -40,11 +40,12 @@ This also means that the computed variance will include that of the cell size ac
 This will increase the biological component but should not affect the ranking, as the cell size component of the variance should be the same for each gene.
 
 The design matrix can be set if there are factors that should be blocked, e.g., batch effects, known (and uninteresting) clusters.
-Otherwise, it will be extracted from \code{fit$design}, assuming that the same cells were used to fit the trend.
+If \code{NA}, it will be set to an all-ones matrix, i.e., all cells are replicates.
+If \code{NULL}, it will be extracted from \code{fit$design}, assuming that the same cells were used to fit the trend.
 }
 
 \value{
-A named list is returned, containing:
+A data frame is returned, containing:
 \describe{
 \item{\code{mean}:}{A numeric vector of mean log-CPMs for all cellular genes.}
 \item{\code{total}:}{A numeric vector of the variances of log-CPMs for all cellular genes.}

@@ -10,6 +10,7 @@ setMethod("decomposeVar", c("ANY", "list"), function(x, fit, design=NULL)
 {
     x <- as.matrix(x)
     if (is.null(design)) { design <- fit$design }
+    else if (is.na(design)) { design <- as.matrix(rep(1, ncol(x))) }
     lmeans <- rowMeans(x)
     lvar <- .estimateVariance(design, x)
     tech.var <- fit$trend(lmeans)
