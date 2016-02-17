@@ -12,7 +12,7 @@ countsToSE <- function(counts, spikes)
         colData <- DataFrame(colData, .breakToList(spikes, "spikes"))
     } 
 
-    out <- SummarizedExperiment(List(counts=counts), colData=colData)
+    out <- SummarizedExperiment(List(counts=as.matrix(counts)), colData=colData)
     return(out)
 }
 
