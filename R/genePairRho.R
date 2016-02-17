@@ -12,13 +12,16 @@ buildNullRho <- function(ncells, iters=1e6)
     return(out)  
 }
 
-genePairRho <- function(exprs, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE)
+setGeneric("genePairRho", function(x, ...) { standardGeneric("genePairRho") })
+
+setMethod("genePairRho", "ANY", function(x, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE)
 # This calculates a (modified) Spearman's rho for each pair of genes.
 #
 # written by Aaron Lun
-# created 10 February 2016    
+# created 10 February 2016
+# last modified 17 February 2016
 {
-    exprs <- as.matrix(exprs)
+    exprs <- as.matrix(x)
     ncells <- ncol(exprs)
     if (is.null(null.dist)) { 
         null.dist <- buildNullRho(ncells)
@@ -60,16 +63,29 @@ genePairRho <- function(exprs, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE
     all.rho <- unlist(all.rho)
 
     # Returning some useful output
-    if (use.names) {
-        newnames <- rownames(exprs)
-        if (!is.null(newnames)) {
-            gene1 <- newnames[gene1]
-            gene2 <- newnames[gene2]
+    newnames <- NULL
+    if (is.logical(use.names)) {
+        if (use.names) {
+            newnames <- rownames(exprs)
         }
+    } else if (is.character(use.names)) {
+        if (length(use.names)!=nrow(exprs)) {
+            stop("length of 'use.names' does not match 'exprs' nrow")
+        }
+        newnames <- use.names
+    }
+    if (!is.null(newnames)) {
+        gene1 <- newnames[gene1]
+        gene2 <- newnames[gene2]
     }
 
     out <- data.frame(gene1=gene1, gene2=gene2, rho=all.rho, p.value=all.pval, 
                       FDR=p.adjust(all.pval, method="BH"), stringsAsFactors=FALSE)
     out <- out[order(out$p.value, -abs(out$rho)),]
     return(out)
-}
+})
+
+setMethod("genePairRho", "SummarizedExperiment0", function(x, i="exprs", ...) {
+    genePairRho(assay(x, i=i), ...)             
+})
+

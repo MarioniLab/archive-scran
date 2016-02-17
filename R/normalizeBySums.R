@@ -1,6 +1,6 @@
+.generateSphere <- function(lib.sizes) 
 # This function sorts cells by their library sizes, and generates an ordering vector.
-
-.generateSphere <- function(lib.sizes) {
+{
     nlibs <- length(lib.sizes)
     o <- order(lib.sizes)
     even <- seq(2,nlibs,2)
@@ -9,7 +9,9 @@
     c(out, out)
 }
 
-normalizeBySums <- function(counts, sizes=c(20, 40, 60, 80, 100), clusters=NULL, ref.clust=NULL, positive=FALSE) 
+setGeneric("normalizeBySums", function(x, ...) { standardGeneric("normalizeBySums") })
+
+setMethod("normalizeBySums", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), clusters=NULL, ref.clust=NULL, positive=FALSE) 
 # This contains the function that performs normalization on the summed counts.
 # It also provides support for normalization within clusters, and then between
 # clusters to make things comparable. It can also switch to linear inverse models
@@ -133,5 +135,7 @@ normalizeBySums <- function(counts, sizes=c(20, 40, 60, 80, 100), clusters=NULL,
     gm <- exp(mean(log(final.sf[is.pos])))
     final.sf <- final.sf/gm
     return(final.sf)
-}
+})
+
+setMethod("normalizeBySums", "SummarizedExperiment0", function(x, ..., i="counts") { normalizeBySums(assay(x, i=i), ...) })
 
