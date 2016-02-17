@@ -12,7 +12,7 @@
 \arguments{
 \item{x}{
     A numeric matrix of normalized expression values, where each column corresponds to a cell and each row corresponds to a spike-in transcript.
-    Alternatively, a SummarizedExperiment0 object that contains such values in \code{colData(x)$norm.spikes}.
+    Alternatively, a SummarizedExperiment0 object that contains such values.
 }
 \item{size.factor}{A numeric vector of size factors for all cells, defaults to the sum of spike-in counts for each cell.}
 \item{trend}{A string indicating whether the trend should be polynomial or loess-based.}
@@ -45,7 +45,8 @@ By default, a polynomial trend with \code{df} degrees of freedom is fitted to th
 Note that this method is rather dependent on the quality of the spike-ins -- the fit will obviously be poor if the coverage of all spike-ins is low.
 In some data sets, a loess curve may yield better results, though this may require some fiddling with the \code{span}.
 
-When spike-ins are not available, \code{trendVar} can also be applied directly to the counts for endogenous genes by setting \code{use.spikes=FALSE}.
+When spike-ins are not available, \code{trendVar} can also be applied directly to the counts for endogenous genes by setting \code{use.spikes=FALSE} 
+    (or by manually supplying a matrix of normalized expression for endogenous genes, for \code{trendVar,ANY-method}).
 In this case, the trend is fitted to variances for endogenous genes (computed from assay \code{i}) and represents the uninteresting mean-variance relationship.
 Subtracting the trend from the variance of each gene will eliminate the mean-variance dependency, yielding a residual that can be ranked to identify highly variable genes. 
 A loess curve is recommended here as it is more robust to a subset of genes with very large or very small variances.
