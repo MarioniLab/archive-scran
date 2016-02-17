@@ -17,23 +17,11 @@ setMethod("decomposeVar", c("ANY", "list"), function(x, fit, design=NULL)
     return(data.frame(mean=lmeans, total=lvar, bio=bio.var, tech=tech.var))
 })
 
-setMethod("decomposeVar", c("SummarizedExperiment0", "list"), function(x, fit, ..., i="exprs", use.spike=FALSE) {
-    if (!use.spike) {
-        x <- x[!mcols(x)$spike,]
-    }
+setMethod("decomposeVar", c("SummarizedExperiment0", "list"), function(x, fit, ..., i="exprs") {
     if (is.null(fit$assay)) {
         fit$assay <- i
     }
-    out <- decomposeVar(assay(x, i=fit$assay), ...)
-
-    if (!use.spike) {
-        all.empty <- rep(NA_real_, nrow(x))
-        out <- lapply(out, FUN=function(y) { 
-            all.empty[!mcols(x)$spike] <- y
-            all.empty
-        })
-        out <- as.data.frame(out)
-    }
+    out <- decomposeVar(assay(x, i=fit$assay), fit, ...)
     return(out)   
 })
 

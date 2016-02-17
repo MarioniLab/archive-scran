@@ -85,7 +85,7 @@ setMethod("genePairRho", "ANY", function(x, null.dist=NULL, BPPARAM=bpparam(), u
     return(out)
 })
 
-setMethod("genePairRho", "SummarizedExperiment0", function(x, i="exprs", ...) {
+setMethod("genePairRho", "SummarizedExperiment0", function(x, ..., i="exprs") {
     genePairRho(assay(x, i=i), ...)             
 })
 

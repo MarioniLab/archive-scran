@@ -34,11 +34,14 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
     return(list(mean=lmeans, var=lvar, trend=FUN, prior.count=prior.count, design=design))
 })
 
-setMethod("trendVar", "SummarizedExperiment0", function(x, ..., i="exprs", spike.only=TRUE) {
-    if (spike.only) {
-        x <- x[mcols(x)$spike,]
+setMethod("trendVar", "SummarizedExperiment0", function(x, ..., use.spikes=TRUE, i="exprs") {
+    if (use.spikes) {
+        if (is.null(x$norm.spikes)) { stop("no 'norm.spikes' are present in 'colData'") }
+        cur.assay <- do.call(cbind, x$norm.spikes)
+    } else {
+        cur.assay <- assay(x, i=i)
     }
-    out <- fitTechTrend(assay(x, i=i), ...)
+    out <- trendVar(cur.assay, ...)
     out$assay <- i
     return(out)
 })
