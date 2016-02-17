@@ -23,7 +23,6 @@ setMethod("quickCluster", "ANY", function(x, min.size=200, ...)
 
     unassigned <- clusters==0L
     if (any(unassigned)) { 
-        clusters[unassigned] <- NA_integer_
         warning(paste(sum(unassigned), "cells were not assigned to any cluster"))
     }
     clusters <- factor(clusters)
