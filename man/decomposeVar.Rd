@@ -35,7 +35,7 @@ Unlike other methods for decomposition, this approach estimates the variance of 
 The log-transformation blunts the impact of large positive outliers and ensures that the HVG list is not dominated by outliers.
 Interpretation is not compromised -- HVGs will still be so, regardless of whether counts or log-CPMs are considered.
 
-By default, normalization should be performed based on the spike-in totals using \code{\link{normalizeBySpikes}} followed by \code{\link{normalize}}.
+Normalization should be performed based on the spike-in totals using \code{\link{normalizeBySpikes}} followed by \code{\link{normalize}}.
 This also means that the computed variance will include that of the cell size across the data set.
 This will increase the biological component but should not affect the ranking, as the cell size component of the variance should be the same for each gene.
 
@@ -76,7 +76,7 @@ cell.means <- 2^runif(ngenes, 2, 10)
 cell.disp <- 100/cell.means + 0.5
 cell.data <- matrix(rnbinom(ngenes*ncells, mu=cell.means, size=1/cell.disp), ncol=ncells)
 
-# Normalizing
+# Normalizing.
 y <- countsToSE(cell.data, spike.data)
 y$size.factor <- normalizeBySpikes(y)
 y <- normalize(y)
