@@ -55,12 +55,11 @@ Aaron Lun and Karsten Bach
 
 \examples{
 set.seed(100)
-popsize <- 800
+popsize <- 200
 ngenes <- 10000
 all.facs <- 2^rnorm(popsize, sd=0.5)
 counts <- matrix(rnbinom(ngenes*popsize, mu=all.facs, size=1), ncol=popsize, byrow=TRUE)
-clusters <- quickCluster(counts)
-clusters <- quickCluster(counts, min.size=100)
+clusters <- quickCluster(counts, min.size=20)
 }
 
 \keyword{normalization}
