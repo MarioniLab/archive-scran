@@ -1,6 +1,6 @@
 Package: scran
-Version: 0.1.2
-Date: 2016-02-17
+Version: 0.1.3
+Date: 2016-02-18
 Title: Single-Cell RNA-seq ANalysis
 Author: Aaron Lun <aaron.lun@cruk.cam.ac.uk>, Karsten Bach <kbach@ebi.ac.uk>
 Maintainer: Aaron Lun <aaron.lun@cruk.cam.ac.uk>
