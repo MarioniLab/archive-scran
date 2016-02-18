@@ -1,17 +1,17 @@
-\name{genePairRho}
-\alias{genePairRho}
-\alias{genePairRho,ANY-method}
-\alias{genePairRho,SummarizedExperiment0-method}
-\alias{buildNullRho}
+\name{correlatePairs}
+\alias{correlatePairs}
+\alias{correlatePairs,ANY-method}
+\alias{correlatePairs,SummarizedExperiment0-method}
+\alias{correlateNull}
 
 \title{Test for significant correlations}
 \description{Identify pairs of genes that are significantly correlated based on a modified Spearman's rho.}
 
 \usage{
-buildNullRho(ncells, iters=1e6) 
+correlateNull(ncells, iters=1e6) 
 
-\S4method{genePairRho}{ANY}(x, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE)
-\S4method{genePairRho}{SummarizedExperiment0}(x, ..., i="exprs")
+\S4method{correlatePairs}{ANY}(x, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE)
+\S4method{correlatePairs}{SummarizedExperiment0}(x, ..., i="exprs")
 }
 
 \arguments{
@@ -27,19 +27,19 @@ buildNullRho(ncells, iters=1e6)
     A logical scalar specifying whether the row names of \code{exprs} should be used in the output.
     Alternatively, a character vector containing the names to use.
 }
-\item{...}{Additional arguments to pass to \code{genePairRho,ANY-method}.}
+\item{...}{Additional arguments to pass to \code{correlatePairs,ANY-method}.}
 \item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
 }
 
 \details{
-The aim of the \code{genePairRho} function is to identify significant correlations between all pairs of genes in \code{x}.
+The aim of the \code{correlatePairs} function is to identify significant correlations between all pairs of genes in \code{x}.
 This allows prioritization of genes that are driving systematic substructure in the data set.
 By definition, such genes should be correlated as they are behaving in the same manner across cells.
 In contrast, genes driven by random noise should not exhibit any correlations with other genes.
 
 An approximation of Spearman's rho is used to quantify correlations robustly based on ranks.
 The significance of non-zero correlations is assessed using a permutation test.
-The \code{buildNullRho} function constructs an empirical null distribution for the correlations with \code{iters} observations.
+The \code{correlateNull} function constructs an empirical null distribution for the correlations with \code{iters} observations.
 The p-value for each gene pair is defined as the tail probability of this distribution at the observed correlation (with some adjustment to avoid zero p-values).
 Correction for multiple testing is done using the BH method.
 
@@ -53,14 +53,14 @@ This will focus on genes contributing to cell-to-cell heterogeneity (and thus mo
 There is no need to account for HVG pre-selection in multiple testing, because rank correlations are unaffected by the variance.
 For more genes, set \code{BPPARAM} to use more workers and reduce computational time.
 
-For \code{genePairRho}, a pre-computed empirical distribution can be supplied as \code{null.dist} if available.
-Otherwise, it will be automatically constructed via \code{buildNullRho} with \code{ncells} set to the number of columns in \code{exprs}.
+For \code{correlatePairs}, a pre-computed empirical distribution can be supplied as \code{null.dist} if available.
+Otherwise, it will be automatically constructed via \code{correlateNull} with \code{ncells} set to the number of columns in \code{exprs}.
 }
 
 \value{
-For \code{buildNullRho}, a numeric vector of length \code{iters} is returned containing the sorted correlations under the null hypothesis of no correlations.
+For \code{correlateNull}, a numeric vector of length \code{iters} is returned containing the sorted correlations under the null hypothesis of no correlations.
 
-For \code{genePairRho}, a dataframe is returned with one row per gene pair and the following fields:
+For \code{correlatePairs}, a dataframe is returned with one row per gene pair and the following fields:
 \describe{
 \item{\code{gene1, gene2}:}{
     Character or integer fields specifying the genes in the pair.
@@ -90,10 +90,10 @@ Permutation P-values should never be zero: calculating exact P-values when permu
 \examples{
 set.seed(0)
 ncells <- 100
-null.dist <- buildNullRho(ncells, iters=100000)
+null.dist <- correlateNull(ncells, iters=100000)
 
 exprs <- matrix(rpois(ncells*100, lambda=10), ncol=ncells)
-out <- genePairRho(exprs, null.dist=null.dist)
+out <- correlatePairs(exprs, null.dist=null.dist)
 hist(out$p.value) 
 }
 

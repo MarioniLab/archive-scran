@@ -3,14 +3,14 @@ useDynLib(scran)
 export(
     countsToSE, 
     DM, testVar,
-    buildNullRho
+    correlateNull,
 )
 
 exportMethods(
     normalizeBySums, quickCluster, normalizeBySpikes, normalize,
     trendVar, decomposeVar, 
     sandbag, cyclone,
-    genePairRho,
+    correlatePairs,
     spikes
 )
 

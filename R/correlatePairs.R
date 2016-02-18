@@ -1,4 +1,4 @@
-buildNullRho <- function(ncells, iters=1e6) 
+correlateNull <- function(ncells, iters=1e6) 
 # This builds a null distribution for the modified Spearman's rho.
 #
 # written by Aaron Lun
@@ -12,9 +12,9 @@ buildNullRho <- function(ncells, iters=1e6)
     return(out)  
 }
 
-setGeneric("genePairRho", function(x, ...) { standardGeneric("genePairRho") })
+setGeneric("correlatePairs", function(x, ...) { standardGeneric("correlatePairs") })
 
-setMethod("genePairRho", "ANY", function(x, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE)
+setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE)
 # This calculates a (modified) Spearman's rho for each pair of genes.
 #
 # written by Aaron Lun
@@ -24,7 +24,7 @@ setMethod("genePairRho", "ANY", function(x, null.dist=NULL, BPPARAM=bpparam(), u
     exprs <- as.matrix(x)
     ncells <- ncol(exprs)
     if (is.null(null.dist)) { 
-        null.dist <- buildNullRho(ncells)
+        null.dist <- correlateNull(ncells)
     } else {
         null.dist <- as.double(null.dist)
     }
@@ -85,7 +85,7 @@ setMethod("genePairRho", "ANY", function(x, null.dist=NULL, BPPARAM=bpparam(), u
     return(out)
 })
 
-setMethod("genePairRho", "SummarizedExperiment0", function(x, ..., i="exprs") {
-    genePairRho(assay(x, i=i), ...)             
+setMethod("correlatePairs", "SummarizedExperiment0", function(x, ..., i="exprs") {
+    correlatePairs(assay(x, i=i), ...)             
 })
 
