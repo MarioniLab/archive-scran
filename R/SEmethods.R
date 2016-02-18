@@ -41,7 +41,7 @@ setMethod("normalize", "SummarizedExperiment0", function(object, ...) {
     assay(object, "exprs") <- out
 
     if (!is.null(object$spikes)) {
-        cur.assay <- do.call(cbind, object$spikes)
+        cur.assay <- spikes(object, type="counts")
         out <- normalize(cur.assay, size.factor=object$size.factor, ...)
         colData(object) <- DataFrame(colData(object), .breakToList(out, "norm.spikes"))
     } 

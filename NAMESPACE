@@ -10,7 +10,8 @@ exportMethods(
     normalizeBySums, quickCluster, normalizeBySpikes, normalize,
     trendVar, decomposeVar, 
     sandbag, cyclone,
-    genePairRho
+    genePairRho,
+    spikes
 )
 
 importFrom("dynamicTreeCut", cutreeDynamic)

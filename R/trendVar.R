@@ -36,8 +36,7 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
 
 setMethod("trendVar", "SummarizedExperiment0", function(x, ..., use.spikes=TRUE, i="exprs") {
     if (use.spikes) {
-        if (is.null(x$norm.spikes)) { stop("no 'norm.spikes' are present in 'colData'") }
-        cur.assay <- do.call(cbind, x$norm.spikes)
+        cur.assay <- spikes(x, type="exprs")
     } else {
         cur.assay <- assay(x, i=i)
     }

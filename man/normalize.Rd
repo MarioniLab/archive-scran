@@ -19,7 +19,7 @@
 }
 
 \details{
-This function compute normalized log-expression values by adding \code{prior.count} to each count, dividing by the \code{size.factor} for that cell, and log-transforming the result.
+This function computes normalized log-expression values by adding \code{prior.count} to each count, dividing by the \code{size.factor} for that cell, and log-transforming.
 If \code{object} is a SummarizedExperiment0 object, size factors are taken from the appropriate field in the \code{colData}.
 These size factors can be computed with a number of functions like \code{\link{normalizeBySums}} or \code{\link{normalizeBySpikes}}.
 If spike-in counts are present, these will also be converted into normalized values using the same parameters.
@@ -33,7 +33,7 @@ If spike-ins are present, normalized values for the spike-in transcripts are sto
 
 \seealso{
 \code{\link{cpm}},
-\code{\link{SummarizedExperiment}}
+\code{\link{SummarizedExperiment}},
 \code{\link{normalizeBySums}},
 \code{\link{normalizeBySpikes}}
 }
