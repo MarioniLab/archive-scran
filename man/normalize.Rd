@@ -7,7 +7,7 @@
 
 \usage{
 \S4method{normalize}{ANY}(object, size.factor=NULL, log=TRUE, prior.count=1)
-\S4method{normalize}{SummarizedExperiment0}(object, ...)
+\S4method{normalize}{SummarizedExperiment0}(object, ..., separate.spikes=FALSE)
 }
 
 \arguments{
@@ -16,13 +16,20 @@
 \item{log}{A logical scalar specifying whether the expression should be log-transformed.}
 \item{prior.count}{A numeric scalar indicating the prior count to add prior to log-transformation, to avoid undefined values from zero counts.}
 \item{...}{Additional arguments to pass to \code{normalize,ANY-method}.}
+\item{separate.spikes}{A logical scalar indicating whether spike-in counts should be normalized separately.}
 }
 
 \details{
 This function computes normalized log-expression values by adding \code{prior.count} to each count, dividing by the \code{size.factor} for that cell, and log-transforming.
 If \code{object} is a SummarizedExperiment0 object, size factors are taken from the appropriate field in the \code{colData}.
 These size factors can be computed with a number of functions like \code{\link{normalizeBySums}} or \code{\link{normalizeBySpikes}}.
-If spike-in counts are present, these will also be converted into normalized values using the same parameters.
+
+If spike-in counts are present in the SummarizedExperiment0 object, these will also be converted into normalized values.
+By default, this is done with the same set of size factors that was used for the endogenous genes.
+However, if \code{separate.spikes=TRUE}, spike-in size factors will be used instead (these are defined by calling \code{\link{normalizeBySpikes}}).
+
+All size factors are mean-centered so that their geometric mean is equal to unity prior to computing normalized expression values.
+This ensures that expression values are roughly comparable when different sets of size factors are used.
 }
 
 \value{

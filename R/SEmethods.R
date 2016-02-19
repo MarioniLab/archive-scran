@@ -26,23 +26,31 @@ countsToSE <- function(counts, spikes)
 }
 
 setMethod("normalize", "ANY", function(object, size.factor=NULL, log=TRUE, prior.count=1) 
-# Computes the normalized log-CPMs. 
+# Computes the normalized log-expression values.
 # 
 # written by Aaron Lun
-# created 17 February 2016          
+# created 17 February 2016
+# last modified 19 February 2016
 {
     object <- as.matrix(object)
     if (is.null(size.factor)) { size.factor <- colSums(object) } 
+    lsf <- log(size.factor) # Mean-centered size factors, for valid comparisons between size factor sets.
+    size.factor <- exp(lsf - mean(lsf))
     cpm.default(object, lib.size=size.factor, prior.count=prior.count, log=log)
 })
 
-setMethod("normalize", "SummarizedExperiment0", function(object, ...) {
+setMethod("normalize", "SummarizedExperiment0", function(object, ..., separate.spikes=FALSE) {
     out <- normalize(assay(object, "counts"), size.factor=object$size.factor, ...)
     assay(object, "exprs") <- out
 
     if (!is.null(object$spikes)) {
-        cur.assay <- spikes(object, type="counts")
-        out <- normalize(cur.assay, size.factor=object$size.factor, ...)
+        if (separate.spikes) { 
+            sf <- normalizeBySpikes(object)
+        } else {
+            sf <- object$size.factor 
+        }
+        out <- normalize(spikes(object, type="counts"), size.factor=sf, ...)
+        if (!is.null(y$norm.spikes)) { y$norm.spikes <- NULL }
         colData(object) <- DataFrame(colData(object), .breakToList(out, "norm.spikes"))
     } 
     return(object)
