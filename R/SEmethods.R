@@ -39,7 +39,7 @@ setMethod("normalize", "ANY", function(object, size.factor=NULL, log=TRUE, prior
     cpm.default(object, lib.size=size.factor, prior.count=prior.count, log=log)
 })
 
-setMethod("normalize", "SummarizedExperiment0", function(object, ..., separate.spikes=FALSE) {
+setMethod("normalize", "SummarizedExperiment0", function(object, ..., separate.spikes=TRUE) {
     out <- normalize(assay(object, "counts"), size.factor=object$size.factor, ...)
     assay(object, "exprs") <- out
 
@@ -50,7 +50,7 @@ setMethod("normalize", "SummarizedExperiment0", function(object, ..., separate.s
             sf <- object$size.factor 
         }
         out <- normalize(spikes(object, type="counts"), size.factor=sf, ...)
-        if (!is.null(y$norm.spikes)) { y$norm.spikes <- NULL }
+        if (!is.null(object$norm.spikes)) { object$norm.spikes <- NULL }
         colData(object) <- DataFrame(colData(object), .breakToList(out, "norm.spikes"))
     } 
     return(object)
