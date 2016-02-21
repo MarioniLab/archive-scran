@@ -1,6 +1,6 @@
 setGeneric("cyclone", function(x, ...) { standardGeneric("cyclone") })
 
-setMethod("cyclone", "ANY", function(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, verbose=FALSE)
+setMethod("cyclone", "ANY", function(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, BPPARAM=bpparam(), verbose=FALSE)
 # Takes trained pairs and test data, and predicts the cell cycle phase from that. 
 #
 # written by Antonio Scialdone
@@ -43,9 +43,28 @@ setMethod("cyclone", "ANY", function(x, pairs, gene.names=rownames(x), iter=1000
   
     # Run the allocation algorithm
     ncells <- ncol(x)
-    score.G1 <- .Call("shuffle_scores", ncells, nrow(chosen.x$G1), chosen.x$G1, pairs$G1[,1], pairs$G1[,2], iter, min.iter, min.pairs) 
-    score.S <- .Call("shuffle_scores", ncells, nrow(chosen.x$S), chosen.x$S, pairs$S[,1], pairs$S[,2], iter, min.iter, min.pairs) 
-    score.G2M <- .Call("shuffle_scores", ncells, nrow(chosen.x$G2M), chosen.x$G2M, pairs$G2M[,1], pairs$G2M[,2], iter, min.iter, min.pairs) 
+    workass <- .workerAssign(ncells, BPPARAM)
+    out <- bplapply(seq_along(workass$start), FUN=function(core) {
+        to.use <- workass$start[core]:workass$end[core]
+        cur.ncells <- length(to.use)
+        G1 <- .Call("shuffle_scores", cur.ncells, nrow(chosen.x$G1), chosen.x$G1[,to.use], pairs$G1[,1], pairs$G1[,2], iter, min.iter, min.pairs) 
+        S <- .Call("shuffle_scores", cur.ncells, nrow(chosen.x$S), chosen.x$S[,to.use], pairs$S[,1], pairs$S[,2], iter, min.iter, min.pairs) 
+        G2M <- .Call("shuffle_scores", cur.ncells, nrow(chosen.x$G2M), chosen.x$G2M[,to.use], pairs$G2M[,1], pairs$G2M[,2], iter, min.iter, min.pairs) 
+        return(list(G1, S, G2M))
+    }, BPPARAM=BPPARAM)
+
+    # Assembling the output.
+    score.G1 <- score.S <- score.G2M <- list()
+    for (x in seq_along(out)) {
+        current <- out[[x]]
+        lapply(current, FUN=function(y) { if (is.character(y)) { stop(y) } })
+        score.G1[[x]] <- current[[1]]
+        score.S[[x]] <- current[[2]]
+        score.G2M[[x]] <- current[[3]]
+    }
+    score.G1 <- unlist(score.G1)
+    score.S <- unlist(score.S)
+    score.G2M <- unlist(score.G2M)
     
     scores <- data.frame(G1=score.G1, S=score.S, G2M=score.G2M)
     scores.normalised <- scores/rowSums(scores)

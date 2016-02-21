@@ -50,15 +50,10 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
     gene1 <- all.pairs[1,]
     gene2 <- all.pairs[2,]
 
-    # Assigning to cores 
-    ncores <- bpworkers(BPPARAM)
-    starting <- seq(from=1, to=length(gene1)+1, length.out=ncores+1)
-    starting <- unique(starting[seq_len(ncores)])
-    ending <- c((starting - 1)[-1], length(gene1))
-
     # Running through each set of jobs 
-    out <- bplapply(seq_len(ncores), FUN=function(core) {
-        to.use <- starting[core]:ending[core]
+    workass <- .workerAssign(length(gene1), BPPARAM)
+    out <- bplapply(seq_along(workass$start), FUN=function(core) {
+        to.use <- workass$start[core]:workass$end[core]
         .Call("compute_rho", gene1[to.use], gene2[to.use], ncells, ranked.exprs, null.dist, PACKAGE="scran")
     }, BPPARAM=BPPARAM)
 
@@ -95,6 +90,14 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
     out <- out[order(out$p.value, -abs(out$rho)),]
     return(out)
 })
+
+.workerAssign <- function(njobs, BPPARAM) {
+    ncores <- bpworkers(BPPARAM)
+    starting <- seq(from=1, to=njobs+1, length.out=ncores+1)
+    starting <- unique(starting[seq_len(ncores)])
+    ending <- c((starting - 1)[-1], njobs)
+    return(list(start=starting, end=ending))
+}
 
 setMethod("correlatePairs", "SummarizedExperiment0", function(x, ..., i="exprs") {
     correlatePairs(assay(x, i=i), ...)             

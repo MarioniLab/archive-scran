@@ -7,7 +7,8 @@
 \description{Classify single cells into their cell cycle phases based on gene expression data.}
 
 \usage{
-\S4method{cyclone}{ANY}(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, verbose=FALSE)
+\S4method{cyclone}{ANY}(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, 
+    BPPARAM=bpparam(), verbose=FALSE)
 \S4method{cyclone}{SummarizedExperiment0}(x, ..., i="counts")
 }
 
@@ -21,6 +22,7 @@
 \item{iter}{An integer scalar specifying the number of iterations for random sampling to obtain a cycle score.}
 \item{min.iter}{An integer scalar specifying the minimum number of iterations for score estimation.}
 \item{min.pairs}{An integer scalar specifying the minimum number of pairs for cycle estimation.}
+\item{BPPARAM}{A BiocParallelParam object to use in \code{bplapply} for parallel processing.}
 \item{verbose}{A logical scalar specifying whether diagnostics should be printed to screen.}
 \item{...}{Additional arguments to pass to \code{cyclone,ANY-method}.}
 \item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
