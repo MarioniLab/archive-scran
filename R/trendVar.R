@@ -9,8 +9,8 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
 # last modified 17 February 2016
 {
     x <- as.matrix(x)
-    if (is.null(design)) { design <- as.matrix(rep(1, ncol(x))) }
     lmeans <- rowMeans(x)
+    if (is.null(design)) { design <- .interceptModel(ncol(x)) }
     lvar <- .estimateVariance(design, x)
 
     is.okay <- lvar > 1e-8
@@ -33,6 +33,10 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
     }
     return(list(mean=lmeans, var=lvar, trend=FUN, prior.count=prior.count, design=design))
 })
+
+.interceptModel <- function(ncells) {
+    as.matrix(rep(1, ncells)) 
+}
 
 setMethod("trendVar", "SummarizedExperiment0", function(x, ..., use.spikes=TRUE, i="exprs") {
     if (use.spikes) {

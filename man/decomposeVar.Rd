@@ -7,7 +7,7 @@
 \description{Decompose the gene-specific variance into biological and technical components for single-cell RNA-seq data.}
 
 \usage{
-\S4method{decomposeVar}{ANY,list}(x, fit, design=NULL)
+\S4method{decomposeVar}{ANY,list}(x, fit, design=NA)
 \S4method{decomposeVar}{SummarizedExperiment0,list}(x, fit, ..., i="exprs")
 }
 
@@ -40,8 +40,8 @@ This also means that the computed variance will include that of the cell size ac
 This will increase the biological component but should not affect the ranking, as the cell size component of the variance should be the same for each gene.
 
 The design matrix can be set if there are factors that should be blocked, e.g., batch effects, known (and uninteresting) clusters.
-If \code{NA}, it will be set to an all-ones matrix, i.e., all cells are replicates.
-If \code{NULL}, it will be extracted from \code{fit$design}, assuming that the same cells were used to fit the trend.
+If \code{NULL}, it will be set to an all-ones matrix, i.e., all cells are replicates.
+If \code{NA}, it will be extracted from \code{fit$design}, assuming that the same cells were used to fit the trend.
 }
 
 \value{
