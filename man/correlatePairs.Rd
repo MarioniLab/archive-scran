@@ -78,6 +78,18 @@ If the experiment has known (and uninteresting) factors of variation, e.g., batc
 Correlations between genes will then be computed using the residual effects of a linear model fitted to the normalized expression values with \code{design}.
 Similarly, the null distribution of rho values will be constructed with \code{ncells} set as the residual degrees of freedom in \code{design}.
 This procedure ensures that the uninteresting factors do not drive strong correlations between genes.
+
+% # Probably okay - main effects in 'x' aside, any multiplier to 'y' will be preserved in qty, so direction and quality of correlation will be preserved.
+% # Not exactly equal, though, as we lose a couple of observations when converting to effects.
+% y <- rnorm(100)
+% grouping <- sample(LETTERS[1:5], 100, replace=TRUE)
+% design <- model.matrix(~grouping)
+% fit <- lm.fit(y, x=design)
+% x <- c(A=1, B=2, C=-1, D=0, E=-2)
+% r <- rnorm(100)
+% fit2 <- lm.fit(x[grouping] - y + r, x=design)
+% cor(fit2$effects[6:100], fit$effects[6:100])
+% cor(y, -y+r)
 }
 
 \author{
