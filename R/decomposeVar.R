@@ -6,7 +6,7 @@ setMethod("decomposeVar", c("ANY", "list"), function(x, fit, design=NA)
 #
 # written by Aaron Lun
 # created 21 January 2016 
-# last modified 17 February 2016
+# last modified 21 February 2016
 {
     x <- as.matrix(x)
     if (is.null(design)) { design <- .interceptModel(ncol(x)) }

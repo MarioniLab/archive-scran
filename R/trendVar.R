@@ -6,7 +6,7 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
 # 
 # written by Aaron Lun
 # created 21 January 2016
-# last modified 17 February 2016
+# last modified 21 February 2016
 {
     x <- as.matrix(x)
     lmeans <- rowMeans(x)
