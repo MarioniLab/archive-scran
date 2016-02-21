@@ -1,9 +1,16 @@
-correlateNull <- function(ncells, iters=1e6) 
+correlateNull <- function(ncells, iters=1e6, design=NULL) 
 # This builds a null distribution for the modified Spearman's rho.
 #
 # written by Aaron Lun
-# created 10 February 2016    
+# created 10 February 2016
+# last modified 21 February 2016
 {
+    if (!is.null(design)) { 
+        if (!missing(ncells)) { 
+            stop("cannot specify both 'ncells' and 'design'")
+        }
+        ncells <- ncol(design) - qr(design)$rank
+    }
     out <- .Call("get_null_rho", as.integer(ncells), as.integer(iters), PACKAGE="scran") 
     if (is.character(out)) { 
         stop(out)
@@ -14,14 +21,18 @@ correlateNull <- function(ncells, iters=1e6)
 
 setGeneric("correlatePairs", function(x, ...) { standardGeneric("correlatePairs") })
 
-setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, BPPARAM=bpparam(), use.names=TRUE)
+setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), use.names=TRUE)
 # This calculates a (modified) Spearman's rho for each pair of genes.
 #
 # written by Aaron Lun
 # created 10 February 2016
-# last modified 17 February 2016
+# last modified 21 February 2016
 {
     exprs <- as.matrix(x)
+    if (!is.null(design)) { 
+        fit <- lm.fit(y=t(exprs), x=design)
+        exprs <- t(fit$effects[-seq_len(fit$rank),])
+    }
     ncells <- ncol(exprs)
     if (is.null(null.dist)) { 
         null.dist <- correlateNull(ncells)
