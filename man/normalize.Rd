@@ -40,7 +40,7 @@ If spike-ins are present, normalized values for the spike-in transcripts are sto
 
 \seealso{
 \code{\link{cpm}},
-\code{\link{SummarizedExperiment}},
+\code{\link{SCESet}},
 \code{\link{normalizeBySums}},
 \code{\link{normalizeBySpikes}}
 }
@@ -57,9 +57,13 @@ all.facs <- 2^rnorm(popsize, sd=0.5)
 counts <- matrix(rnbinom(ngenes*popsize, mu=10*all.facs, size=1), ncol=popsize, byrow=TRUE)
 spikes <- matrix(rnbinom(100*popsize, mu=10*all.facs, size=0.5), ncol=popsize, byrow=TRUE)
 
-y <- countsToSE(counts, spikes)
-assayDataElement(normalize(y), "norm_exprs")[1:10,]
+combined <- rbind(counts, spikes)
+colnames(combined) <- seq_len(popsize)
+rownames(combined) <- seq_len(nrow(combined))
+y <- newSCESet(countData=combined)
+y <- calculateQCMetrics(y, feature_controls=list(Spike=rep(c(FALSE, TRUE), c(ngenes, 100))))
 
+assayDataElement(normalize(y), "norm_exprs")[1:10,] # Library size normalization, basically.
 y$size.factor <- normalizeBySpikes(y)
 assayDataElement(normalize(y), "norm_exprs")[1:10,]
 }

@@ -36,7 +36,11 @@ all.facs <- 2^rnorm(popsize, sd=0.5)
 counts <- matrix(rnbinom(ngenes*popsize, mu=all.facs*10, size=1), ncol=popsize, byrow=TRUE)
 spikes <- matrix(rnbinom(100*popsize, mu=all.facs*10, size=0.5), ncol=popsize, byrow=TRUE)
 
-y <- countsToSE(counts, spikes)
+combined <- rbind(counts, spikes)
+colnames(combined) <- seq_len(popsize)
+rownames(combined) <- seq_len(nrow(combined))
+y <- newSCESet(countData=combined)
+y <- calculateQCMetrics(y, feature_controls=list(Spike=rep(c(FALSE, TRUE), c(ngenes, 100))))
 out.facs <- normalizeBySpikes(y)
 }
 

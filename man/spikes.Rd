@@ -25,7 +25,6 @@ A numeric matrix of counts or normalized expression values, with one column per 
 }
 
 \seealso{
-\code{\link{SummarizedExperiment}},
 \code{\link{normalize}},
 \code{\link{newSCESet}}
 }
@@ -42,7 +41,12 @@ all.facs <- 2^rnorm(popsize, sd=0.5)
 counts <- matrix(rnbinom(ngenes*popsize, mu=10*all.facs, size=1), ncol=popsize, byrow=TRUE)
 spikes <- matrix(rnbinom(100*popsize, mu=10*all.facs, size=0.5), ncol=popsize, byrow=TRUE)
 
-y <- countsToSE(counts, spikes)
+combined <- rbind(counts, spikes)
+colnames(combined) <- seq_len(popsize)
+rownames(combined) <- seq_len(nrow(combined))
+y <- newSCESet(countData=combined)
+y <- calculateQCMetrics(y, feature_controls=list(Spike=rep(c(FALSE, TRUE), c(ngenes, 100))))
+
 y$size.factor <- normalizeBySpikes(y)
 y <- normalize(y)
 spikes(y)[1:10,]
