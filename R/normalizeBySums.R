@@ -9,7 +9,7 @@
     c(out, out)
 }
 
-setGeneric("normalizeBySums", function(x, ...) { standardGeneric("normalizeBySums") })
+setGeneric("normalizeBySums", function(x, ...) standardGeneric("normalizeBySums"))
 
 setMethod("normalizeBySums", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), clusters=NULL, ref.clust=NULL, positive=FALSE) 
 # This contains the function that performs normalization on the summed counts.
@@ -137,5 +137,15 @@ setMethod("normalizeBySums", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), cl
     return(final.sf)
 })
 
-setMethod("normalizeBySums", "SummarizedExperiment0", function(x, ..., i="counts") { normalizeBySums(assay(x, i=i), ...) })
+setMethod("normalizeBySums", "SCESet", function(x, ...) { 
+    normalizeBySums(.getUsedMatrix(x, "counts"), ...) 
+})
 
+.getUsedMatrix <- function(x, type="counts") {
+    cur.mat <- assayDataElement(x, type)
+    nokeep <- is.spike(x)
+    if (!is.null(nokeep) && any(nokeep)) { 
+        cur.mat <- cur.mat[!nokeep,,drop=FALSE]
+    }
+    return(cur.mat)
+}

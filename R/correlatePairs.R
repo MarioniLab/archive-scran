@@ -19,7 +19,7 @@ correlateNull <- function(ncells, iters=1e6, design=NULL)
     return(out)  
 }
 
-setGeneric("correlatePairs", function(x, ...) { standardGeneric("correlatePairs") })
+setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
 setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), use.names=TRUE)
 # This calculates a (modified) Spearman's rho for each pair of genes.
@@ -99,7 +99,7 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
     return(list(start=starting, end=ending))
 }
 
-setMethod("correlatePairs", "SummarizedExperiment0", function(x, ..., i="exprs") {
-    correlatePairs(assay(x, i=i), ...)             
+setMethod("correlatePairs", "SCESet", function(x, ...) {
+    correlatePairs(.getUsedMatrix(x, "norm_exprs"), ...)             
 })
 

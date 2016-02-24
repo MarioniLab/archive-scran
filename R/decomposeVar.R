@@ -1,4 +1,4 @@
-setGeneric("decomposeVar", function(x, fit, ...) { standardGeneric("decomposeVar") })
+setGeneric("decomposeVar", function(x, fit, ...) standardGeneric("decomposeVar"))
 
 setMethod("decomposeVar", c("ANY", "list"), function(x, fit, design=NA)
 # Computes the biological variability of the log-CPMs by subtracting the
@@ -18,12 +18,12 @@ setMethod("decomposeVar", c("ANY", "list"), function(x, fit, design=NA)
     return(data.frame(mean=lmeans, total=lvar, bio=bio.var, tech=tech.var))
 })
 
-setMethod("decomposeVar", c("SummarizedExperiment0", "list"), function(x, fit, ..., i="exprs") {
-    if (is.null(fit$assay)) {
-        fit$assay <- i
-    }
-    out <- decomposeVar(assay(x, i=fit$assay), fit, ...)
-    return(out)   
+setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, ...) {
+    keep <- !is.spike(x)
+    out <- decomposeVar(assayDataElement(x, "norm_exprs")[keep,], fit, ...)
+    i <- cumsum(keep)
+    i[!keep] <- NA_integer_
+    as.data.frame(lapply(out, "[", i))
 })
 
 testVar <- function(total, null, df, design=NULL) 

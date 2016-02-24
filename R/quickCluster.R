@@ -1,4 +1,4 @@
-setGeneric("quickCluster", function(x, ...) { standardGeneric("quickCluster") })
+setGeneric("quickCluster", function(x, ...) standardGeneric("quickCluster"))
 
 setMethod("quickCluster", "ANY", function(x, min.size=200, ...)  
 # This function generates a cluster vector containing the cluster number assigned to each cell.
@@ -29,5 +29,5 @@ setMethod("quickCluster", "ANY", function(x, min.size=200, ...)
     return(clusters)
 })
 
-setMethod("quickCluster", "SummarizedExperiment0", function(x, ..., i="counts") { quickCluster(assay(x, i=i), ...) } )
+setMethod("quickCluster", "SCESet", function(x, ...) { quickCluster(.getUsedMatrix(x, "counts"), ...) } )
 

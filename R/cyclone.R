@@ -1,4 +1,4 @@
-setGeneric("cyclone", function(x, ...) { standardGeneric("cyclone") })
+setGeneric("cyclone", function(x, ...) standardGeneric("cyclone"))
 
 setMethod("cyclone", "ANY", function(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, BPPARAM=bpparam(), verbose=FALSE)
 # Takes trained pairs and test data, and predicts the cell cycle phase from that. 
@@ -71,7 +71,7 @@ setMethod("cyclone", "ANY", function(x, pairs, gene.names=rownames(x), iter=1000
     return(list(scores=scores, normalized.scores=scores.normalised))  
 })
 
-setMethod("cyclone", "SummarizedExperiment0", function(x, ..., i="counts") {
-    cyclone(assay(x, i=i), ...)          
+setMethod("cyclone", "SCESet", function(x, ...) {
+    cyclone(.getUsedMatrix(x, "counts"), ...)          
 })
 

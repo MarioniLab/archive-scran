@@ -1,4 +1,4 @@
-setGeneric("trendVar", function(x, ...) { standardGeneric("trendVar") })
+setGeneric("trendVar", function(x, ...) standardGeneric("trendVar"))
 
 setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1, design=NULL) 
 # Fits a polynomial trend to the technical variability of the log-CPMs,
@@ -38,14 +38,13 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
     as.matrix(rep(1, ncells)) 
 }
 
-setMethod("trendVar", "SummarizedExperiment0", function(x, ..., use.spikes=TRUE, i="exprs") {
+setMethod("trendVar", "SCESet", function(x, ..., use.spikes=TRUE) {
     if (use.spikes) {
-        cur.assay <- spikes(x, type="exprs")
+        cur.assay <- spikes(x, "norm_exprs")
     } else {
-        cur.assay <- assay(x, i=i)
+        cur.assay <- .getUsedMatrix(x, "norm_exprs")
     }
     out <- trendVar(cur.assay, ...)
-    out$assay <- i
     return(out)
 })
 

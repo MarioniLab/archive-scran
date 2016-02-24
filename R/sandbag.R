@@ -82,7 +82,7 @@ random.success <- function(cell, markers, N, Nmin, Nmin.couples)
     return(sum(success<test)/length(success))
 }
 
-setGeneric("sandbag", function(x, ...) { standardGeneric("sandbag") })
+setGeneric("sandbag", function(x, ...) standardGeneric("sandbag"))
 
 setMethod("sandbag", "ANY", function(x, is.G1, is.S, is.G2M, gene.names=rownames(x), fraction=0.5) 
 # Identifies the relevant pairs before running 'cyclone'.
@@ -100,6 +100,6 @@ setMethod("sandbag", "ANY", function(x, is.G1, is.S, is.G2M, gene.names=rownames
     return(list(G1=G1.marker.pairs, S=S.marker.pairs, G2M=G2M.marker.pairs))
 })
 
-setMethod("sandbag", "SummarizedExperiment0", function(x, ..., i="counts") {
-    sandbag(assay(x, i=i), ...)
+setMethod("sandbag", "SCESet", function(x, ...) {
+    sandbag(.getUsedMatrix(x, "counts"), ...)
 })
