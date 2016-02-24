@@ -18,8 +18,9 @@ importFrom("zoo", zoo, rollapply, index)
 importFrom("edgeR", cpm.default)
 importFrom("stats", poly)
 importFrom("BiocGenerics", normalize)
+importFrom("Biobase", assayDataElement, "assayDataElement<-", fData)
 
 import(BiocParallel)
-import(SummarizedExperiment)
-import(methods, S4Vectors)
+import(scater)
+import(methods)
 

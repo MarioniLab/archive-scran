@@ -4,8 +4,8 @@ Date: 2016-02-18
 Title: Single-Cell RNA-seq ANalysis
 Author: Aaron Lun <aaron.lun@cruk.cam.ac.uk>, Karsten Bach <kbach@ebi.ac.uk>
 Maintainer: Aaron Lun <aaron.lun@cruk.cam.ac.uk>
-Depends: R (>= 3.2.2), BiocParallel, SummarizedExperiment
-Imports: dynamicTreeCut, zoo, edgeR, stats, BiocGenerics, methods, S4Vectors
+Depends: R (>= 3.3.0), BiocParallel, scater 
+Imports: dynamicTreeCut, zoo, edgeR, stats, BiocGenerics, methods, Biobase
 Suggests: limSolve
 biocViews: Normalization, Sequencing, RNASeq
 Description: Normalization of single-cell RNA-seq data, duh. 
