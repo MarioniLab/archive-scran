@@ -1,27 +1,26 @@
 \name{Quick clustering}
 \alias{quickCluster}
 \alias{quickCluster,ANY-method}
-\alias{quickCluster,SummarizedExperiment0-method}
+\alias{quickCluster,SCESet-method}
 
 \title{Quick clustering of cells}
 \description{Cluster similar cells based on rank correlations in their gene expression profiles.}
 
 \usage{
 \S4method{quickCluster}{ANY}(x, min.size=200, ...)
-\S4method{quickCluster}{SummarizedExperiment0}(x, ..., i="counts")
+\S4method{quickCluster}{SCESet}(x, ...)
 }
 
 \arguments{
 \item{x}{
     A numeric count matrix where rows are genes and columns are cells.
-    Alternatively, a SummarizedExperiment0 object containing such a matrix.
+    Alternatively, a SCESet object containing such a matrix.
 }
 \item{min.size}{An integer scalar specifying the minimum size of each cluster.}
 \item{...}{
     For \code{quickCluster,ANY-method}, additional arguments to be passed to \code{\link{cutreeDynamic}}.
-    For \code{quickCluster,SummarizedExperiment0-method}, additional arguments to pass to \code{quickCluster,ANY-method}.
+    For \code{quickCluster,SCESet-method}, additional arguments to pass to \code{quickCluster,ANY-method}.
 }
-\item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
 }
 
 \details{

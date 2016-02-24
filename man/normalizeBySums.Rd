@@ -1,7 +1,7 @@
 \name{Deconvolution Methods}
 \alias{normalizeBySums}
 \alias{normalizeBySums,ANY-method}
-\alias{normalizeBySums,SummarizedExperiment0-method}
+\alias{normalizeBySums,SCESet-method}
 
 \title{Normalization by deconvolution}
 \description{Methods to normalize single-cell RNA-seq data by deconvolving size factors from cell pools.}
@@ -9,20 +9,19 @@
 \usage{
 \S4method{normalizeBySums}{ANY}(x, sizes=c(20, 40, 60, 80, 100), 
     clusters=NULL, ref.clust=NULL, positive=FALSE)
-\S4method{normalizeBySums}{SummarizedExperiment0}(x, ..., i="counts")
+\S4method{normalizeBySums}{SCESet}(x, ...)
 }
 
 \arguments{
 \item{x}{
     A numeric count matrix where rows are genes and columns are cells.
-    Alternatively, a SummarizedExperiment0 object containing such a matrix.
+    Alternatively, a SCESet object containing such a matrix.
 }
 \item{sizes}{A numeric vector of pool sizes, i.e., number of cells per pool.}
 \item{clusters}{An optional factor specifying which cells belong to which cluster, for deconvolution within clusters.}
 \item{ref.clust}{A level of \code{clusters} to be used as the reference cluster for inter-cluster normalization.}
 \item{positive}{A logical scalar indicating whether linear inverse models should be used to enforce positive estimates.}
 \item{...}{Additional arguments to pass to \code{normalizeBySums,ANY-method}.}
-\item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
 }
 
 \section{Overview of the deconvolution method}{

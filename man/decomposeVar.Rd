@@ -1,27 +1,27 @@
 \name{decomposeVar}
 \alias{decomposeVar}
 \alias{decomposeVar,ANY,list-method}
-\alias{decomposeVar,SummarizedExperiment0,list-method}
+\alias{decomposeVar,SCESet,list-method}
 
 \title{Decompose the gene-level variance}
 \description{Decompose the gene-specific variance into biological and technical components for single-cell RNA-seq data.}
 
 \usage{
 \S4method{decomposeVar}{ANY,list}(x, fit, design=NA)
-\S4method{decomposeVar}{SummarizedExperiment0,list}(x, fit, ..., i="exprs")
+\S4method{decomposeVar}{SCESet,list}(x, fit, ..., get.spikes=FALSE)
 }
 
 \arguments{
 \item{x}{
     A numeric matrix of normalized log-expression values, where each column corresponds to a cell and each row corresponds to an endogenous gene.
-    Alternatively, a SummarizedExperiment0 object containing such a matrix.
+    Alternatively, a SCESet object containing such a matrix.
 }
 \item{fit}{
     A list containing the output of \code{\link{trendVar}}, run on log-expression values for spike-in genes.
 }
 \item{design}{A numeric matrix describing the systematic factors contributing to expression in each cell.}
 \item{...}{Additional arguments to pass to \code{decomposeVar,ANY,list-method}.}
-\item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
+\item{get.spikes}{A logical scalar specifying whether decomposition should be performed for spike-ins.}
 }
 
 \details{
@@ -52,6 +52,7 @@ A data frame is returned, containing:
 \item{\code{bio}:}{A numeric vector containing the biological component of the variance for all genes.}
 \item{\code{tech}:}{A numeric vector containing the technical component of the variance for all genes.}
 }
+Rows corresponding to spike-in transcripts are set to \code{NA} unless \code{get.spikes=TRUE}. 
 }
 
 \seealso{

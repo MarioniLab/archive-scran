@@ -1,26 +1,25 @@
 \name{sandbag}
 \alias{sandbag}
 \alias{sandbag,ANY-method}
-\alias{sandbag,SummarizedExperiment0-method}
+\alias{sandbag,SCESet-method}
 
 \title{Cell cycle phase training}
 \description{Use gene expression data to train a classifier for cell cycle phase.}
 
 \usage{
 \S4method{sandbag}{ANY}(x, is.G1, is.S, is.G2M, gene.names=rownames(x), fraction=0.5)
-\S4method{sandbag}{SummarizedExperiment0}(x, ..., i="counts")
+\S4method{sandbag}{SCESet}(x, ...)
 }
 
 \arguments{
 \item{x}{
     A numeric matrix of gene expression values where rows are genes and columns are cells.
-    Alternatively, a SummarizedExperiment0 object containing such a matrix.
+    Alternatively, a SCESet object containing such a matrix.
 }
 \item{is.G1, is.S, is.G2M}{A vector indicating which cells are in each phase of the cell cycle.}
 \item{gene.names}{A character vector of gene names.}
 \item{fraction}{A numeric scalar specifying the minimum fraction to define a marker gene pair.}
 \item{...}{Additional arguments to pass to \code{sandbag,ANY-method}.}
-\item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
 }
 
 \details{

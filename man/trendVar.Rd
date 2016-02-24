@@ -1,20 +1,20 @@
 \name{trendVar}
 \alias{trendVar}
 \alias{trendVar,ANY-method}
-\alias{trendVar,SummarizedExperiment0-method}
+\alias{trendVar,SCESet-method}
 
 \title{Get the biological variability}
 \description{Compute the biological and technical components of the gene-specific variance in single-cell RNA-seq data.}
 
 \usage{
 \S4method{trendVar}{ANY}(x, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1, design=NULL) 
-\S4method{trendVar}{SummarizedExperiment0}(x, ..., use.spikes=TRUE, i="exprs")
+\S4method{trendVar}{SCESet}(x, ..., use.spikes=TRUE)
 }
 
 \arguments{
 \item{x}{
     A numeric matrix of normalized expression values, where each column corresponds to a cell and each row corresponds to a spike-in transcript.
-    Alternatively, a SummarizedExperiment0 object that contains such values.
+    Alternatively, a SCESet object that contains such values.
 }
 \item{trend}{A string indicating whether the trend should be polynomial or loess-based.}
 \item{df}{An integer scalar specifying the degrees of freedom for polynomial fitting.}
@@ -23,7 +23,6 @@
 \item{design}{A numeric matrix describing the systematic factors contributing to expression in each cell.}
 \item{...}{Additional arguments to pass to \code{trendVar,ANY,list-method}.}
 \item{use.spikes}{A logical scalar specifying whether the trend should be fitted to variances for spike-in or endogenous genes.}
-\item{i}{A numeric or character scalar indicating which matrix contains the normalized expression values of endogenous genes in the SummarizedExperiment0 object.}
 }
 
 \details{
@@ -48,7 +47,7 @@ In some data sets, a loess curve may yield better results, though this may requi
 
 When spike-ins are not available, \code{trendVar} can also be applied directly to the counts for endogenous genes by setting \code{use.spikes=FALSE} 
     (or by manually supplying a matrix of normalized expression for endogenous genes, for \code{trendVar,ANY-method}).
-In this case, the trend is fitted to variances for endogenous genes (computed from assay \code{i}) and represents the uninteresting mean-variance relationship.
+In this case, the trend is fitted to variances for endogenous genes and represents the uninteresting mean-variance relationship.
 Subtracting the trend from the variance of each gene will eliminate the mean-variance dependency, yielding a residual that can be ranked to identify highly variable genes. 
 A loess curve is recommended here as it is more robust to a subset of genes with very large or very small variances.
 }

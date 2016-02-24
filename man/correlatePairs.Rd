@@ -1,7 +1,7 @@
 \name{correlatePairs}
 \alias{correlatePairs}
 \alias{correlatePairs,ANY-method}
-\alias{correlatePairs,SummarizedExperiment0-method}
+\alias{correlatePairs,SCESet-method}
 \alias{correlateNull}
 
 \title{Test for significant correlations}
@@ -11,7 +11,7 @@
 correlateNull(ncells, iters=1e6, design=NULL) 
 
 \S4method{correlatePairs}{ANY}(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), use.names=TRUE)
-\S4method{correlatePairs}{SummarizedExperiment0}(x, ..., i="exprs")
+\S4method{correlatePairs}{SCESet}(x, ...)
 }
 
 \arguments{
@@ -20,7 +20,7 @@ correlateNull(ncells, iters=1e6, design=NULL)
 \item{design}{A numeric design matrix describing fixed effects to factorize out.}
 \item{x}{
     A numeric matrix of normalized expression values, where rows are genes and columns are cells.
-    Alternatively, a SummarizedExperiment0 object containing such a matrix.
+    Alternatively, a SCESet object containing such a matrix.
 }
 \item{null.dist}{A numeric vector of rho values under the null hypothesis.}
 \item{BPPARAM}{A BiocParallelParam object to use in \code{bplapply} for parallel processing.}
@@ -29,7 +29,6 @@ correlateNull(ncells, iters=1e6, design=NULL)
     Alternatively, a character vector containing the names to use.
 }
 \item{...}{Additional arguments to pass to \code{correlatePairs,ANY-method}.}
-\item{i}{A numeric or character scalar indicating which matrix to use in the SummarizedExperiment0 object.}
 }
 
 \details{

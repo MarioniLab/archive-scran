@@ -1,22 +1,22 @@
 \name{Spike-in normalization}
 \alias{normalizeBySpikes}
-\alias{normalizeBySpikes,SummarizedExperiment0-method}
+\alias{normalizeBySpikes,SCESet-method}
 
 \title{Normalization with spike-in counts}
 \description{Compute size factors based on the coverage of spike-in transcripts.}
 
 \usage{
-\S4method{normalizeBySpikes}{SummarizedExperiment0}(x)
+\S4method{normalizeBySpikes}{SCESet}(x)
 }
 
 \arguments{
-\item{x}{A SummarizedExperiment0 object containing spike-in counts in the \code{colData}.}
+\item{x}{A SCESet object containing rows corresponding spike-in transcripts.}
 }
 
 \details{
 The size factor for each cell is defined as the sum of all spike-in counts in each cell.
 This is equivalent to normalizing to equalize spike-in coverage between cells.
-Spike-in counts are assumed to be stored in \code{colData(x)$spikes} -- see \code{\link{countsToSE}} for more details.
+Spike-in counts are assumed to be stored in rows with \code{fData(x)$is_control_feature} -- see \code{?\link{SCESet}} for more details.
 Note that the geometric mean of all size factors is set to unity, for standardization purposes if one were to compare different sets of size factors.
 }
 
@@ -38,6 +38,10 @@ spikes <- matrix(rnbinom(100*popsize, mu=all.facs*10, size=0.5), ncol=popsize, b
 
 y <- countsToSE(counts, spikes)
 out.facs <- normalizeBySpikes(y)
+}
+
+\seealso{
+\code{\link{SCESet}}
 }
 
 \keyword{normalization}
