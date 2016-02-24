@@ -1,7 +1,6 @@
 useDynLib(scran)
 
 export(
-    countsToSE, 
     DM, testVar,
     correlateNull
 )

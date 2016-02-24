@@ -18,12 +18,19 @@ setMethod("decomposeVar", c("ANY", "list"), function(x, fit, design=NA)
     return(data.frame(mean=lmeans, total=lvar, bio=bio.var, tech=tech.var))
 })
 
-setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, ...) {
-    keep <- !is.spike(x)
-    out <- decomposeVar(assayDataElement(x, "norm_exprs")[keep,], fit, ...)
-    i <- cumsum(keep)
-    i[!keep] <- NA_integer_
-    as.data.frame(lapply(out, "[", i))
+setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, ..., get.spikes=FALSE) {
+    cur.assay <- assayDataElement(x, "norm_exprs")
+    if (get.spikes) {
+        keep <- !is.spike(x)
+        cur.assay <- cur.assay[keep,]
+    }   
+    out <- decomposeVar(cur.assay, fit, ...)
+    if (get.spikes) {
+        i <- cumsum(keep)
+        i[!keep] <- NA_integer_
+        out <- as.data.frame(lapply(out, "[", i))
+    }
+    return(out)
 })
 
 testVar <- function(total, null, df, design=NULL) 
