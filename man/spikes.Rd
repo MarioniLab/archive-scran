@@ -16,7 +16,7 @@
 
 \details{
 This function extracts the spike-in data from \code{x}, into a numeric matrix that can be used for downstream analyses.
-Users should construct \code{x} via \code{\link{newSCESet}} with a logical vector indicating the spike-in controls.
+Users should put a logical vector in \code{fData(x)$is_feature_spike} indicating if each row of \code{x} the spike-in controls
 If \code{type="norm_exprs"}, users should have run \code{x} through \code{\link{normalize}}.
 }
 
@@ -26,7 +26,7 @@ A numeric matrix of counts or normalized expression values, with one column per 
 
 \seealso{
 \code{\link{normalize}},
-\code{\link{newSCESet}}
+\code{\link{SCESet}}
 }
 
 \author{
@@ -45,7 +45,7 @@ combined <- rbind(counts, spikes)
 colnames(combined) <- seq_len(popsize)
 rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
-y <- calculateQCMetrics(y, feature_controls=list(Spike=rep(c(FALSE, TRUE), c(ngenes, 100))))
+fData(y)$is_feature_spike <- rep(c(FALSE, TRUE), c(ngenes, 100))
 
 y$size.factor <- normalizeBySpikes(y)
 y <- normalize(y)

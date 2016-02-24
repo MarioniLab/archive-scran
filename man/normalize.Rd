@@ -61,7 +61,7 @@ combined <- rbind(counts, spikes)
 colnames(combined) <- seq_len(popsize)
 rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
-y <- calculateQCMetrics(y, feature_controls=list(Spike=rep(c(FALSE, TRUE), c(ngenes, 100))))
+fData(y)$is_feature_spike <- rep(c(FALSE, TRUE), c(ngenes, 100))
 
 assayDataElement(normalize(y), "norm_exprs")[1:10,] # Library size normalization, basically.
 y$size.factor <- normalizeBySpikes(y)

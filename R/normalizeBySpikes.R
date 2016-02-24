@@ -18,4 +18,8 @@ setMethod("spikes", "SCESet", function(x, type=c("counts", "norm_exprs")) {
     return(cur.assay)
 })
 
-is.spike <- function(x) { fData(x)$is_feature_control }
+is.spike <- function(x) { 
+    keep <- fData(x)$is_feature_spike 
+    if (is.null(keep)) { stop("'is_feature_spike' not set to identify spike-in rows") }
+    return(keep)
+}
