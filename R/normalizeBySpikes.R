@@ -7,7 +7,10 @@ setMethod("normalizeBySpikes", "SCESet", function(x)
 # created 17 February 2016
 {
     out <- log(colSums(spikes(x)))
-    exp(out - mean(out))
+    if (any(is.na(out))) { 
+        warning("zero spike-in counts during spike-in normalization")
+    }
+    exp(out - mean(out, na.rm=TRUE))
 })
 
 setGeneric("spikes", function(x, ...) standardGeneric("spikes"))
