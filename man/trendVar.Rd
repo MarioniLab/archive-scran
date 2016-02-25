@@ -7,7 +7,8 @@
 \description{Compute the biological and technical components of the gene-specific variance in single-cell RNA-seq data.}
 
 \usage{
-\S4method{trendVar}{ANY}(x, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1, design=NULL) 
+\S4method{trendVar}{ANY}(x, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1, 
+    design=NULL, weight.by.bin=5) 
 \S4method{trendVar}{SCESet}(x, ..., use.spikes=TRUE)
 }
 
@@ -21,6 +22,7 @@
 \item{span}{An numeric scalar specifying the span for loess fitting.}
 \item{prior.count}{A numeric scalar specifying the prior count to add before log-transformation.}
 \item{design}{A numeric matrix describing the systematic factors contributing to expression in each cell.}
+\item{weight.by.bin}{An integer scalar specifying the number of bins to split genes into for weight calculations.}
 \item{...}{Additional arguments to pass to \code{trendVar,ANY,list-method}.}
 \item{use.spikes}{A logical scalar specifying whether the trend should be fitted to variances for spike-in or endogenous genes.}
 }
@@ -44,6 +46,14 @@ Otherwise, it will default to an all-ones matrix, effectively treating all cells
 By default, a polynomial trend with \code{df} degrees of freedom is fitted to the spike-in variances as it is more precise than the loess curve.
 Note that this method is rather dependent on the quality of the spike-ins -- the fit will obviously be poor if the coverage of all spike-ins is low.
 In some data sets, a loess curve may yield better results, though this may require some fiddling with the \code{span}.
+
+Weighting is performed during trend fitting to upweight sparsely-distributed points. 
+This is done by splitting the mean interval into evenly spaced bins, and assigning weights to points in each bin that are inversely proportional to the number of points in that bin.
+This means that points in densely populated bins are low weighted, while points in sparsely populated bins are highly weighted.
+This avoids the trend fit being dominated by small, densely populated intervals, such that the fitted trend could not be reliably used for sparse intervals.
+The number of bins is determined by \code{weight.by.bins} and can be set to unity to turn off weighting.
+
+% This is not usually a problem for trend fitting as the errors of the sparse intervals are negligble when it only affects a few points.
 
 When spike-ins are not available, \code{trendVar} can also be applied directly to the counts for endogenous genes by setting \code{use.spikes=FALSE} 
     (or by manually supplying a matrix of normalized expression for endogenous genes, for \code{trendVar,ANY-method}).
