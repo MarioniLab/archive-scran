@@ -6,10 +6,11 @@ setMethod("normalizeBySpikes", "SCESet", function(x)
 # written by Aaron Lun
 # created 17 February 2016
 {
-    out <- log(colSums(spikes(x)))
-    if (any(is.na(out))) { 
+    out <- colSums(spikes(x))
+    if (any(out < 1e-8)) { 
         warning("zero spike-in counts during spike-in normalization")
-    }
+    } 
+    out <- log(out)
     exp(out - mean(out, na.rm=TRUE))
 })
 
