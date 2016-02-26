@@ -1,6 +1,6 @@
 setGeneric("trendVar", function(x, ...) standardGeneric("trendVar"))
 
-setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1, design=NULL, weight.by.bin=5) 
+setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1, design=NULL)
 # Fits a polynomial trend to the technical variability of the log-CPMs,
 # against their abundance (i.e., average log-CPM).
 # 
@@ -16,17 +16,12 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
     is.okay <- lvar > 1e-8
     kept.means <- lmeans[is.okay]
     llvar <- log2(lvar)[is.okay]
+    
     trend <- match.arg(trend)
-
-    # Fitting the trend with weights.
-    bins <- seq(from=min(kept.means), to=max(kept.means), length.out=weight.by.bin+1L)[-1]
-    bin.id <- findInterval(kept.means, bins, rightmost.closed=TRUE) + 1
-    bin.pop <- tabulate(bin.id)
-    weights <- 1/bin.pop[bin.id]
     if (trend=="loess") { 
-        fit <- loess(llvar ~ kept.means, span=span, degree=1, weights=weights)
+        fit <- loess(llvar ~ kept.means, span=span, degree=1)
     } else if (trend=="poly") {
-        fit <- lm(llvar ~ poly(kept.means, df=df), weights=weights)
+        fit <- lm(llvar ~ poly(kept.means, df=df))
     } 
 
     left.edge <- which.min(kept.means)
@@ -46,9 +41,9 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
 
 setMethod("trendVar", "SCESet", function(x, ..., use.spikes=TRUE) {
     if (use.spikes) {
-        cur.assay <- spikes(x, "norm_exprs")
+        cur.assay <- spikes(x, "exprs")
     } else {
-        cur.assay <- .getUsedMatrix(x, "norm_exprs")
+        cur.assay <- .getUsedMatrix(x, "exprs")
     }
     out <- trendVar(cur.assay, ...)
     return(out)
