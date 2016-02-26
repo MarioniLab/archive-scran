@@ -21,6 +21,6 @@ setMethod("normalize", "SCESet", function(object, ..., separate.spikes=TRUE) {
         out[is.spike(object),] <- out2
     } 
     
-    assayDataElement(object, "norm_exprs") <- out
+    assayDataElement(object, "exprs") <- out
     return(object)
 })

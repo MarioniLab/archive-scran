@@ -100,6 +100,6 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
 }
 
 setMethod("correlatePairs", "SCESet", function(x, ...) {
-    correlatePairs(.getUsedMatrix(x, "norm_exprs"), ...)             
+    correlatePairs(.getUsedMatrix(x, "exprs"), ...)             
 })
 

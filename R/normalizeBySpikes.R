@@ -15,7 +15,7 @@ setMethod("normalizeBySpikes", "SCESet", function(x)
 
 setGeneric("spikes", function(x, ...) standardGeneric("spikes"))
 
-setMethod("spikes", "SCESet", function(x, type=c("counts", "norm_exprs")) {
+setMethod("spikes", "SCESet", function(x, type=c("counts", "exprs")) {
     type <- match.arg(type)
     cur.assay <- assayDataElement(x, type)[is.spike(x),,drop=FALSE]
     return(cur.assay)

@@ -19,7 +19,7 @@ setMethod("decomposeVar", c("ANY", "list"), function(x, fit, design=NA)
 })
 
 setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, ..., get.spikes=FALSE) {
-    cur.assay <- assayDataElement(x, "norm_exprs")
+    cur.assay <- assayDataElement(x, "exprs")
     if (get.spikes) {
         keep <- !is.spike(x)
         cur.assay <- cur.assay[keep,]
