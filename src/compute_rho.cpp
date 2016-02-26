@@ -1,7 +1,7 @@
 #include "scran.h"
 
-double rho_mult (int Ncells) {
-    return 6/double(Ncells*Ncells*(Ncells-1));
+double rho_mult (double Ncells) {
+    return 6/(Ncells*Ncells*(Ncells-1));
 }
 
 SEXP get_null_rho (SEXP cells, SEXP iters) try {
