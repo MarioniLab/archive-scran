@@ -19,7 +19,7 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
     
     trend <- match.arg(trend)
     if (trend=="loess") { 
-        fit <- loess(llvar ~ kept.means, span=span, degree=1)
+        fit <- loess(llvar ~ kept.means, span=span, degree=1, family="symmetric")
     } else if (trend=="poly") {
         fit <- lm(llvar ~ poly(kept.means, df=df))
     } 
