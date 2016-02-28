@@ -22,8 +22,18 @@ setMethod("spikes", "SCESet", function(x, type=c("counts", "exprs")) {
     return(cur.assay)
 })
 
+setGeneric("isSpike", function(x) standardGeneric("isSpike"))
+
+setMethod("isSpike", "SCESet", is.spike)
 is.spike <- function(x) { 
     keep <- fData(x)$is_feature_spike 
-    if (is.null(keep)) { stop("'is_feature_spike' not set to identify spike-in rows") }
+    if (is.null(keep)) { stop("set 'isSpike(x)' to identify spike-in rows") }
     return(keep)
 }
+
+setGeneric("isSpike<-", function(x, value) standardGeneric("isSpike<-"))
+setReplaceMethod("isSpike", "SCESet", function(x, value) {
+    fData(x)$is_feature_spike <- value
+    return(x) 
+})
+

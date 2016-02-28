@@ -82,7 +82,7 @@ combined <- rbind(cell.data, spike.data)
 colnames(combined) <- seq_len(ncells)
 rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
-fData(y)$is_feature_spike <- rep(c(FALSE, TRUE), c(ngenes, nspikes))
+isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, nspikes))
 
 # Normalizing.
 y$size.factor <- normalizeBySpikes(y)

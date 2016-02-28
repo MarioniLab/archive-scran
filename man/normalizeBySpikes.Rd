@@ -16,7 +16,7 @@
 \details{
 The size factor for each cell is defined as the sum of all spike-in counts in each cell.
 This is equivalent to normalizing to equalize spike-in coverage between cells.
-Spike-in counts are assumed to be stored in rows with \code{fData(x)$is_control_feature} -- see \code{?\link{SCESet}} for more details.
+Spike-in counts are assumed to be stored in rows with \code{fData(x)$is_control_feature} -- see \code{?\link{isSpike<-}} for more details.
 Note that the geometric mean of all size factors is set to unity, for standardization purposes if one were to compare different sets of size factors.
 }
 
@@ -40,7 +40,7 @@ combined <- rbind(counts, spikes)
 colnames(combined) <- seq_len(popsize)
 rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
-fData(y)$is_feature_spike <- rep(c(FALSE, TRUE), c(ngenes, 100))
+isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, 100))
 out.facs <- normalizeBySpikes(y)
 }
 

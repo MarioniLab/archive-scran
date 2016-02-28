@@ -1,27 +1,37 @@
 \name{Get spikes}
 \alias{spikes}
 \alias{spikes,SCESet-method}
+\alias{isSpike}
+\alias{isSpike,SCESet-method}
+\alias{isSpike<-}
+\alias{isSpike<-,SCESet-method}
 
-\title{Construct spike-in matrix}
-\description{Reconstruct the matrix of counts or normalized expression values for the spike-in transcripts.}
+\title{Construct the spike-in matrix}
+\description{Identify rows in the SCESet corresponding to spike-in transcripts, and retrieve a matrix of counts or normalized expression values for those rows.}
 
 \usage{
-\S4method{spikes}{SCESet}(x, type=c("counts", "norm_exprs"))
+\S4method{spikes}{SCESet}(x, type=c("counts", "exprs"))
+\S4method{isSpike}{SCESet}(x)
+\S4method{isSpike}{SCESet}(x) <- value
 }
 
 \arguments{
 \item{x}{A SCESet object with spike-in data in the \code{colData}.}
 \item{type}{A string specifying whether counts or normalized expression values are to be extracted.}
+\item{value}{A logical vector specifying which rows correspond to spike-ins.}
 }
 
 \details{
 This function extracts the spike-in data from \code{x}, into a numeric matrix that can be used for downstream analyses.
-Users should put a logical vector in \code{fData(x)$is_feature_spike} indicating if each row of \code{x} the spike-in controls
-If \code{type="norm_exprs"}, users should have run \code{x} through \code{\link{normalize}}.
+Users should set a logical vector in \code{isSpike(x)} indicating whether each row of \code{x} is a spike-in control.
+If \code{type="exprs"}, users should have run \code{x} through \code{\link{normalize}}.
 }
 
 \value{
-A numeric matrix of counts or normalized expression values, with one column per cell and one row per spike-in transcript.
+For \code{spikes}, a numeric matrix of counts or normalized expression values, with one column per cell and one row per spike-in transcript.
+
+For \code{isSpike}, a logical vector indicating which rows are spike-ins.
+For \code{isSpike<-}, \code{x} is modified to store a spike-specifying vector in \code{fData(x)$is_feature_spike}.
 }
 
 \seealso{
@@ -45,10 +55,11 @@ combined <- rbind(counts, spikes)
 colnames(combined) <- seq_len(popsize)
 rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
-fData(y)$is_feature_spike <- rep(c(FALSE, TRUE), c(ngenes, 100))
+isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, 100))
 
 y$size.factor <- normalizeBySpikes(y)
 y <- normalize(y)
 spikes(y)[1:10,]
-spikes(y, type="norm_exprs")[1:10,]
+spikes(y, type="exprs")[1:10,]
+isSpike(y)
 }
