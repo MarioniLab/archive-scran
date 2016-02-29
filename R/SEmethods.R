@@ -37,6 +37,8 @@ setReplaceMethod("sizeFactors", "SCESet", function(object, value) {
         stop("size factors should be numeric")
     }        
     object$sizeFactor <- value
-    assayDataElement(object, "exprs") <- NULL # need to run 'normalize()' again.
+    if ("exprs" %in% assayDataElementNames(object)) {
+        assayDataElement(object, "exprs") <- NULL # need to run 'normalize()' again.
+    }
     return(object)
 })
