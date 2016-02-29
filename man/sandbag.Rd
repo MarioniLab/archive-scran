@@ -59,7 +59,7 @@ out <- sandbag(training, is.G1, is.S, is.G2M)
 
 # Getting pre-trained marker sets
 mm.pairs <- readRDS(system.file("exdata", "mouse_cycle_markers.rds", package="scran"))
-# hs.pairs <- readRDS(system.file("exdata", "human_cycle_markers.rds", package="scran"))
+hs.pairs <- readRDS(system.file("exdata", "human_cycle_markers.rds", package="scran"))
 }
 
 \references{
