@@ -32,6 +32,16 @@ All size factors are mean-centered so that their geometric mean is equal to unit
 This ensures that expression values are roughly comparable when different sets of size factors are used.
 }
 
+\section{Why spikes can be normalized separately}{
+In most cases, it does not make sense to normalize spike-in counts with size factors computed from endogenous genes.
+This is because the spike-in counts do not (generally) depend on the total amount of endogenous RNA, whereas the size factors do.
+As such, normalizing the former with the latter would be inappropriate -- cells with a lot of endogenous RNA would scale down the spike-in counts, even if the same amount of spike-in RNA was added, captured and sequenced in each cell.
+
+Instead, normalization of the spike-in counts should be performed using size factors computed from those counts, i.e., with \code{\link{normalizeBySpikes}}.
+This is the default setting when \code{separate.spikes=TRUE}.
+Normalized log-expression values are made to be roughly comparable to those of endogenous genes, by ensuring \emph{all} sets of size factors are mean-centered prior to normalization.
+}
+
 \value{
 For \code{normalize,SCESet-method}, a SCESet object is returned with an additional assay named \code{"norm_exprs"}.
 This contains normalized log-expression values for the endogenous genes.
