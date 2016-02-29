@@ -93,9 +93,9 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
 
 .workerAssign <- function(njobs, BPPARAM) {
     ncores <- bpworkers(BPPARAM)
-    starting <- seq(from=1, to=njobs+1, length.out=ncores+1)
+    starting <- as.integer(seq(from=1, to=njobs+1, length.out=ncores+1))
     starting <- unique(starting[seq_len(ncores)])
-    ending <- c((starting - 1)[-1], njobs)
+    ending <- c((starting - 1L)[-1], njobs)
     return(list(start=starting, end=ending))
 }
 

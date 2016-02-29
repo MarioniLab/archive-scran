@@ -24,12 +24,12 @@ setMethod("spikes", "SCESet", function(x, type=c("counts", "exprs")) {
 
 setGeneric("isSpike", function(x) standardGeneric("isSpike"))
 
-setMethod("isSpike", "SCESet", is.spike)
 is.spike <- function(x) { 
     keep <- fData(x)$is_feature_spike 
     if (is.null(keep)) { stop("set 'isSpike(x)' to identify spike-in rows") }
     return(keep)
 }
+setMethod("isSpike", "SCESet", is.spike)
 
 setGeneric("isSpike<-", function(x, value) standardGeneric("isSpike<-"))
 setReplaceMethod("isSpike", "SCESet", function(x, value) {
