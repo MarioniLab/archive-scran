@@ -10,7 +10,7 @@ exportMethods(
     trendVar, decomposeVar, 
     sandbag, cyclone,
     correlatePairs,
-    spikes, isSpike
+    spikes, isSpike, "isSpike<-"
 )
 
 importFrom("dynamicTreeCut", cutreeDynamic)
