@@ -19,7 +19,6 @@
 \item{trend}{A string indicating whether the trend should be polynomial or loess-based.}
 \item{df}{An integer scalar specifying the degrees of freedom for polynomial fitting.}
 \item{span}{An numeric scalar specifying the span for loess fitting.}
-\item{prior.count}{A numeric scalar specifying the prior count to add before log-transformation.}
 \item{design}{A numeric matrix describing the systematic factors contributing to expression in each cell.}
 \item{...}{Additional arguments to pass to \code{trendVar,ANY,list-method}.}
 \item{use.spikes}{A logical scalar specifying whether the trend should be fitted to variances for spike-in or endogenous genes.}
@@ -57,7 +56,6 @@ A named list is returned, containing:
 \item{\code{mean}:}{A numeric vector of mean log-CPMs for all spike-in genes.}
 \item{\code{var}:}{A numeric vector of the variances of log-CPMs for all spike-in genes.}
 \item{\code{trend}:}{A function that returns the fitted value of the trend at any mean log-CPM.}
-\item{\code{prior.count}:}{A numeric scalar of the prior count used.}
 \item{\code{design}:}{A numeric matrix, containing the design matrix that was used.}
 }
 }

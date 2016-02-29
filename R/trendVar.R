@@ -1,6 +1,6 @@
 setGeneric("trendVar", function(x, ...) standardGeneric("trendVar"))
 
-setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1, design=NULL)
+setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.3, design=NULL)
 # Fits a polynomial trend to the technical variability of the log-CPMs,
 # against their abundance (i.e., average log-CPM).
 # 
@@ -32,7 +32,7 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
         out[x > kept.means[right.edge]] <- fitted(fit)[right.edge]
         return(2^out)
     }
-    return(list(mean=lmeans, var=lvar, trend=FUN, prior.count=prior.count, design=design))
+    return(list(mean=lmeans, var=lvar, trend=FUN, design=design))
 })
 
 .interceptModel <- function(ncells) {
