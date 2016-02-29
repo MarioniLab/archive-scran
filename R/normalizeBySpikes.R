@@ -5,13 +5,15 @@ setMethod("normalizeBySpikes", "SCESet", function(x)
 #
 # written by Aaron Lun
 # created 17 February 2016
+# last modified 29 February 2016
 {
     out <- colSums(spikes(x))
     if (any(out < 1e-8)) { 
         warning("zero spike-in counts during spike-in normalization")
     } 
     out <- log(out)
-    exp(out - mean(out, na.rm=TRUE))
+    sizeFactors(x) <- exp(out - mean(out, na.rm=TRUE))
+    x
 })
 
 setGeneric("spikes", function(x, ...) standardGeneric("spikes"))

@@ -17,7 +17,7 @@ importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("zoo", zoo, rollapply, index)
 importFrom("edgeR", cpm.default)
 importFrom("stats", poly)
-importFrom("BiocGenerics", normalize)
+importFrom("BiocGenerics", normalize, sizeFactors, "sizeFactors<-")
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData)
 
 import(BiocParallel)

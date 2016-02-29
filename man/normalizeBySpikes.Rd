@@ -21,7 +21,7 @@ Note that the geometric mean of all size factors is set to unity, for standardiz
 }
 
 \value{
-A numeric vector of size factors for all cells in \code{x} is returned.
+An object of class \code{x} is returned, containing a numeric vector of size factors for all cells in \code{sizeFactors(x)}.
 }
 
 \author{

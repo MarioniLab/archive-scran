@@ -138,7 +138,9 @@ setMethod("normalizeBySums", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), cl
 })
 
 setMethod("normalizeBySums", "SCESet", function(x, ...) { 
-    normalizeBySums(.getUsedMatrix(x, "counts"), ...) 
+    sf <- normalizeBySums(.getUsedMatrix(x, "counts"), ...) 
+    sizeFactors(x) <- sf
+    x
 })
 
 .getUsedMatrix <- function(x, type="counts") {

@@ -70,7 +70,9 @@ Such occurrences are unavoidable -- rather, the aim is to prevent negative value
 }
 
 \value{
-A numeric vector of size factors for all cells in \code{x} is returned.
+For \code{normalizeBySums,ANY-method}, a numeric vector of size factors for all cells in \code{x} is returned.
+
+For \code{normalizeBySums,SCESet-method}, an object of class \code{x} is returned containing the vector of size factors in \code{sizeFactors(x)}.
 }
 
 \author{
