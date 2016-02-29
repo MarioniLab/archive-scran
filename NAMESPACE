@@ -18,6 +18,7 @@ importFrom("zoo", zoo, rollapply, index)
 importFrom("edgeR", cpm.default)
 importFrom("BiocGenerics", normalize, sizeFactors, "sizeFactors<-")
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData)
+importFrom("utils", combn)
 
 import(BiocParallel)
 import(scater)
