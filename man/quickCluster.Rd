@@ -49,7 +49,7 @@ Aaron Lun and Karsten Bach
 
 \seealso{
 \code{\link{cutreeDynamic}},
-\code{\link{normalizeBySums}}
+\code{\link{computeSumFactors}}
 }
 
 \examples{

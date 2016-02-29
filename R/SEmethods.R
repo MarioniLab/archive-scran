@@ -13,11 +13,11 @@ setMethod("normalize", "ANY", function(object, size.factor=NULL, log=TRUE, prior
 })
 
 setMethod("normalize", "SCESet", function(object, ..., separate.spikes=TRUE) {
-    out <- normalize(assayDataElement(object, "counts"), size.factor=sizeFactor(object), ...) # Normalizing everything, not just spikes.
+    out <- normalize(assayDataElement(object, "counts"), size.factor=sizeFactors(object), ...) # Normalizing everything, not just spikes.
 
     if (separate.spikes) { 
-        sf <- normalizeBySpikes(object)
-        out2 <- normalize(spikes(object, type="counts"), size.factor=sf, ...)
+        object2 <- computeSpikeFactors(object)
+        out2 <- normalize(spikes(object, type="counts"), size.factor=sizeFactors(object2), ...)
         out[is.spike(object),] <- out2
     } 
     
@@ -27,7 +27,8 @@ setMethod("normalize", "SCESet", function(object, ..., separate.spikes=TRUE) {
 
 setMethod("sizeFactors", "SCESet", function(object) {
     out <- object$sizeFactor
-    if (!is.null(out)) { names(out) <- colnames(object) }
+    if (is.null(out)) { stop("'sizeFactors' are not set") }
+    names(out) <- colnames(object) 
     return(out)
 })
 

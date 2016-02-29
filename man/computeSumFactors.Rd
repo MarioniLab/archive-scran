@@ -1,15 +1,15 @@
 \name{Deconvolution Methods}
-\alias{normalizeBySums}
-\alias{normalizeBySums,ANY-method}
-\alias{normalizeBySums,SCESet-method}
+\alias{computeSumFactors}
+\alias{computeSumFactors,ANY-method}
+\alias{computeSumFactors,SCESet-method}
 
 \title{Normalization by deconvolution}
 \description{Methods to normalize single-cell RNA-seq data by deconvolving size factors from cell pools.}
 
 \usage{
-\S4method{normalizeBySums}{ANY}(x, sizes=c(20, 40, 60, 80, 100), 
+\S4method{computeSumFactors}{ANY}(x, sizes=c(20, 40, 60, 80, 100), 
     clusters=NULL, ref.clust=NULL, positive=FALSE)
-\S4method{normalizeBySums}{SCESet}(x, ...)
+\S4method{computeSumFactors}{SCESet}(x, ...)
 }
 
 \arguments{
@@ -21,11 +21,11 @@
 \item{clusters}{An optional factor specifying which cells belong to which cluster, for deconvolution within clusters.}
 \item{ref.clust}{A level of \code{clusters} to be used as the reference cluster for inter-cluster normalization.}
 \item{positive}{A logical scalar indicating whether linear inverse models should be used to enforce positive estimates.}
-\item{...}{Additional arguments to pass to \code{normalizeBySums,ANY-method}.}
+\item{...}{Additional arguments to pass to \code{computeSumFactors,ANY-method}.}
 }
 
 \section{Overview of the deconvolution method}{
-The \code{normalizeBySums} function provides an implementation of the deconvolution strategy for normalization.
+The \code{computeSumFactors} function provides an implementation of the deconvolution strategy for normalization.
 Briefly, a pool of cells is selected and the counts for those cells are summed together.
 The count sums for this pool is normalized against an average reference pseudo-cell, constructed by averaging the counts across all cells.
 This defines a size factor for the pool as the median ratio between the count sums and the average across all genes.
@@ -70,9 +70,9 @@ Such occurrences are unavoidable -- rather, the aim is to prevent negative value
 }
 
 \value{
-For \code{normalizeBySums,ANY-method}, a numeric vector of size factors for all cells in \code{x} is returned.
+For \code{computeSumFactors,ANY-method}, a numeric vector of size factors for all cells in \code{x} is returned.
 
-For \code{normalizeBySums,SCESet-method}, an object of class \code{x} is returned containing the vector of size factors in \code{sizeFactors(x)}.
+For \code{computeSumFactors,SCESet-method}, an object of class \code{x} is returned containing the vector of size factors in \code{sizeFactors(x)}.
 }
 
 \author{
@@ -89,7 +89,7 @@ popsize <- 800
 ngenes <- 10000
 all.facs <- 2^rnorm(popsize, sd=0.5)
 counts <- matrix(rnbinom(ngenes*popsize, mu=all.facs*10, size=1), ncol=popsize, byrow=TRUE)
-out.facs <- normalizeBySums(counts)
+out.facs <- computeSumFactors(counts)
 }
 
 \keyword{normalization}

@@ -1,12 +1,12 @@
 \name{Spike-in normalization}
-\alias{normalizeBySpikes}
-\alias{normalizeBySpikes,SCESet-method}
+\alias{computeSpikeFactors}
+\alias{computeSpikeFactors,SCESet-method}
 
 \title{Normalization with spike-in counts}
 \description{Compute size factors based on the coverage of spike-in transcripts.}
 
 \usage{
-\S4method{normalizeBySpikes}{SCESet}(x)
+\S4method{computeSpikeFactors}{SCESet}(x)
 }
 
 \arguments{
@@ -41,7 +41,7 @@ colnames(combined) <- seq_len(popsize)
 rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
 isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, 100))
-out.facs <- normalizeBySpikes(y)
+out.facs <- computeSpikeFactors(y)
 }
 
 \seealso{

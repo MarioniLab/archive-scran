@@ -9,9 +9,9 @@
     c(out, out)
 }
 
-setGeneric("normalizeBySums", function(x, ...) standardGeneric("normalizeBySums"))
+setGeneric("computeSumFactors", function(x, ...) standardGeneric("computeSumFactors"))
 
-setMethod("normalizeBySums", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), clusters=NULL, ref.clust=NULL, positive=FALSE) 
+setMethod("computeSumFactors", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), clusters=NULL, ref.clust=NULL, positive=FALSE) 
 # This contains the function that performs normalization on the summed counts.
 # It also provides support for normalization within clusters, and then between
 # clusters to make things comparable. It can also switch to linear inverse models
@@ -137,8 +137,8 @@ setMethod("normalizeBySums", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), cl
     return(final.sf)
 })
 
-setMethod("normalizeBySums", "SCESet", function(x, ...) { 
-    sf <- normalizeBySums(.getUsedMatrix(x, "counts"), ...) 
+setMethod("computeSumFactors", "SCESet", function(x, ...) { 
+    sf <- computeSumFactors(.getUsedMatrix(x, "counts"), ...) 
     sizeFactors(x) <- sf
     x
 })

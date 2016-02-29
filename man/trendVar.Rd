@@ -7,7 +7,7 @@
 \description{Compute the biological and technical components of the gene-specific variance in single-cell RNA-seq data.}
 
 \usage{
-\S4method{trendVar}{ANY}(x, trend=c("poly", "loess"), df=5, span=0.3, prior.count=1, design=NULL)
+\S4method{trendVar}{ANY}(x, trend=c("poly", "loess"), df=5, span=0.3, design=NULL)
 \S4method{trendVar}{SCESet}(x, ..., use.spikes=TRUE)
 }
 
@@ -26,9 +26,8 @@
 }
 
 \details{
-The strategy is to fit an abundance-dependent trend to the variance of the log-CPMs for the spike-in genes, using \code{trendVar}.
-Log-CPMs are computed from the spike-in counts using \code{\link[edgeR]{cpm}} with the library sizes set to \code{size.factor} and the specified \code{prior.count}.
-Normalization should be performed based on the spike-in totals using \code{\link{normalizeBySpikes}} followed by \code{\link{normalize}}.
+The strategy is to fit an abundance-dependent trend to the variance of the log-normalized expression for the spike-in genes, using \code{trendVar}.
+For SCESet objects, these expression values can be computed by \code{\link{normalize}} after setting the size factors, e.g., with \code{\link{computeSpikeFactors}}.
 Log-transformed values are used as these tend to be more robust to genes with strong expression in only one or two outlier cells.
 
 The mean and variance of the log-CPMs is calculated for each spike-in gene.
@@ -67,7 +66,8 @@ A named list is returned, containing:
 \code{\link{poly}},
 \code{\link{loess}},
 \code{\link{decomposeVar}},
-\code{\link{normalizeBySpikes}},
+\code{\link{computeSpikeFactors}},
+\code{\link{computeSumFactors}},
 \code{\link{normalize}}
 }
 
@@ -95,7 +95,7 @@ y <- newSCESet(countData=combined)
 isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, nspikes))
 
 # Normalizing.
-y$size.factor <- normalizeBySpikes(y)
+y <- computeSpikeFactors(y) # or computeSumFactors.
 y <- normalize(y)
 
 # Fitting a trend to the spike-ins.

@@ -57,7 +57,7 @@ rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
 isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, 100))
 
-y$size.factor <- normalizeBySpikes(y)
+y <- computeSpikeFactors(y)
 y <- normalize(y)
 spikes(y)[1:10,]
 spikes(y, type="exprs")[1:10,]

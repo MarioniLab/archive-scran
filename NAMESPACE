@@ -6,7 +6,7 @@ export(
 )
 
 exportMethods(
-    normalizeBySums, quickCluster, normalizeBySpikes, normalize,
+    computeSumFactors, quickCluster, computeSpikeFactors, normalize,
     trendVar, decomposeVar, 
     sandbag, cyclone,
     correlatePairs,
@@ -16,11 +16,10 @@ exportMethods(
 importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("zoo", zoo, rollapply, index)
 importFrom("edgeR", cpm.default)
-importFrom("stats", poly)
 importFrom("BiocGenerics", normalize, sizeFactors, "sizeFactors<-")
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData)
 
 import(BiocParallel)
 import(scater)
 import(methods)
-
+import(stats)

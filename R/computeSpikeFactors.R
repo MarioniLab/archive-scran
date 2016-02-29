@@ -1,6 +1,6 @@
-setGeneric("normalizeBySpikes", function(x, ...) { standardGeneric("normalizeBySpikes") })
+setGeneric("computeSpikeFactors", function(x, ...) { standardGeneric("computeSpikeFactors") })
 
-setMethod("normalizeBySpikes", "SCESet", function(x) 
+setMethod("computeSpikeFactors", "SCESet", function(x) 
 # Uses the total of spike-in transcripts as the size factor.
 #
 # written by Aaron Lun

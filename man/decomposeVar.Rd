@@ -52,9 +52,7 @@ Rows corresponding to spike-in transcripts are set to \code{NA} unless \code{get
 }
 
 \seealso{
-\code{\link{trendVar}}, 
-\code{\link{normalizeBySpikes}},
-\code{\link{normalize}}
+\code{\link{trendVar}} 
 }
 
 \author{
@@ -81,7 +79,7 @@ y <- newSCESet(countData=combined)
 isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, nspikes))
 
 # Normalizing.
-y$size.factor <- normalizeBySpikes(y)
+y <- computeSpikeFactors(y) # or computeSumFactors
 y <- normalize(y)
 
 # Decomposing technical and biological noise.

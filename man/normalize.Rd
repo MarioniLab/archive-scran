@@ -22,11 +22,11 @@
 \details{
 This function computes normalized log-expression values by adding \code{prior.count} to each count, dividing by the \code{size.factor} for that cell, and log-transforming.
 If \code{object} is a SCESet object, size factors are taken from the appropriate field in the \code{colData}.
-These size factors can be computed with a number of functions like \code{\link{normalizeBySums}} or \code{\link{normalizeBySpikes}}.
+These size factors can be computed with a number of functions like \code{\link{computeSumFactors}} or \code{\link{computeSpikeFactors}}.
 
 If spike-in counts are present in the SCESet object, these will also be converted into normalized values.
 If \code{separate.spikes=FALSE}, this is done with the same set of size factors that was used for the endogenous genes.
-Otherwise, a separate set of spike-in size factors will be used instead -- these are defined by calling \code{\link{normalizeBySpikes}}.
+Otherwise, a separate set of spike-in size factors will be used instead -- these are defined by calling \code{\link{computeSpikeFactors}}.
 
 All size factors are mean-centered so that their geometric mean is equal to unity prior to computing normalized expression values.
 This ensures that expression values are roughly comparable when different sets of size factors are used.
@@ -37,7 +37,7 @@ In most cases, it does not make sense to normalize spike-in counts with size fac
 This is because the spike-in counts do not (generally) depend on the total amount of endogenous RNA, whereas the size factors do.
 As such, normalizing the former with the latter would be inappropriate -- cells with a lot of endogenous RNA would scale down the spike-in counts, even if the same amount of spike-in RNA was added, captured and sequenced in each cell.
 
-Instead, normalization of the spike-in counts should be performed using size factors computed from those counts, i.e., with \code{\link{normalizeBySpikes}}.
+Instead, normalization of the spike-in counts should be performed using size factors computed from those counts, i.e., with \code{\link{computeSpikeFactors}}.
 This is the default setting when \code{separate.spikes=TRUE}.
 Normalized log-expression values are made to be roughly comparable to those of endogenous genes, by ensuring \emph{all} sets of size factors are mean-centered prior to normalization.
 }
@@ -51,8 +51,8 @@ If spike-ins are present, normalized values for the spike-in transcripts are sto
 \seealso{
 \code{\link{cpm}},
 \code{\link{SCESet}},
-\code{\link{normalizeBySums}},
-\code{\link{normalizeBySpikes}}
+\code{\link{computeSumFactors}},
+\code{\link{computeSpikeFactors}}
 }
 
 \author{
@@ -73,7 +73,11 @@ rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
 isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, 100))
 
-assayDataElement(normalize(y), "norm_exprs")[1:10,] # Library size normalization, basically.
-y$size.factor <- normalizeBySpikes(y)
-assayDataElement(normalize(y), "norm_exprs")[1:10,]
+sizeFactors(y) <- colSums(combined) # Library size normalization, basically.
+y <- normalize(y)
+exprs(y)[1:10,]
+
+y <- computeSpikeFactors(y)
+y <- normalize(y)
+exprs(y)[1:10,]
 }
