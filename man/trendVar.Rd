@@ -45,9 +45,9 @@ In some data sets, a loess curve may yield better results, though this may requi
 
 When spike-ins are not available, \code{trendVar} can also be applied directly to the counts for endogenous genes by setting \code{use.spikes=FALSE} 
     (or by manually supplying a matrix of normalized expression for endogenous genes, for \code{trendVar,ANY-method}).
-In this case, the trend is fitted to variances for endogenous genes and represents the uninteresting mean-variance relationship.
-Subtracting the trend from the variance of each gene will eliminate the mean-variance dependency, yielding a residual that can be ranked to identify highly variable genes. 
+This assumes that most genes exhibit technical variation and little biological variation, e.g., in a homogeneous population.
 A loess curve is recommended here as it is more robust to a subset of genes with very large or very small variances.
+If \code{use.spikes=NA}, every row will be used for trend fitting, regardless of whether it corresponds to a spike-in transcript or endogenous gene.
 }
 
 \value{
