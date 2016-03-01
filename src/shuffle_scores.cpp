@@ -1,11 +1,11 @@
 #include "scran.h"
 
-double get_proportion (const double* expr, const int * order, const int& npairs, const int& minpairs, const int * m1, const int * m2) {
-    // Assumes m1, m2 are 1-based, and order is already shifted by 1 to compensate.
+double get_proportion (const double* expr, const int* access, const int * permuted_index, const int& npairs, const int& minpairs, const int * m1, const int * m2) {
+    // Assumes m1, m2 are 1-based, and permuted_index is already shifted by 1 to compensate.
     int was_first=0, was_total=0;
     for (int p=0; p<npairs; ++p) {
-        const double& first=expr[order[m1[p]]];
-        const double& second=expr[order[m2[p]]];
+        const double& first=expr[permuted_index[access[m1[p]]]];
+        const double& second=expr[permuted_index[access[m2[p]]]];
         if (first > second) { ++was_first; }
         if (first != second) { ++was_total; }      
     }
@@ -13,13 +13,16 @@ double get_proportion (const double* expr, const int * order, const int& npairs,
     return(double(was_first)/was_total);
 }
 
-SEXP shuffle_scores (SEXP ncells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP marker2, SEXP iter, SEXP miniter, SEXP minpair) try {
-    if (!isInteger(ncells) || LENGTH(ncells)!=1) { throw std::runtime_error("number of cells must be an integer scalar"); }
-    const int nc=asInteger(ncells);
+SEXP shuffle_scores (SEXP mycells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP marker2, SEXP iter, SEXP miniter, SEXP minpair) try {
+    if (!isInteger(mycells) || LENGTH(mycells)!=2) { throw std::runtime_error("cell indices must be an integer vector of length 2"); }
+    const int start=INTEGER(mycells)[0] - 1;
+    const int last=INTEGER(mycells)[1];
+    const int nc=last-start;
+    
     if (!isInteger(ngenes) || LENGTH(ngenes)!=1) { throw std::runtime_error("number of genes must be an integer scalar"); }
     const int ng=asInteger(ngenes);
     if (!isReal(exprs)) { throw std::runtime_error("matrix of expression values must be double-precision"); }
-    if (nc*ng!=LENGTH(exprs)) { throw std::runtime_error("size of expression matrix is not consistent with provided dimensions"); }
+    if (nc*ng > LENGTH(exprs)) { throw std::runtime_error("size of expression matrix is not consistent with provided dimensions"); }
     if (!isInteger(marker1) || !isInteger(marker2)) { throw std::runtime_error("vectors of marker pair genes must be integer"); }
     const int npairs = LENGTH(marker1);
     if (npairs!=LENGTH(marker2)) { throw std::runtime_error("vectors of marker pairs must be of the same length"); }
@@ -32,18 +35,37 @@ SEXP shuffle_scores (SEXP ncells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP ma
     const int minp=asInteger(minpair);
 
     const double** exp_ptrs=(const double**)R_alloc(nc, sizeof(const double*));
-    if (nc) { exp_ptrs[0] = REAL(exprs); }
+    if (nc) { exp_ptrs[0] = REAL(exprs) + start * ng; }
     int cell;
     for (cell=1; cell<nc; ++cell) { exp_ptrs[cell]=exp_ptrs[cell-1] + ng; }
     const int* m1_ptr=INTEGER(marker1), * m2_ptr=INTEGER(marker2);
-    int* reorder=(int*)R_alloc(ng, sizeof(int)) - 1;
 
-    // Checking marker sanity.
+    /* The idea is that the indices in each pair point to 'access', which in turn point to an entry of 'ref_permute/repermute'.
+     * The permutation vector contains indices pointing to the rows of 'exprs' for each gene, for all and only rows used in any of the pairs.
+     * Shuffling the values of the permutation vector is equivalent to permuting only the used rows amongst themselves.
+     */
+    int* access=(int*)R_alloc(ng, sizeof(int)) - 1;
+    for (int g=1; g<=ng; ++g) { access[g]=-1; }
+    int* ref_repermute=(int*)R_alloc(ng, sizeof(int));
+    int stored=0;
+
+    // Checking marker sanity.    
     for (int marker=0; marker<npairs; ++marker) {
         if (m1_ptr[marker] > ng || m1_ptr[marker] <= 0) { throw std::runtime_error("first marker indices are out of range"); }
+        if (access[m1_ptr[marker]] < 0) { 
+            access[m1_ptr[marker]]=stored;
+            ref_repermute[stored]=m1_ptr[marker]-1;
+            ++stored;
+        }
         if (m2_ptr[marker] > ng || m2_ptr[marker] <= 0) { throw std::runtime_error("second marker indices are out of range"); }
+        if (access[m2_ptr[marker]] < 0) { 
+            access[m2_ptr[marker]]=stored;
+            ref_repermute[stored]=m2_ptr[marker]-1;
+            ++stored;
+        }
     }
 
+    int* repermute=(int*)R_alloc(stored, sizeof(int));
     SEXP output=PROTECT(allocVector(REALSXP, nc));
     try {
         double* optr=REAL(output);
@@ -53,8 +75,8 @@ SEXP shuffle_scores (SEXP ncells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP ma
         Rx_random_seed my_seed;
 
         for (int cell=0; cell<nc; ++cell) {
-            for (gene=0; gene<ng; ++gene) { reorder[gene+1]=gene; }
-            curscore=get_proportion(exp_ptrs[cell], reorder, npairs, minp, m1_ptr, m2_ptr);
+            for (gene=0; gene<stored; ++gene) { repermute[gene]=ref_repermute[gene]; }
+            curscore=get_proportion(exp_ptrs[cell], access, repermute, npairs, minp, m1_ptr, m2_ptr);
             if (ISNA(curscore)) { 
                 optr[cell]=NA_REAL;
                 continue;
@@ -62,8 +84,8 @@ SEXP shuffle_scores (SEXP ncells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP ma
 
             below=total=0;
             for (it=0; it < nit; ++it) {
-                Rx_shuffle(reorder+1, reorder+ng+1);
-                newscore=get_proportion(exp_ptrs[cell], reorder, npairs, minp, m1_ptr, m2_ptr);
+                Rx_shuffle(repermute, repermute+stored);
+                newscore=get_proportion(exp_ptrs[cell], access, repermute, npairs, minp, m1_ptr, m2_ptr);
                 if (!ISNA(newscore)) { 
                     if (newscore < curscore) { ++below; }
                     ++total;
