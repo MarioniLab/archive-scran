@@ -42,7 +42,7 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
 setMethod("trendVar", "SCESet", function(x, ..., use.spikes=TRUE) {
     if (is.na(use.spikes)) {   
         cur.assay <- exprs(x)        
-    else if (use.spikes) {
+    } else if (use.spikes) {
         cur.assay <- spikes(x, "exprs")
     } else {
         cur.assay <- .getUsedMatrix(x, "exprs")
