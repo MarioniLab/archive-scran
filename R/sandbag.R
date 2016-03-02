@@ -100,6 +100,6 @@ setMethod("sandbag", "ANY", function(x, is.G1, is.S, is.G2M, gene.names=rownames
     return(list(G1=G1.marker.pairs, S=S.marker.pairs, G2M=G2M.marker.pairs))
 })
 
-setMethod("sandbag", "SCESet", function(x, ...) {
-    sandbag(.getUsedMatrix(x, "counts"), ...)
+setMethod("sandbag", "SCESet", function(x, ..., assay="counts") {
+    sandbag(.getUsedMatrix(x, assay), ...)
 })
