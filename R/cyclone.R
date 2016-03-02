@@ -61,7 +61,7 @@ setMethod("cyclone", "ANY", function(x, pairs, gene.names=rownames(x), iter=1000
     return(list(scores=scores, normalized.scores=scores.normalised))  
 })
 
-setMethod("cyclone", "SCESet", function(x, ..., assay="counts") {
-    cyclone(assayDataElement(x, assay), ...)          
+setMethod("cyclone", "SCESet", function(x, ..., assay="counts", get.spikes=FALSE) {
+    cyclone(.getUsedMatrix(x, assay, get.spikes), ...)          
 })
 

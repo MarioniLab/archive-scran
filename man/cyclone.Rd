@@ -9,7 +9,7 @@
 \usage{
 \S4method{cyclone}{ANY}(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, 
     BPPARAM=bpparam(), verbose=FALSE)
-\S4method{cyclone}{SCESet}(x, ..., assay="counts")
+\S4method{cyclone}{SCESet}(x, ..., assay="counts", get.spikes=FALSE)
 }
 
 \arguments{
@@ -26,6 +26,7 @@
 \item{verbose}{A logical scalar specifying whether diagnostics should be printed to screen.}
 \item{...}{Additional arguments to pass to \code{cyclone,ANY-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
+\item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
 }
 
 \details{
@@ -53,6 +54,10 @@ The null hypothesis here is that expression of the marker genes is independent w
 Cells can be assigned to S phase based on the S phase score, but a more reliable approach is to define S phase cells based on those cells with G1 and G2M scores below 0.5.
 
 % That said, you can have non-cycle-based correlations, so full independence is probably liberal.
+
+For \code{cyclone,SCESet-method}, the matrix of counts is used but can be replaced with expression values by setting \code{assays}.
+By default, \code{get.spikes=FALSE} which means that any rows corresponding to spike-in transcripts will not be considered for score calculation.
+This is for the same reasons as described in \code{?\link{sandbag}}.
 }
 
 \value{

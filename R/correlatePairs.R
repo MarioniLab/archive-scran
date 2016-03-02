@@ -100,7 +100,7 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
     return(list(start=starting, end=ending))
 }
 
-setMethod("correlatePairs", "SCESet", function(x, ...) {
-    correlatePairs(.getUsedMatrix(x, "exprs"), ...)             
+setMethod("correlatePairs", "SCESet", function(x, ..., assay="exprs", get.spikes=FALSE) {
+    correlatePairs(.getUsedMatrix(x, assay, get.spikes), ...)             
 })
 

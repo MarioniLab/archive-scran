@@ -11,7 +11,7 @@
 correlateNull(ncells, iters=1e6, design=NULL) 
 
 \S4method{correlatePairs}{ANY}(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), use.names=TRUE)
-\S4method{correlatePairs}{SCESet}(x, ...)
+\S4method{correlatePairs}{SCESet}(x, ..., assay="exprs", get.spikes=FALSE)
 }
 
 \arguments{
@@ -29,6 +29,8 @@ correlateNull(ncells, iters=1e6, design=NULL)
     Alternatively, a character vector containing the names to use.
 }
 \item{...}{Additional arguments to pass to \code{correlatePairs,ANY-method}.}
+\item{assay}{A string specifying which assay values to use.}
+\item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
 }
 
 \details{
@@ -43,12 +45,12 @@ The \code{correlateNull} function constructs an empirical null distribution for 
 The p-value for each gene pair is defined as the tail probability of this distribution at the observed correlation (with some adjustment to avoid zero p-values).
 Correction for multiple testing is done using the BH method.
 
-Note that the approximation is that any tied values are randomly assigned untied ranks.
-This means that a common empirical distribution can be used for all gene pairs, rather than having to do new permutations for every pair to account for the different pattern of ties.
-Generally, this modification has little effect on the results - some correlations may end up being spuriously large, but this is handled by the error control machinery.
-
 For \code{correlatePairs}, a pre-computed empirical distribution can be supplied as \code{null.dist} if available.
 Otherwise, it will be automatically constructed via \code{correlateNull} with \code{ncells} set to the number of columns in \code{exprs}.
+
+For \code{correlatePairs,SCESet-method}, correlations should be computed for normalized expression values in the specified \code{assay}. 
+By default, rows corresponding to spike-in transcripts are removed with \code{get.spikes=FALSE}. 
+This avoids picking up strong technical correlations between pairs of spike-in transcripts.
 }
 
 \value{
@@ -89,6 +91,11 @@ This procedure ensures that the uninteresting factors do not drive strong correl
 % fit2 <- lm.fit(x[grouping] - y + r, x=design)
 % cor(fit2$effects[6:100], fit$effects[6:100])
 % cor(y, -y+r)
+
+As previously mentioned, an approximate version of Spearman's rho is used.
+Specifically, untied ranks are randomly assigned to any tied values.
+This means that a common empirical distribution can be used for all gene pairs, rather than having to do new permutations for every pair to account for the different pattern of ties.
+Generally, this modification has little effect on the results - some correlations may end up being spuriously large, but this is handled by the error control machinery.
 }
 
 \author{

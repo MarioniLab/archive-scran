@@ -8,7 +8,7 @@
 
 \usage{
 \S4method{sandbag}{ANY}(x, is.G1, is.S, is.G2M, gene.names=rownames(x), fraction=0.5)
-\S4method{sandbag}{SCESet}(x, ..., assay="counts")
+\S4method{sandbag}{SCESet}(x, ..., assay="counts", get.spikes=FALSE)
 }
 
 \arguments{
@@ -21,6 +21,7 @@
 \item{fraction}{A numeric scalar specifying the minimum fraction to define a marker gene pair.}
 \item{...}{Additional arguments to pass to \code{sandbag,ANY-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
+\item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
 }
 
 \details{
@@ -36,8 +37,10 @@ Classification from test data can be performed using the \code{\link{cyclone}} f
 For each cell, this involves comparing expression values between genes in each marker pair. 
 The cell is then assigned to the phase that is consistent with the direction of the difference in expression in the majority of pairs.
 
-For \code{sandbag,SCESet-method}, if any rows are set as spike-ins, these will not be considered when picking markers.
+For \code{sandbag,SCESet-method}, the matrix of counts is used but can be replaced with expression values by setting \code{assays}.
+By default, \code{get.spikes=FALSE} which means that any rows corresponding to spike-in transcripts will not be considered when picking markers.
 This is because the amount of spike-in RNA added will vary between experiments, such that the relative expression of genes to spike-ins will not be a reliable predictor.
+Nonetheless, if all rows are required, users can set \code{get.spikes=TRUE}.
 }
 
 \value{
