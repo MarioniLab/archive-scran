@@ -42,3 +42,12 @@ setReplaceMethod("sizeFactors", "SCESet", function(object, value) {
     }
     return(object)
 })
+
+.getUsedMatrix <- function(x, type="counts") {
+    cur.mat <- assayDataElement(x, type)
+    nokeep <- is.spike(x)
+    if (!is.null(nokeep) && any(nokeep)) { 
+        cur.mat <- cur.mat[!nokeep,,drop=FALSE]
+    }
+    return(cur.mat)
+}
