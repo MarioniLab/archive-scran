@@ -19,16 +19,13 @@ setMethod("decomposeVar", c("ANY", "list"), function(x, fit, design=NA)
 })
 
 setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, ..., get.spikes=FALSE) {
-    cur.assay <- assayDataElement(x, "exprs")
-    if (get.spikes) {
-        keep <- !is.spike(x)
-        cur.assay <- cur.assay[keep,]
-    }   
+    cur.assay <- .getUsedMatrix(x, "exprs", get.spikes=TRUE)
     out <- decomposeVar(cur.assay, fit, ...)
-    if (get.spikes) {
-        i <- cumsum(keep)
-        i[!keep] <- NA_integer_
-        out <- as.data.frame(lapply(out, "[", i))
+    if (!get.spikes) {
+        nokeep <- is.spike(x)
+        if (!is.null(nokeep) && any(nokeep)) { 
+            out[nokeep,] <- NA
+        }
     }
     return(out)
 })
