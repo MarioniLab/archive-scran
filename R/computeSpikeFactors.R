@@ -26,15 +26,17 @@ setMethod("spikes", "SCESet", function(x, type=c("counts", "exprs")) {
 
 setGeneric("isSpike", function(x) standardGeneric("isSpike"))
 
-is.spike <- function(x) { 
-    keep <- fData(x)$is_feature_spike 
+is.spike <- function(x) { fData(x)$is_feature_spike }
+
+setMethod("isSpike", "SCESet", function(x) {
+    keep <- is.spike(x)
     if (is.null(keep)) { stop("set 'isSpike(x)' to identify spike-in rows") }
     return(keep)
 }
-setMethod("isSpike", "SCESet", is.spike)
 
 setGeneric("isSpike<-", function(x, value) standardGeneric("isSpike<-"))
 setReplaceMethod("isSpike", "SCESet", function(x, value) {
+    if (!is.logical(value)) { stop("'isSpike(x)' must be a logical vector") }
     fData(x)$is_feature_spike <- value
     return(x) 
 })
