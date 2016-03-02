@@ -9,7 +9,7 @@ correlateNull <- function(ncells, iters=1e6, design=NULL)
         if (!missing(ncells)) { 
             stop("cannot specify both 'ncells' and 'design'")
         }
-        ncells <- ncol(design) - qr(design)$rank
+        ncells <- nrow(design) - qr(design)$rank
     }
     out <- .Call("get_null_rho", as.integer(ncells), as.integer(iters), PACKAGE="scran") 
     if (is.character(out)) { 
@@ -31,7 +31,7 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
     exprs <- as.matrix(x)
     if (!is.null(design)) { 
         fit <- lm.fit(y=t(exprs), x=design)
-        exprs <- t(fit$effects[-seq_len(fit$rank),])
+        exprs <- t(fit$effects[-fit$pivot[seq_len(fit$rank)],])
     }
     ncells <- ncol(exprs)
     if (is.null(null.dist)) { 
