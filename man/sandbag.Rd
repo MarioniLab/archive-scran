@@ -30,8 +30,14 @@ Pairs of genes (A, B) are identified from a training data set where in each pair
     and the fraction with B > A in each other phase exceeds \code{fraction}.
 These pairs are defined as the marker pairs for G1.
 This is repeated for each phase to obtain a separate marker pair set.
+
 Pre-defined sets of marker pairs are provided for mouse (see Examples).
-Classification from test data can then be performed using the \code{\link{cyclone}} function.
+Classification from test data can be performed using the \code{\link{cyclone}} function.
+For each cell, this involves comparing expression values between genes in each marker pair. 
+The cell is then assigned to the phase that is consistent with the direction of the difference in expression in the majority of pairs.
+
+For \code{sandbag,SCESet-method}, if any rows are set as spike-ins, these will not be considered when picking markers.
+This is because the amount of spike-in RNA added will vary between experiments, such that the relative expression of genes to spike-ins will not be a reliable predictor.
 }
 
 \value{
