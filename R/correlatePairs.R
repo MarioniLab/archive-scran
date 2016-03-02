@@ -31,7 +31,7 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
     exprs <- as.matrix(x)
     if (!is.null(design)) { 
         fit <- lm.fit(y=t(exprs), x=design)
-        exprs <- t(fit$effects[-fit$pivot[seq_len(fit$rank)],])
+        exprs <- t(fit$effects[-fit$qr$pivot[seq_len(fit$rank)],])
     }
     ncells <- ncol(exprs)
     if (is.null(null.dist)) { 
@@ -46,6 +46,7 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
 
     # Generating all pairs of genes
     ngenes <- nrow(exprs)
+    if (ngenes < 2L) { stop("need at least two genes to compute correlations") }
     all.pairs <- combn(ngenes, 2L)
     gene1 <- all.pairs[1,]
     gene2 <- all.pairs[2,]

@@ -1,7 +1,7 @@
 #include "scran.h"
 
 double rho_mult (double Ncells) {
-    return 6/(Ncells*Ncells*(Ncells-1));
+    return 6/(Ncells*(Ncells*Ncells-1));
 }
 
 SEXP get_null_rho (SEXP cells, SEXP iters) try {
@@ -88,7 +88,7 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP cells, SEXP rankings, SEXP nulls) try {
         int off1, off2, cell;
         double tmp, tmp2;
         const double mult=rho_mult(Ncells); 
-        double* finder;
+        double* finder, *ref_finder;
         int left, right;
 
         for (int p=0; p<Npairs; ++p) {
@@ -111,8 +111,16 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP cells, SEXP rankings, SEXP nulls) try {
             orptr[p]=1-tmp;
             
             // Computing the p-value.
-            finder=std::lower_bound(nptr, after, orptr[p]);
+            ref_finder=std::lower_bound(nptr, after, orptr[p]);
+            finder=ref_finder;
             right=after-finder; // equal to or greater than the current rho.
+            while (finder!=nptr) {
+                --finder;
+                if (orptr[p] - *finder > 0.00000001) { break; }
+                ++right;
+            }
+
+            finder=ref_finder;
             left=finder-nptr; // don't add 1, as we don't know it's equal to.
             while (finder!=after && *finder - orptr[p] < 0.00000001) { // checking for equal to's.
                 ++finder;
@@ -120,6 +128,7 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP cells, SEXP rankings, SEXP nulls) try {
             }
             
             opptr[p]=double(std::min(right, left)+1)*2/(Nnulls+1);
+            if (opptr[p] > 1) { opptr[p]=1; }
         }       
     } catch (std::exception& e) { 
         UNPROTECT(1);
