@@ -8,17 +8,20 @@ find.markers <- function(id1, id2, id3, training.data, fraction=0.5, gene.names=
         stop("length of 'gene.names' vector must be equal to 'training.data' nrows")
     }
 
-    data1 <- t(training.data[,id1])
-    data2 <- t(training.data[,id2])
-    data3 <- t(training.data[,id3])  
+    data1 <- t(training.data[,id1,drop=FALSE])
+    data2 <- t(training.data[,id2,drop=FALSE])
+    data3 <- t(training.data[,id3,drop=FALSE]) 
+    if (nrow(data1)==0L || nrow(data2)==0L || nrow(data3)==0L) {
+        stop("each phase must have at least one cell")
+    }
 
     Nthr1 <- ceiling(nrow(data1) * fraction)
     Nthr2 <- ceiling(nrow(data2) * fraction)
     Nthr3 <- ceiling(nrow(data3) * fraction)
 
-    collected <- list()
-    counter <- 1L
     if (Ngenes) { 
+        collected <- list()
+        counter <- 1L
         for (i in seq_len(Ngenes-1L)) { 
             others <- (i+1):Ngenes
             diff1 <- data1[,i] - data1[,others,drop=FALSE]
@@ -43,11 +46,14 @@ find.markers <- function(id1, id2, id3, training.data, fraction=0.5, gene.names=
                 counter <- counter + 1L
             }
         }
+        collected <- do.call(rbind, collected)
+        g1 <- gene.names[collected[,1]]
+        g2 <- gene.names[collected[,2]]
+    } else {
+        g1 <- g2 <- character(0)
     }
 
-    collected <- do.call(rbind, collected)
-    return(data.frame(first=gene.names[collected[,1]], 
-                      second=gene.names[collected[,2]], stringsAsFactors=FALSE))
+    return(data.frame(first=g1, second=g2, stringsAsFactors=FALSE))
 }
 
 classify.single <- function(cell, markers, Nmin.couples) 
