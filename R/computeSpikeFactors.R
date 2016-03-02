@@ -20,7 +20,7 @@ setGeneric("spikes", function(x, ...) standardGeneric("spikes"))
 
 setMethod("spikes", "SCESet", function(x, type=c("counts", "exprs")) {
     type <- match.arg(type)
-    cur.assay <- assayDataElement(x, type)[is.spike(x),,drop=FALSE]
+    cur.assay <- assayDataElement(x, type)[isSpike(x),,drop=FALSE]
     return(cur.assay)
 })
 
