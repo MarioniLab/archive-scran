@@ -159,7 +159,9 @@ expect_equal(observed1$normalized.scores, observed2$normalized.scores)
 
 out <- cyclone(X[,0], markers)
 expect_identical(nrow(out$scores), 0L)
+expect_identical(colnames(out$scores), c("G1", "S", "G2M"))
 expect_identical(nrow(out$normalized.scores), 0L)
+expect_identical(colnames(out$normalized.scores), c("G1", "S", "G2M"))
 
 # Odd behaviour with no markers.
 
@@ -167,8 +169,10 @@ no.markers <- list(G1=re.pairs[0,],
                     S=re.pairs[0,],
                   G2M=re.pairs[0,])
 out <- cyclone(X, no.markers)
+expect_identical(colnames(out$scores), c("G1", "S", "G2M"))
 expect_identical(nrow(out$scores), ncol(X))
 expect_true(all(is.na(out$scores)))
+expect_identical(colnames(out$normalized.scores), c("G1", "S", "G2M"))
 expect_identical(nrow(out$normalized.scores), ncol(X))
 expect_true(all(is.na(out$normalized.scores)))
 
