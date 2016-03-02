@@ -47,7 +47,7 @@ find.markers <- function(id1, id2, id3, training.data, fraction=0.5, gene.names=
 
     collected <- do.call(rbind, collected)
     return(data.frame(first=gene.names[collected[,1]], 
-                      second=gene.names[collected[,2]]))
+                      second=gene.names[collected[,2]], stringsAsFactors=FALSE))
 }
 
 classify.single <- function(cell, markers, Nmin.couples) 

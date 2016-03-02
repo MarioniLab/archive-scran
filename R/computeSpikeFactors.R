@@ -32,7 +32,7 @@ setMethod("isSpike", "SCESet", function(x) {
     keep <- is.spike(x)
     if (is.null(keep)) { stop("set 'isSpike(x)' to identify spike-in rows") }
     return(keep)
-}
+})
 
 setGeneric("isSpike<-", function(x, value) standardGeneric("isSpike<-"))
 setReplaceMethod("isSpike", "SCESet", function(x, value) {
