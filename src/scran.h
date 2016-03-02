@@ -16,6 +16,8 @@ SEXP get_null_rho (SEXP, SEXP);
 
 SEXP compute_rho(SEXP, SEXP, SEXP, SEXP, SEXP);
 
+SEXP auto_shuffle(SEXP, SEXP);
+
 }
 
 #include "utils.h"

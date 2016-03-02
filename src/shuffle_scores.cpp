@@ -82,6 +82,7 @@ SEXP shuffle_scores (SEXP mycells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP m
                 continue;
             }
 
+
             below=total=0;
             for (it=0; it < nit; ++it) {
                 Rx_shuffle(repermute, repermute+stored);
@@ -105,4 +106,21 @@ SEXP shuffle_scores (SEXP mycells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP m
     return mkString(e.what());
 }
 
-
+SEXP auto_shuffle(SEXP incoming, SEXP nits) {
+    const int N=LENGTH(incoming);
+    const int niters=asInteger(nits);
+    SEXP output=PROTECT(allocMatrix(REALSXP, N, niters));
+    {
+        Rx_random_seed myseed;
+        double* optr=REAL(output);
+        const double* source=REAL(incoming);
+        for (int i=0; i<niters; ++i) {
+            std::memcpy(optr, source, N*sizeof(double));
+            Rx_shuffle(optr, optr+N);
+            source=optr;
+            optr+=N;
+        }
+    }
+    UNPROTECT(1);
+    return(output);
+}
