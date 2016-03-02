@@ -6,7 +6,7 @@ Author: Aaron Lun <aaron.lun@cruk.cam.ac.uk>, Karsten Bach <kbach@ebi.ac.uk>
 Maintainer: Aaron Lun <aaron.lun@cruk.cam.ac.uk>
 Depends: R (>= 3.3.0), BiocParallel, scater 
 Imports: dynamicTreeCut, zoo, edgeR, stats, BiocGenerics, methods, Biobase, utils
-Suggests: limSolve
+Suggests: limSolve, testthat
 biocViews: Normalization, Sequencing, RNASeq
 Description: Normalization of single-cell RNA-seq data, duh. 
 License: GPL-3

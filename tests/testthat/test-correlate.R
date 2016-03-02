@@ -111,6 +111,31 @@ expect_equal(out$rho, ref$rho)
 expect_equal(out$p.value, ref$pvalue)
 expect_equal(out$FDR, ref$FDR)
 
+# Checking that it works with a SCESet object.
+
+set.seed(10003)
+Ngenes <- 20
+Ncells <- 100
+X <- log(matrix(rpois(Ngenes*Ncells, lambda=10), nrow=Ngenes) + 1)
+rownames(X) <- paste0("X", seq_len(Ngenes))
+nulls <- sort(runif(1e6, -1, 1))
+
+set.seed(100)
+ref <- correlatePairs(X, null.dist=nulls)
+set.seed(100)
+X2 <- newSCESet(exprsData=data.frame(X))
+out <- correlatePairs(X2, null.dist=nulls)
+expect_equal(out, ref)
+
+# With spikes.
+
+isSpike(X2) <- rbinom(Ngenes, 1, 0.6)==0L
+set.seed(100)
+ref <- correlatePairs(exprs(X2)[!isSpike(X2),,drop=FALSE], null.dist=nulls)
+set.seed(100)
+out <- correlatePairs(X2, null.dist=nulls)
+expect_equal(out, ref)
+
 # Checking nonsense inputs.
 
 expect_error(correlatePairs(X[0,], nulls), "need at least two genes to compute correlations")
