@@ -134,6 +134,27 @@ observed <- cyclone(X, markers)
 expect_equal(reference$scores, observed$scores)
 expect_equal(reference$normalized.scores, observed$normalized.scores)
 
+# Checking that it also works with SCESet objects.
+
+set.seed(1004)
+X <- matrix(rpois(Ngenes*Ncells, lambda=100), ncol=Ncells)
+rownames(X) <- all.names
+X2 <- newSCESet(countData=as.data.frame(X))
+
+set.seed(100)
+reference <- refFUN(X, markers)
+
+set.seed(100)
+observed1 <- cyclone(X, markers)
+
+set.seed(100)
+observed2 <- cyclone(X2, markers, assay="counts")
+
+expect_equal(reference$scores, observed2$scores)
+expect_equal(observed1$scores, observed2$scores)
+expect_equal(reference$normalized.scores, observed2$normalized.scores)
+expect_equal(observed1$normalized.scores, observed2$normalized.scores)
+
 # Odd behaviour with no cells.
 
 out <- cyclone(X[,0], markers)
@@ -150,6 +171,5 @@ expect_identical(nrow(out$scores), ncol(X))
 expect_true(all(is.na(out$scores)))
 expect_identical(nrow(out$normalized.scores), ncol(X))
 expect_true(all(is.na(out$normalized.scores)))
-
 
 

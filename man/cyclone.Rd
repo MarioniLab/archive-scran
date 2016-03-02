@@ -9,7 +9,7 @@
 \usage{
 \S4method{cyclone}{ANY}(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, 
     BPPARAM=bpparam(), verbose=FALSE)
-\S4method{cyclone}{SCESet}(x, ...)
+\S4method{cyclone}{SCESet}(x, ..., assay="counts")
 }
 
 \arguments{
@@ -25,6 +25,7 @@
 \item{BPPARAM}{A BiocParallelParam object to use in \code{bplapply} for parallel processing.}
 \item{verbose}{A logical scalar specifying whether diagnostics should be printed to screen.}
 \item{...}{Additional arguments to pass to \code{cyclone,ANY-method}.}
+\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 }
 
 \details{
