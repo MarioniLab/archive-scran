@@ -23,7 +23,7 @@ setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, ..., get.spikes=
     out <- decomposeVar(cur.assay, fit, ...)
     if (!get.spikes) {
         nokeep <- is.spike(x)
-        if (!is.null(nokeep) && any(nokeep)) { 
+        if (any(nokeep)) { 
             out[nokeep,] <- NA
         }
     }
