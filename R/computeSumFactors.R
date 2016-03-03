@@ -137,8 +137,8 @@ setMethod("computeSumFactors", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), 
     return(final.sf)
 })
 
-setMethod("computeSumFactors", "SCESet", function(x, ...) { 
-    sf <- computeSumFactors(.getUsedMatrix(x, "counts"), ...) 
+setMethod("computeSumFactors", "SCESet", function(x, ..., assay="counts", get.spikes=FALSE) { 
+    sf <- computeSumFactors(.getUsedMatrix(x, assay, get.spikes), ...) 
     sizeFactors(x) <- sf
     x
 })

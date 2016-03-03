@@ -8,7 +8,7 @@
 
 \usage{
 \S4method{quickCluster}{ANY}(x, min.size=200, ...)
-\S4method{quickCluster}{SCESet}(x, ...)
+\S4method{quickCluster}{SCESet}(x, ..., assay="counts", get.spikes=FALSE)
 }
 
 \arguments{
@@ -21,6 +21,8 @@
     For \code{quickCluster,ANY-method}, additional arguments to be passed to \code{\link{cutreeDynamic}}.
     For \code{quickCluster,SCESet-method}, additional arguments to pass to \code{quickCluster,ANY-method}.
 }
+\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
+\item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
 }
 
 \details{
@@ -36,6 +38,9 @@ The function will not be able to call this as a cluster as the minimum threshold
 Users are advised to check that the unassigned cells do indeed form their own cluster.
 If so, it is generally safe to ignore this warning and to treat all unassigned cells as a single cluster.
 Otherwise, it may be necessary to use a custom clustering algorithm.
+
+By default, spike-in transcripts are not used as they provide little information on the biological similarities between cells.
+This may not be the case if subpopulations differ by total RNA content, in which case setting \code{get.spikes=TRUE} may provide more discriminative power.
 }
 
 \value{

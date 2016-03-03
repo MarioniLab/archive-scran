@@ -29,5 +29,7 @@ setMethod("quickCluster", "ANY", function(x, min.size=200, ...)
     return(clusters)
 })
 
-setMethod("quickCluster", "SCESet", function(x, ...) { quickCluster(.getUsedMatrix(x, "counts"), ...) } )
+setMethod("quickCluster", "SCESet", function(x, ..., assay="counts", get.spikes=FALSE) { 
+    quickCluster(.getUsedMatrix(x, assay, get.spikes), ...) 
+})
 
