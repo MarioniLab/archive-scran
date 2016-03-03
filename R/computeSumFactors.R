@@ -40,6 +40,9 @@ setMethod("computeSumFactors", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), 
 
     # Computing the necessary statistics.
     lib.sizes <- colSums(x)
+    if (any(lib.sizes < 1e-8)) {
+        stop("cells should have non-zero library sizes")
+    }
     exprs <- t(t(x)/lib.sizes)
     clust.nf <- clust.profile <- clust.libsize <- list()
 
