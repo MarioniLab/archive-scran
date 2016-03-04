@@ -30,7 +30,6 @@ X <- normalize(X)
 expect_error(trendVar(X), "identify spike-in rows")
 isSpike(X) <- TRUE
 out2 <- trendVar(X)
-             
 expect_equal(out$mean, unname(out2$mean))
 expect_equal(out$var, unname(out2$var))
 expect_equal(out$trend, out2$trend)
@@ -39,11 +38,17 @@ expect_equal(out$design, out2$design)
 isSpike(X) <- FALSE
 expect_error(trendVar(X), "'degree' must be less than number of unique points")
 out3 <- trendVar(X, use.spikes=FALSE)
-             
 expect_equal(out3$mean, out2$mean)
 expect_equal(out3$var, out2$var)
 expect_equal(out3$trend, out2$trend)
 expect_equal(out3$design, out2$design)
+
+isSpike(X) <- rbinom(ngenes, 1, 0.5)==0
+out3b <- trendVar(X, use.spikes=NA)
+expect_equal(out3$mean, out3b$mean)
+expect_equal(out3$var, out3b$var)
+expect_equal(out3$trend, out3b$trend)
+expect_equal(out3$design, out3b$design)
 
 dummy2 <- rbind(dummy, 0)
 rownames(dummy2) <- paste0("X", seq_len(nrow(dummy2)))
@@ -77,7 +82,7 @@ design <- model.matrix(~factor(rep(c(1,2), each=100)))
 out <- trendVar(d, design=design)
 expect_equal(out$mean, rowMeans(d))
 fit <- lm.fit(y=t(d), x=design)
-effects <- fit$effects[-fit$qr$pivot[seq_len(fit$rank)],]
+effects <- fit$effects[-seq_len(ncol(design)),]
 expect_equal(out$var, colMeans(effects^2))
 
 expect_is(out$trend, "function")
@@ -144,11 +149,28 @@ out3 <- decomposeVar(X, fit, design=design)
 expect_equal(out$mean, out3$mean)
 
 refit <- lm.fit(y=t(exprs(X)), x=design)
-effects <- refit$effects[-refit$qr$pivot[seq_len(refit$rank)],]
+effects <- refit$effects[-seq_len(ncol(design)),]
 test.var <- colMeans(effects^2)
 test.var[isSpike(X)] <- NA
 expect_equivalent(out3$total, test.var)
 
 expect_equivalent(out3$tech, fit$trend(ref.mean))
 expect_equivalent(out3$bio, out3$total-out3$tech)
+
+####################################################################################################
+
+# Testing the testVar() function.
+
+set.seed(20002)
+true.p <- runif(100)
+trended <- runif(100, 1, 2)
+df <- 20
+observed <- trended * qchisq(true.p, df=df, lower.tail=FALSE)/df
+pvals <- testVar(observed, trended, df=df)
+expect_equal(pvals, true.p)
+
+design <- model.matrix(~factor(rep(c(1,2), each=11)))
+pvals <- testVar(observed, trended, design=design)
+expect_equal(pvals, true.p)
+
 
