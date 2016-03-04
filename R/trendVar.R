@@ -39,13 +39,13 @@ setMethod("trendVar", "ANY", function(x, trend=c("poly", "loess"), df=5, span=0.
     as.matrix(rep(1, ncells)) 
 }
 
-setMethod("trendVar", "SCESet", function(x, ..., use.spikes=TRUE) {
+setMethod("trendVar", "SCESet", function(x, ..., assay="exprs", use.spikes=TRUE) {
     if (is.na(use.spikes)) {   
-        cur.assay <- exprs(x)        
+        cur.assay <- assayDataElement(x, assay)
     } else if (use.spikes) {
-        cur.assay <- spikes(x, "exprs")
+        cur.assay <- spikes(x, assay)
     } else {
-        cur.assay <- .getUsedMatrix(x, "exprs")
+        cur.assay <- .getUsedMatrix(x, assay)
     }
     out <- trendVar(cur.assay, ...)
     return(out)

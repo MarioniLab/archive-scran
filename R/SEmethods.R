@@ -17,7 +17,7 @@ setMethod("normalize", "SCESet", function(object, ..., separate.spikes=TRUE) {
 
     if (separate.spikes && any(is.spike(object))) {
         object2 <- computeSpikeFactors(object)
-        out2 <- normalize(spikes(object, type="counts"), size.factor=sizeFactors(object2), ...)
+        out2 <- normalize(spikes(object, assay="counts"), size.factor=sizeFactors(object2), ...)
         out[is.spike(object),] <- out2
     } 
     
@@ -40,8 +40,8 @@ setReplaceMethod("sizeFactors", "SCESet", function(object, value) {
     return(object)
 })
 
-.getUsedMatrix <- function(x, type="counts", get.spikes=FALSE) {
-    cur.mat <- assayDataElement(x, type)
+.getUsedMatrix <- function(x, assay="counts", get.spikes=FALSE) {
+    cur.mat <- assayDataElement(x, assay)
     if (!get.spikes) {
         nokeep <- is.spike(x)
         if (!is.null(nokeep) && any(nokeep)) { 

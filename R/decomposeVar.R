@@ -18,8 +18,8 @@ setMethod("decomposeVar", c("ANY", "list"), function(x, fit, design=NA)
     return(data.frame(mean=lmeans, total=lvar, bio=bio.var, tech=tech.var))
 })
 
-setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, ..., get.spikes=FALSE) {
-    cur.assay <- .getUsedMatrix(x, "exprs", get.spikes=TRUE)
+setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, ..., assay="exprs", get.spikes=FALSE) {
+    cur.assay <- .getUsedMatrix(x, assay, get.spikes=TRUE)
     out <- decomposeVar(cur.assay, fit, ...)
     if (!get.spikes) {
         nokeep <- is.spike(x)

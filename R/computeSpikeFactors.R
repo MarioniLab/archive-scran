@@ -18,9 +18,8 @@ setMethod("computeSpikeFactors", "SCESet", function(x)
 
 setGeneric("spikes", function(x, ...) standardGeneric("spikes"))
 
-setMethod("spikes", "SCESet", function(x, type=c("counts", "exprs")) {
-    type <- match.arg(type)
-    cur.assay <- assayDataElement(x, type)[isSpike(x),,drop=FALSE]
+setMethod("spikes", "SCESet", function(x, assay="counts") {
+    cur.assay <- assayDataElement(x, assay)[isSpike(x),,drop=FALSE]
     return(cur.assay)
 })
 
