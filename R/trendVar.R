@@ -52,7 +52,9 @@ setMethod("trendVar", "SCESet", function(x, ..., use.spikes=TRUE) {
 })
 
 .estimateVariance <- function(X, y) {
+    if (!nrow(y)) { return(numeric(0)) }
+    else if (!ncol(y)) { return(rep(NaN, nrow(y))) }
     fit <- lm.fit(x=X, y=t(y))
-    return(colMeans(fit$effects[-fit$qr$pivot[seq_len(fit$rank)],]^2))
+    return(colMeans(fit$effects[-fit$qr$pivot[seq_len(fit$rank)],,drop=FALSE]^2))
 }
 
