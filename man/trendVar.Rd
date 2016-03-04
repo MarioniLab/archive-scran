@@ -8,7 +8,7 @@
 
 \usage{
 \S4method{trendVar}{ANY}(x, trend=c("poly", "loess"), df=5, span=0.3, design=NULL)
-\S4method{trendVar}{SCESet}(x, ..., use.spikes=TRUE)
+\S4method{trendVar}{SCESet}(x, ..., assay="exprs", use.spikes=TRUE)
 }
 
 \arguments{
@@ -21,6 +21,7 @@
 \item{span}{An numeric scalar specifying the span for loess fitting.}
 \item{design}{A numeric matrix describing the systematic factors contributing to expression in each cell.}
 \item{...}{Additional arguments to pass to \code{trendVar,ANY,list-method}.}
+\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{use.spikes}{A logical scalar specifying whether the trend should be fitted to variances for spike-in or endogenous genes.}
 }
 

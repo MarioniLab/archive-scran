@@ -8,7 +8,7 @@
 
 \usage{
 \S4method{decomposeVar}{ANY,list}(x, fit, design=NA)
-\S4method{decomposeVar}{SCESet,list}(x, fit, ..., get.spikes=FALSE)
+\S4method{decomposeVar}{SCESet,list}(x, fit, ..., assay="exprs", get.spikes=FALSE)
 }
 
 \arguments{
@@ -21,6 +21,7 @@
 }
 \item{design}{A numeric matrix describing the systematic factors contributing to expression in each cell.}
 \item{...}{Additional arguments to pass to \code{decomposeVar,ANY,list-method}.}
+\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical scalar specifying whether decomposition should be performed for spike-ins.}
 }
 

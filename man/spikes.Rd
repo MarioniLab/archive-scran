@@ -10,21 +10,21 @@
 \description{Identify rows in the SCESet corresponding to spike-in transcripts, and retrieve a matrix of counts or normalized expression values for those rows.}
 
 \usage{
-\S4method{spikes}{SCESet}(x, type=c("counts", "exprs"))
+\S4method{spikes}{SCESet}(x, assay="counts")
 \S4method{isSpike}{SCESet}(x)
 \S4method{isSpike}{SCESet}(x) <- value
 }
 
 \arguments{
 \item{x}{A SCESet object with spike-in data in the \code{colData}.}
-\item{type}{A string specifying whether counts or normalized expression values are to be extracted.}
+\item{assay}{A string specifying whether counts or normalized expression values are to be extracted.}
 \item{value}{A logical vector specifying which rows correspond to spike-ins.}
 }
 
 \details{
 This function extracts the spike-in data from \code{x}, into a numeric matrix that can be used for downstream analyses.
 Users should set a logical vector in \code{isSpike(x)} indicating whether each row of \code{x} is a spike-in control.
-If \code{type="exprs"}, users should have run \code{x} through \code{\link{normalize}}.
+If \code{assay="exprs"}, users should have run \code{x} through \code{\link{normalize}}.
 }
 
 \value{
@@ -60,6 +60,6 @@ isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, 100))
 y <- computeSpikeFactors(y)
 y <- normalize(y)
 spikes(y)[1:10,]
-spikes(y, type="exprs")[1:10,]
+spikes(y, assay="exprs")[1:10,]
 isSpike(y)
 }
