@@ -39,6 +39,7 @@ testVar <- function(total, null, df, design=NULL)
 # created 9 February 2016    
 {
     if (missing(df)) { df <- nrow(design) - qr(design)$rank }
+    if (!length(null) || !length(df)) { return(rep(NA_real_, length(total))) }
     pchisq(total/null*df, df=df, lower.tail=FALSE)
 }
 

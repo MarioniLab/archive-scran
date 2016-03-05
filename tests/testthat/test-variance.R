@@ -173,4 +173,9 @@ design <- model.matrix(~factor(rep(c(1,2), each=11)))
 pvals <- testVar(observed, trended, design=design)
 expect_equal(pvals, true.p)
 
+# Checking silly inputs
+
+expect_identical(testVar(numeric(0), trended, df=df), numeric(0))
+expect_identical(testVar(observed, numeric(0), df=df), rep(NA_real_, length(observed)))
+expect_identical(testVar(observed, trended, df=numeric(0)), rep(NA_real_, length(observed)))
 
