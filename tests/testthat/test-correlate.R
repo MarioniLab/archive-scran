@@ -4,7 +4,7 @@
 
 refnull <- function(niters, ncells) {
     rankings <- as.double(seq_len(ncells))
-    shuffled <- .Call("auto_shuffle", rankings, as.integer(niters))
+    shuffled <- .Call(scran:::cxx_auto_shuffle, rankings, as.integer(niters))
     out <- cor(shuffled, rankings, method="spearman")
     sort(out)
 }

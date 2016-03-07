@@ -12,7 +12,7 @@ classif.single <- function(cell, markers,Nmin.couples) {
 }
 
 random.success <- function(cell, markers, N, Nmin, Nmin.couples) {  
-    cell.random <- .Call("auto_shuffle", cell, N)
+    cell.random <- .Call(scran:::cxx_auto_shuffle, cell, N)
     success <- apply(cell.random, 2, classif.single, markers=markers, Nmin.couples=Nmin.couples)
 
     success<-success[!is.na(success)]

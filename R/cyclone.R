@@ -40,7 +40,7 @@ setMethod("cyclone", "ANY", function(x, pairs, gene.names=rownames(x), iter=1000
     workass <- .workerAssign(ncells, BPPARAM)
     FUN <- function(core, exprs, pairings) {
         to.use <- c(workass$start[core], workass$end[core])
-        .Call("shuffle_scores", to.use, Ngenes, exprs, pairings$first, pairings$second, iter, min.iter, min.pairs) 
+        .Call(cxx_shuffle_scores, to.use, Ngenes, exprs, pairings$first, pairings$second, iter, min.iter, min.pairs) 
     }
 
     all.cores <- seq_along(workass$start) 

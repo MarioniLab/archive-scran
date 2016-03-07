@@ -11,7 +11,7 @@ correlateNull <- function(ncells, iters=1e6, design=NULL)
         }
         ncells <- nrow(design) - qr(design)$rank
     }
-    out <- .Call("get_null_rho", as.integer(ncells), as.integer(iters), PACKAGE="scran") 
+    out <- .Call(cxx_get_null_rho, as.integer(ncells), as.integer(iters))
     if (is.character(out)) { 
         stop(out)
     }
@@ -55,7 +55,7 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
     workass <- .workerAssign(length(gene1), BPPARAM)
     out <- bplapply(seq_along(workass$start), FUN=function(core) {
         to.use <- workass$start[core]:workass$end[core]
-        .Call("compute_rho", gene1[to.use], gene2[to.use], ncells, ranked.exprs, null.dist, PACKAGE="scran")
+        .Call(cxx_compute_rho, gene1[to.use], gene2[to.use], ncells, ranked.exprs, null.dist)
     }, BPPARAM=BPPARAM)
 
     # Peeling apart the output

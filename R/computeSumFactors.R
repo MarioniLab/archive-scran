@@ -76,14 +76,14 @@ setMethod("computeSumFactors", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), 
         design <- list()
         output <- list()
         for (size in sizes) {
-            out <- .Call("forge_system", ngenes, cur.cells, cur.exprs, sphere, size, use.ave.cell)
+            out <- .Call(cxx_forge_system, ngenes, cur.cells, cur.exprs, sphere, size, use.ave.cell)
             if (is.character(out)) { stop(out) }
             design <- c(design, out[1])
             output <- c(output, out[2])
         }
         
         # Adding extra equations to guarantee solvability (downweighted).
-        out <- .Call("forge_system", ngenes, cur.cells, cur.exprs, sphere, 1L, use.ave.cell)
+        out <- .Call(cxx_forge_system, ngenes, cur.cells, cur.exprs, sphere, 1L, use.ave.cell)
         if (is.character(out)) { stop(out) }
         design <- c(design, out[1])
         output <- c(output, out[2])

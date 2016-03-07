@@ -1,4 +1,4 @@
-useDynLib(scran)
+useDynLib(scran, .registration=TRUE, .fixes="cxx_")
 
 export(
     DM, testVar,
