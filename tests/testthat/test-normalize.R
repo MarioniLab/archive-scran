@@ -44,6 +44,37 @@ expect_warning(computeSumFactors(dummy[,1:100]), "number of cells in each cluste
 expect_error(computeSumFactors(dummy, sizes=c(10, 10, 20)), "'sizes' is not unique")
 expect_error(computeSumFactors(dummy, clusters=integer(0)), "'x' ncols is not equal to 'clusters' length")
 
+# Checking the ring construction.
+
+lib.sizes <- runif(100)
+out <- scran:::.generateSphere(lib.sizes)
+r <- rank(lib.sizes)
+expect_identical(r[out][1:50], 1:50*2-1L) # All odd ranks
+expect_identical(r[out][51:100], 50:1*2) # All even ranks
+expect_identical(r[out][1:100], r[out][101:200]) # Repeated for easy windowing
+
+lib.sizes <- runif(101)
+out <- scran:::.generateSphere(lib.sizes)
+r <- rank(lib.sizes)
+expect_identical(r[out][1:51], 1:51*2-1L) # All odd ranks
+expect_identical(r[out][52:101], 50:1*2) # All even ranks
+expect_identical(r[out][1:101], r[out][102:202]) # Repeated for easy windowing
+
+# Checking the matrix construction.
+
+cur.exprs <- matrix(1, nrow=ngenes, ncol=ncells)
+subsphere <- sample(ncells)
+sphere <- c(subsphere, subsphere)
+size <- 20
+use.ave.cell <- rep(1, ngenes)
+out <- .Call(scran:::cxx_forge_system, as.integer(ngenes), as.integer(ncells), cur.exprs, sphere-1L, as.integer(size), use.ave.cell)
+
+for (i in seq_len(nrow(out[[1]]))) {
+    used <- sphere[i:(i+size-1)]
+    expect_equal(out[[1]][i, used], rep(1, size))
+    expect_equal(out[[1]][i, -used], rep(0, ncells-size))
+}
+
 ####################################################################################################
 
 # Checking out what happens with clustering.
