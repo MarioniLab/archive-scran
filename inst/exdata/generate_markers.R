@@ -1,17 +1,25 @@
 library(scran)
+dir.create("temp")
 
-# Need to replace with actual code from stable public sources.
-download.file("https://github.com/PMBio/cyclone/raw/master/R/pairs_method/core/pairs_functions.RData", 
-              "pairs_functions.RData", quiet=TRUE)
-load("pairs_functions.RData")
+# MOUSE (relies on semi-public data):
+
+zipfile <- "temp/current.zip"
+download.file("https://github.com/PMBio/cyclone/archive/c982e7388d8e49e1459055504313f87bb3eb0ceb.zip", zipfile)
+out <- unzip(zipfile, exdir="temp")
+
+pdata <- out[grep("pairs_functions.RData$", out)]
+load(pdata)
 
 all.pairs <- sandbag(is.G1=id.G1, is.S=id.S, is.G2M=id.G2M, training.data[genes.training,], fraction=0.5)
 saveRDS(file="mouse_cycle_markers.rds", all.pairs)
 
+rm(list=ls())
+
 # HUMAN:
 
-count.file <- "GSE64016.csv.gz"
-download.file("http://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE64016&format=file&file=GSE64016%5FH1andFUCCI%5Fnormalized%5FEC%2Ecsv%2Egz", count.file)
+library(GEOquery)
+out <- getGEOSuppFiles("GSE64016", baseDir="temp", makeDirectory=FALSE)
+count.file <- "temp/GSE64016_H1andFUCCI_normalized_EC.csv.gz"
 hs.counts <- read.csv(count.file, header=TRUE, row.names=1)
 hs.G1 <- grepl("G1", colnames(hs.counts))
 hs.S <- grepl("S", colnames(hs.counts))
@@ -28,3 +36,7 @@ hs.training <- rownames(hs.counts2) %in% hs.cycle$ENSEMBL
 
 all.pairs <- sandbag(is.G1=hs.G1, is.S=hs.S, is.G2M=hs.G2, hs.counts2[hs.training,], fraction=0.5)
 saveRDS(file="human_cycle_markers.rds", all.pairs)
+
+# Cleaning up:
+
+unlink("temp", recursive=TRUE)
