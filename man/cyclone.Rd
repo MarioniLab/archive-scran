@@ -62,7 +62,7 @@ This is for the same reasons as described in \code{?\link{sandbag}}.
 
 \value{
 A list of two data frames is returned -- 
-    \code{scores}, containing the phase scores for each phase and cell; 
+    \code{scores}, containing the phase scores for each phase and cell (i.e., each row is a cell); 
     and \code{normalized.scores}, containing the row-normalized scores (i.e., where the row sum for each cell is equal to 1).
 }
 
