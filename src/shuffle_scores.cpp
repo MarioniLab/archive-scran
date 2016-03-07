@@ -106,6 +106,15 @@ SEXP shuffle_scores (SEXP mycells, SEXP ngenes, SEXP exprs, SEXP marker1, SEXP m
     return mkString(e.what());
 }
 
+/* We could just assign ties random directions; then we'd only have to shuffle
+ * once for all cells, and then we could use the same null distribution across
+ * multiple cells, without worrying about whether or not one cell has more ties
+ * than the other. The problem is that there's no protection from spuriously
+ * high scores due to random breaking of ties; normally (for correlations),
+ * we'd provide protection by controlling the type I error rate, but we're not
+ * generating p-values here so it's harder to do.
+ */
+
 SEXP auto_shuffle(SEXP incoming, SEXP nits) {
     const int N=LENGTH(incoming);
     const int niters=asInteger(nits);
