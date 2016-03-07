@@ -38,8 +38,11 @@ Alternatively, it can be set to the trend fitted to the cellular variances, whic
 
 Note that the test statistic is the (scaled) ratio of \code{total} over \code{null} for each gene.
 This may not be ideal when \code{null} is small, e.g., for high-abundance genes, where a high ratio/low p-value may not represent a large absolute increase in the variance.
-To avoid detecting irrelevant genes, users can modify \code{null} by adding a minimum threshold of 0.5 to 1.
-This will favour significant genes that also have a large absolute increase in the variance.
+To avoid detecting irrelevant genes, users can modify \code{null} by adding a minimum threshold of, say, 0.5.
+This tests for variances that are significantly greater than \code{null+0.5} and rules out genes that have high ratios but small absolute increases.
+
+% No matter how small \code{null} is, the gene's variance must be 0.5 greater than it. 
+% Of course, genes will small \code{null} will be favoured as the ratio is larger; this is sensible, as the variance estimate is more precise at small \code{null}.
 }
 
 \value{
