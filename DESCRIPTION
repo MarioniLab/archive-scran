@@ -1,14 +1,17 @@
 Package: scran
-Version: 0.1.5
+Version: 0.99.0
 Date: 2016-03-07
-Title: Single-Cell RNA-seq ANalysis
-Author: Aaron Lun <aaron.lun@cruk.cam.ac.uk>, Karsten Bach <kbach@ebi.ac.uk>
-Maintainer: Aaron Lun <aaron.lun@cruk.cam.ac.uk>
+Title: Methods for single-cell RNA-seq analysis
+Author: Aaron Lun <alun@wehi.edu.au>, Karsten Bach <kbach@ebi.ac.uk>
+Maintainer: Aaron Lun <alun@wehi.edu.au>
 Depends: R (>= 3.3.0), BiocParallel, scater 
 Imports: dynamicTreeCut, zoo, edgeR, stats, BiocGenerics, methods, Biobase, utils
 Suggests: limSolve, testthat, knitr, BiocStyle, org.Mm.eg.db, DESeq2, monocle
-biocViews: Normalization, Sequencing, RNASeq
-Description: Normalization of single-cell RNA-seq data, duh. 
+biocViews: Normalization, Sequencing, RNASeq, Software, GeneExpression, Transcriptomics
+Description: This package implements a variety of low-level analyses of
+    single-cell RNA-seq data. Methods are provided for normalization of
+    cell-specific biases, assignment of cell cycle phase, and detection of highly
+    variable and significantly correlated genes.
 License: GPL-3
 NeedsCompilation: yes
 VignetteBuilder: knitr
