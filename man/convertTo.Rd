@@ -42,11 +42,14 @@ Gene- and cell-specific data fields can be retained in the output object by sett
 Other arguments can be passed to the relevant constructors through the ellipsis.
 
 By default, for edgeR and DESeq2, \code{assay} is set to \code{"counts"} such that count data is stored in the output object.
+This is consistent with the required inputs to these analysis pipeline (normalization information is stored through size factors).
 For monocle, \code{assay="exprs"} and the values are unlogged to yield (roughly) log-normally distributed expression values.
 If the values in \code{exprs(x)} are not log-transformed, unlogging can be turned off by setting \code{logged.exprs=FALSE}.
 
-In all cases, rows corresponding to spike-in transcripts are removed from the output object.
-This can be turned off by setting \code{get.spikes=TRUE}, such that all rows are retrieved.
+In all cases, rows corresponding to spike-in transcripts are removed from the output object by default.
+As such, rows in the returned object may not correspond directly to rows in \code{x}.
+Users should consider this when retrieving analysis results from these pipelines, e.g., match on row names.
+This behaviour can be turned off by setting \code{get.spikes=TRUE}, such that all rows are retrieved in the output object.
 }
 
 \author{
