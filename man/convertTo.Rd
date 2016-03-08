@@ -1,6 +1,6 @@
 \name{convertTo}
 \alias{convertTo}
-\alias{converTo,SCESet-method}
+\alias{convertTo,SCESet-method}
 
 \title{Convert to other classes}
 \description{
