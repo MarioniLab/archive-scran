@@ -6,7 +6,7 @@ Author: Aaron Lun <alun@wehi.edu.au>, Karsten Bach <kbach@ebi.ac.uk>
 Maintainer: Aaron Lun <alun@wehi.edu.au>
 Depends: R (>= 3.3.0), BiocParallel, scater 
 Imports: dynamicTreeCut, zoo, edgeR, stats, BiocGenerics, methods, Biobase, utils
-Suggests: limSolve, testthat, knitr, BiocStyle, org.Mm.eg.db, DESeq2, monocle
+Suggests: limSolve, testthat, knitr, BiocStyle, org.Mm.eg.db, DESeq2, monocle, S4Vectors
 biocViews: Normalization, Sequencing, RNASeq, Software, GeneExpression, Transcriptomics
 Description: This package implements a variety of low-level analyses of
     single-cell RNA-seq data. Methods are provided for normalization of

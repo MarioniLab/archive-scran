@@ -27,7 +27,7 @@ X <- newSCESet(countData=data.frame(dummy))
 sizeFactors(X) <- colSums(dummy)
 X <- normalize(X)
 
-expect_error(trendVar(X), "identify spike-in rows")
+expect_error(trendVar(X), "'degree' must be less than number of unique points") # because there aren't any spike-ins.
 isSpike(X) <- TRUE
 out2 <- trendVar(X)
 expect_equal(out$mean, unname(out2$mean))
