@@ -10,12 +10,13 @@ exportMethods(
     trendVar, decomposeVar, 
     sandbag, cyclone,
     correlatePairs,
-    spikes, isSpike, "isSpike<-"
+    spikes, isSpike, "isSpike<-",
+    convertTo
 )
 
 importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("zoo", zoo, rollapply, index)
-importFrom("edgeR", cpm.default)
+importFrom("edgeR", cpm.default, DGEList)
 importFrom("BiocGenerics", normalize, sizeFactors, "sizeFactors<-")
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs)
 importFrom("utils", combn)
