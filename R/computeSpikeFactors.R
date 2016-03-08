@@ -35,7 +35,7 @@ setMethod("isSpike", "SCESet", function(x) {
 
 setGeneric("isSpike<-", function(x, value) standardGeneric("isSpike<-"))
 setReplaceMethod("isSpike", "SCESet", function(x, value) {
-    if (!is.logical(value)) { stop("'isSpike' must be a logical vector") }
+    if (!is.logical(value) && !is.null(value)) { stop("'isSpike' must be logical or NULL") }
     fData(x)$is_feature_spike <- value
     return(x) 
 })

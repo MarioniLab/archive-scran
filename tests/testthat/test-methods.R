@@ -25,8 +25,8 @@ expect_identical(spikes(X, "exprs"), exprs(X)[isSpike(X),,drop=FALSE])
 
 # Checking silly inputs
 
-expect_error(isSpike(X) <- "whee", "must be a logical vector")
-expect_error(sizeFactors(X) <- "whee", "size factors should be numeric")
+expect_error(isSpike(X) <- "whee", "must be logical or NULL")
+expect_error(sizeFactors(X) <- "whee", "size factors should be numeric or NULL")
 expect_identical(isSpike(X[0,]), logical(0))
 expect_identical(unname(sizeFactors(X[,0])), numeric(0))
 
@@ -35,10 +35,10 @@ expect_identical(spikes(X[,0]), exprs(X)[isSpike(X),0])
 isSpike(X) <- FALSE
 expect_identical(spikes(X), exprs(X)[0,])
 
-fData(X)$is_feature_spike <- NULL
+isSpike(X) <- NULL
 expect_warning(out <- isSpike(X), "'isSpike' is not set, returning NULL")
 expect_identical(out, NULL)
 
-X$sizeFactor <- NULL
+sizeFactors(X) <- NULL
 expect_warning(out <- sizeFactors(X), "'sizeFactors' are not set, returning NULL")
 expect_identical(out, NULL)

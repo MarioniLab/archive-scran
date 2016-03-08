@@ -36,8 +36,8 @@ setMethod("sizeFactors", "SCESet", function(object) {
 })
 
 setReplaceMethod("sizeFactors", "SCESet", function(object, value) {
-    if (!is.numeric(value)) { 
-        stop("size factors should be numeric")
+    if (!is.numeric(value) && !is.null(value)) { 
+        stop("size factors should be numeric or NULL")
     }        
     object$sizeFactor <- value
     return(object)
