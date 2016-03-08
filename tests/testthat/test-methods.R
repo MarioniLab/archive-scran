@@ -34,3 +34,11 @@ expect_identical(spikes(X[0,]), exprs(X)[0,])
 expect_identical(spikes(X[,0]), exprs(X)[isSpike(X),0])
 isSpike(X) <- FALSE
 expect_identical(spikes(X), exprs(X)[0,])
+
+fData(X)$is_feature_spike <- NULL
+expect_warning(out <- isSpike(X), "'isSpike' is not set, returning NULL")
+expect_identical(out, NULL)
+
+X$sizeFactor <- NULL
+expect_warning(out <- sizeFactors(X), "'sizeFactors' are not set, returning NULL")
+expect_identical(out, NULL)

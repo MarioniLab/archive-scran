@@ -27,7 +27,10 @@ setMethod("normalize", "SCESet", function(object, ..., separate.spikes=TRUE) {
 
 setMethod("sizeFactors", "SCESet", function(object) {
     out <- object$sizeFactor
-    if (is.null(out)) { stop("'sizeFactors' are not set") }
+    if (is.null(out)) { 
+        warning("'sizeFactors' are not set, returning NULL") 
+        return(NULL)
+    }
     names(out) <- colnames(object) 
     return(out)
 })

@@ -30,7 +30,7 @@ If \code{assay="exprs"}, users should have run \code{x} through \code{\link{norm
 \value{
 For \code{spikes}, a numeric matrix of counts or normalized expression values, with one column per cell and one row per spike-in transcript.
 
-For \code{isSpike}, a logical vector indicating which rows are spike-ins.
+For \code{isSpike}, a logical vector indicating which rows are spike-ins (or \code{NULL}, if this information was not stored in \code{x}).
 For \code{isSpike<-}, \code{x} is modified to store a spike-specifying vector in \code{fData(x)$is_feature_spike}.
 }
 

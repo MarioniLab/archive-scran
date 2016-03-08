@@ -29,13 +29,13 @@ is.spike <- function(x) { fData(x)$is_feature_spike }
 
 setMethod("isSpike", "SCESet", function(x) {
     keep <- is.spike(x)
-    if (is.null(keep)) { stop("set 'isSpike(x)' to identify spike-in rows") }
+    if (is.null(keep)) { warning("'isSpike' is not set, returning NULL") }
     return(keep)
 })
 
 setGeneric("isSpike<-", function(x, value) standardGeneric("isSpike<-"))
 setReplaceMethod("isSpike", "SCESet", function(x, value) {
-    if (!is.logical(value)) { stop("'isSpike(x)' must be a logical vector") }
+    if (!is.logical(value)) { stop("'isSpike' must be a logical vector") }
     fData(x)$is_feature_spike <- value
     return(x) 
 })
