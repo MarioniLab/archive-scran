@@ -9,7 +9,7 @@ setMethod("quickCluster", "ANY", function(x, min.size=200, ...)
 # created 1 December 2015
 # last modified 17 February 2016
 {   
-    if (ncol(x) <= min.size){
+    if (ncol(x) < min.size){
         stop('fewer cells than the mininimum cluster size')
     }
     if (ncol(x) < 2*min.size) {
