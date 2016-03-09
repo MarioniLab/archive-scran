@@ -218,11 +218,30 @@ Significant correlations between pairs of genes can be defined at a false discov
 In this case, no correlations are significant as the counts were randomly generated for each gene.
 In other situations when correlated gene pairs are present, these can be used to construct heatmaps to verify whether subpopulations exist; for choosing marker genes in experimental validation; and to construct gene-gene association networks.
 
+# Converting to other formats
+
+The `SCESet` object can be easily converted into other formats using the `convertTo` method.
+This allows analyses to be performed using other pipelines and packages.
+For example, if DE analyses were to be performed using `r Biocpkg("edgeR")`, the count data in `sce` could be used to construct a `DGEList`.
+
+```{r}
+y <- convertTo(sce, type="edgeR")
+```
+
+By default, rows corresponding to spike-in transcripts are dropped when `get.spikes=FALSE`.
+As such, the rows of `y` may not correspond directly to the rows of `sce` -- users should match by row name to ensure correct cross-referencing between objects.
+Normalization factors are also automatically computed from the size factors.
+
+The same conversion strategy roughly applies to the other supported formats.
+DE analyses can be performed using `r Biocpkg("DESeq2")` by converting the object to a `DESeqDataSet`.
+Cells can be ordered on pseudotime with `r Biocpkg("monocle")` by converting the object to a `CellDataSet` (in this case, normalized _unlogged_ expression values are stored). 
+
 # Summary
 
 This vignette describes the main functions in the `r Githubpkg("MarioniLab/scran")` package for basic analysis of single-cell RNA-seq data.
 We cover normalization, cell cycle phase assignment, HVG detection and correlation testing.
-Other analyses can be easily performed with packages in the Bioconductor project, e.g., testing for DE genes with `r Biocpkg("edgeR")`, ordering cells on pseudotime with `r Biocpkg("monocle")`.
+Conversion to other formats can also be performed in preparation for analyses with other packages in the Bioconductor project.
+Further information can be obtained by reading the documentation for each function (e.g., `?convertTo`), or asking for help on the Bioconductor [support site](http://support.bioconductor.org) (please read the [posting guide](http://www.bioconductor.org/help/support/posting-guide) beforehand).
 
 <!-- We suggest reading the workflow, but I can't say that yet. -->
 
