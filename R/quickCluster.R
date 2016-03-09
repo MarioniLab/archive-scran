@@ -12,10 +12,6 @@ setMethod("quickCluster", "ANY", function(x, min.size=200, ...)
     if (ncol(x) < min.size){
         stop('fewer cells than the mininimum cluster size')
     }
-    if (ncol(x) < 2*min.size) {
-        min.size <- as.integer((ncol(x)/5L))
-        warning(paste("min.size scaled down to", min.size))
-    }
 
     distM <- as.dist( 1 - cor(x, method='spearman'))
     htree <- hclust(distM, method='ward.D2')

@@ -98,8 +98,6 @@ expect_true(length(unique(paste0(known.clusters, emp.clusters)))==3L)
 
 expect_error(quickCluster(dummy[0,]), "NA/NaN/Inf in foreign function call") # because the correlations are undefined.
 expect_error(quickCluster(dummy[,0]), "fewer cells than the mininimum cluster size")
-expect_warning(quickCluster(dummy[,1:300]), "min.size scaled down to")
-expect_warning(quickCluster(dummy[,1:300]), "min.size scaled down to")
 
 leftovers <- 100
 expect_warning(forced <- quickCluster(dummy[,c(which(known.clusters==1), which(known.clusters==2), which(known.clusters==3)[1:leftovers])]), 
