@@ -17,6 +17,7 @@ exportMethods(
 importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("zoo", zoo, rollapply, index)
 importFrom("edgeR", cpm.default, DGEList, "[.DGEList")
+importFrom("limma", lmFit)
 importFrom("BiocGenerics", normalize, sizeFactors, "sizeFactors<-")
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, featureData, phenoData, pData)
 importFrom("utils", combn)

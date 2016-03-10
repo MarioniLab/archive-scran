@@ -8,7 +8,7 @@
 
 \usage{
 \S4method{computeSumFactors}{ANY}(x, sizes=c(20, 40, 60, 80, 100), 
-    clusters=NULL, ref.clust=NULL, positive=FALSE)
+    clusters=NULL, ref.clust=NULL, positive=FALSE, errors=FALSE)
 \S4method{computeSumFactors}{SCESet}(x, ..., assay="counts", get.spikes=FALSE)
 }
 
@@ -21,6 +21,7 @@
 \item{clusters}{An optional factor specifying which cells belong to which cluster, for deconvolution within clusters.}
 \item{ref.clust}{A level of \code{clusters} to be used as the reference cluster for inter-cluster normalization.}
 \item{positive}{A logical scalar indicating whether linear inverse models should be used to enforce positive estimates.}
+\item{errors}{A logical scalar indicating whether the standard error should be returned.}
 \item{...}{Additional arguments to pass to \code{computeSumFactors,ANY-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical scalar specifying whether spike-in transcripts should be used.}
@@ -40,6 +41,7 @@ Repeating this process for multiple pools will yield a linear system that can be
 In this manner, pool-based factors are deconvolved to yield the relevant cell-based factors.
 The advantage is that the pool-based estimates are more accurate, as summation reduces the number of stochastic zeroes and the associated bias of the size factor estimate.
 This accuracy will feed back into the deconvolution process, thus improving the accuracy of the cell-based size factors.
+The standard error of the estimates can be obtained by setting \code{errors=TRUE}.
 }
 
 \section{Normalization within and between clusters}{
@@ -79,6 +81,8 @@ Users wanting to perform spike-in normalization should see \code{\link{computeSp
 For \code{computeSumFactors,ANY-method}, a numeric vector of size factors for all cells in \code{x} is returned.
 
 For \code{computeSumFactors,SCESet-method}, an object of class \code{x} is returned containing the vector of size factors in \code{sizeFactors(x)}.
+
+If \code{errors=TRUE}, the standard error of the size factor estimates is stored as the \code{"standard.error"} field of the attributes of the returned vector.
 }
 
 \author{

@@ -27,6 +27,14 @@ dummy[is.de,] <- rnbinom(ncells*length(is.de), mu=100, size=1)
 out <- computeSumFactors(dummy)
 expect_equal(out, count.sizes/exp(mean(log(count.sizes))))
 
+# Trying it out with other options.
+
+outx <- computeSumFactors(dummy, positive=TRUE)
+expect_true(all(abs(outx -  out) < 1e-4)) # need to be a bit generous here, the solution code is different.
+outx <- computeSumFactors(dummy, errors=TRUE)
+expect_equal(as.numeric(outx), out)
+expect_identical(names(attributes(outx)), "standard.error")
+
 # Trying it out on a SCESet object.
 
 count.sizes <- rnbinom(ncells, mu=100, size=5)

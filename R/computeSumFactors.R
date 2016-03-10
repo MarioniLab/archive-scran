@@ -11,7 +11,7 @@
 
 setGeneric("computeSumFactors", function(x, ...) standardGeneric("computeSumFactors"))
 
-setMethod("computeSumFactors", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), clusters=NULL, ref.clust=NULL, positive=FALSE) 
+setMethod("computeSumFactors", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), clusters=NULL, ref.clust=NULL, positive=FALSE, errors=FALSE) 
 # This contains the function that performs normalization on the summed counts.
 # It also provides support for normalization within clusters, and then between
 # clusters to make things comparable. It can also switch to linear inverse models
@@ -99,6 +99,10 @@ setMethod("computeSumFactors", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), 
         if (positive) { 
             fitted <- limSolve::lsei(A=design, B=output, G=diag(cur.cells), H=numeric(cur.cells), type=2)
             final.nf <- fitted$X
+        } else if (errors) {
+            fit <- limma::lmFit(output, design)
+            final.nf <- fit$coefficients
+            se.est <- fit$stdev.unscaled[1] * fit$sigma # All balanced, so they're all the same.
         } else {
             final.nf <- solve(qr(design), output)
             if (any(final.nf < 0)) { 
@@ -137,6 +141,10 @@ setMethod("computeSumFactors", "ANY", function(x, sizes=c(20, 40, 60, 80, 100), 
     is.pos <- final.sf > 0 & !is.na(final.sf)
     gm <- exp(mean(log(final.sf[is.pos])))
     final.sf <- final.sf/gm
+
+    if (errors) {
+        attr(final.sf, "standard.error") <- se.est
+    }
     return(final.sf)
 })
 

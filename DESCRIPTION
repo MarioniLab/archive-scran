@@ -5,7 +5,7 @@ Title: Methods for single-cell RNA-seq analysis
 Author: Aaron Lun <alun@wehi.edu.au>, Karsten Bach <kbach@ebi.ac.uk>
 Maintainer: Aaron Lun <alun@wehi.edu.au>
 Depends: R (>= 3.3.0), BiocParallel, scater 
-Imports: dynamicTreeCut, zoo, edgeR, stats, BiocGenerics, methods, Biobase, utils
+Imports: dynamicTreeCut, zoo, edgeR, limma, stats, BiocGenerics, methods, Biobase, utils
 Suggests: limSolve, testthat, knitr, BiocStyle, org.Mm.eg.db, DESeq2, monocle, S4Vectors
 biocViews: Normalization, Sequencing, RNASeq, Software, GeneExpression, Transcriptomics
 Description: This package implements a variety of low-level analyses of
