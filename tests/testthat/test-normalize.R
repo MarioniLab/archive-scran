@@ -180,17 +180,17 @@ dummy <- matrix(rnbinom(ncells*ngenes, mu=100, size=5), ncol=ncells, nrow=ngenes
 out <- normalize(dummy)
 ref <- log(colSums(dummy))
 sf <- exp(ref-mean(ref))
-expect_equal(out, edgeR::cpm.default(dummy, lib.size=sf, prior.count=1, log=TRUE))
+expect_equal(out, edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=1, log=TRUE))
 
 out <- normalize(dummy, log=FALSE)
-expect_equal(out, edgeR::cpm.default(dummy, lib.size=sf, prior.count=1, log=FALSE))
+expect_equal(out, edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=1, log=FALSE))
 out <- normalize(dummy, prior.count=3)
-expect_equal(out, edgeR::cpm.default(dummy, lib.size=sf, prior.count=3, log=TRUE))
+expect_equal(out, edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=3, log=TRUE))
 
 sf <- log(runif(ncells, 10, 20))
 sf <- exp(ref-mean(ref))
 out2 <- normalize(dummy, size.factor=sf)
-expect_equal(out2, edgeR::cpm.default(dummy, lib.size=sf, prior.count=1, log=TRUE))
+expect_equal(out2, edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=1, log=TRUE))
 
 # Checking out silly inputs.
 

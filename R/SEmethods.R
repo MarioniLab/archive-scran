@@ -3,13 +3,13 @@ setMethod("normalize", "ANY", function(object, size.factor=NULL, log=TRUE, prior
 # 
 # written by Aaron Lun
 # created 17 February 2016
-# last modified 19 February 2016
+# last modified 15 March 2016
 {
     object <- as.matrix(object)
     if (is.null(size.factor)) { size.factor <- colSums(object) } 
     lsf <- log(size.factor) # Mean-centered size factors, for valid comparisons between size factor sets.
     size.factor <- exp(lsf - mean(lsf))
-    cpm.default(object, lib.size=size.factor, prior.count=prior.count, log=log)
+    cpm.default(object, lib.size=size.factor*1e6, prior.count=prior.count, log=log)
 })
 
 setMethod("normalize", "SCESet", function(object, ..., separate.spikes=TRUE) {
