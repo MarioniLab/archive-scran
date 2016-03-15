@@ -1,7 +1,7 @@
 Package: scran
 Version: 0.99.1
 Date: 2016-03-08
-Title: Methods for single-cell RNA-seq analysis
+Title: Methods for single-cell RNA-seq data analysis
 Author: Aaron Lun <alun@wehi.edu.au>, Karsten Bach <kbach@ebi.ac.uk>
 Maintainer: Aaron Lun <alun@wehi.edu.au>
 Depends: R (>= 3.3.0), BiocParallel, scater 
