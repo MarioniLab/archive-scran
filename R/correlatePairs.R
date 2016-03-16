@@ -89,6 +89,7 @@ setMethod("correlatePairs", "ANY", function(x, null.dist=NULL, design=NULL, BPPA
     out <- data.frame(gene1=gene1, gene2=gene2, rho=all.rho, p.value=all.pval, 
                       FDR=p.adjust(all.pval, method="BH"), stringsAsFactors=FALSE)
     out <- out[order(out$p.value, -abs(out$rho)),]
+    rownames(out) <- NULL
     return(out)
 })
 
