@@ -3,20 +3,20 @@
 setGeneric("convertTo", function(x, ...) standardGeneric("convertTo"))
 
 setMethod("convertTo", "SCESet", function(x, type=c("edgeR", "DESeq2", "monocle"),
-    fData.col=NULL, pData.col=NULL, ..., assay, logged.exprs=TRUE, get.spikes=FALSE) {
+    fData.col=NULL, pData.col=NULL, ..., assay, normalize=TRUE, get.spikes=FALSE) {
 
     type <- match.arg(type)
+    sf <- suppressWarnings(sizeFactors(x))
     if (type=="edgeR" || type=="DESeq2") { 
-        sf <- suppressWarnings(sizeFactors(x))
         fd <- fData(x)[,fData.col,drop=FALSE]
         pd <- pData(x)[,pData.col,drop=FALSE] 
     } else if (type=="monocle") {
         fd <- featureData(x)[,fData.col,drop=FALSE]
         pd <- phenoData(x)[,pData.col,drop=FALSE] 
     }
+    if (missing(assay)) { assay <- "counts" }
 
     if (type=="edgeR") {
-        if (missing(assay)) { assay <- "counts" }
         y <- DGEList(assayDataElement(x, assay), ...)
         if (ncol(fd)) { y$genes <- fd }
         if (!is.null(sf)) { 
@@ -29,7 +29,6 @@ setMethod("convertTo", "SCESet", function(x, type=c("edgeR", "DESeq2", "monocle"
         return(y)
 
     } else if (type=="DESeq2") {
-        if (missing(assay)) { assay <- "counts" }
         dds <- DESeq2::DESeqDataSetFromMatrix(assayDataElement(x, assay), pd, ~1, ...)
         S4Vectors::mcols(dds) <- fd
         sizeFactors(dds) <- sf
@@ -37,9 +36,11 @@ setMethod("convertTo", "SCESet", function(x, type=c("edgeR", "DESeq2", "monocle"
         return(dds)
 
     } else if (type=="monocle") {
-        if (missing(assay)) { assay <- "exprs" }
         cur.exprs <- assayDataElement(x, assay)
-        if (logged.exprs) { cur.exprs <- 2^cur.exprs }
+        if (normalize) {
+            if (is.null(sf)) { stop("size factors not defined for normalization") }
+            cur.exprs <- cpm.default(cur.exprs, lib.size=sizeFactors(x)*1e6, log=FALSE, prior.count=0)
+        }
         out <- monocle::newCellDataSet(cur.exprs, phenoData=pd, featureData=fd, ...)
         if (!get.spikes) { out <- out[!isSpike(x),] }
         return(out)

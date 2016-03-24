@@ -10,7 +10,7 @@ Convert a SCESet object into other classes for entry into other analysis pipelin
 \usage{
 \S4method{convertTo}{SCESet}(x, type=c("edgeR", "DESeq2", "monocle"),
     fData.col=NULL, pData.col=NULL, ..., 
-    assay, logged.exprs=TRUE, get.spikes=FALSE)
+    assay, normalize=TRUE, get.spikes=FALSE)
 }
 
 \arguments{
@@ -20,7 +20,7 @@ Convert a SCESet object into other classes for entry into other analysis pipelin
 \item{pData.col}{Any set of indices specifying which columns of \code{pData(x)} should be retained.}
 \item{...}{Other arguments to be passed to pipeline-specific constructors.}
 \item{assay}{A string specifying which assay of \code{x} should be put in the returned object.}
-\item{logged.exprs}{A logical scalar specifying whether the expression values are log-transformed, for \code{type="monocle"}.}
+\item{normalize}{A logical scalar specifying whether the assay values should be normalized for \code{type="monocle"}.}
 \item{get.spikes}{A logical scalar specifying whether rows corresponding to spike-in transcripts should be returned.}
 }
 
@@ -43,8 +43,8 @@ Other arguments can be passed to the relevant constructors through the ellipsis.
 
 By default, for edgeR and DESeq2, \code{assay} is set to \code{"counts"} such that count data is stored in the output object.
 This is consistent with the required inputs to these analysis pipeline (normalization information is stored through size factors).
-For monocle, \code{assay="exprs"} and the values are unlogged to yield (roughly) log-normally distributed expression values.
-If the values in \code{exprs(x)} are not log-transformed, unlogging can be turned off by setting \code{logged.exprs=FALSE}.
+For monocle, counts are divided by the size factors to  yield (roughly) log-normally distributed expression values.
+This can be turned off (i.e., to use the raw values in \code{assay}) by setting \code{normalize=FALSE}.
 
 In all cases, rows corresponding to spike-in transcripts are removed from the output object by default.
 As such, rows in the returned object may not correspond directly to rows in \code{x}.

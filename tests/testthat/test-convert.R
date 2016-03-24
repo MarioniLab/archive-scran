@@ -68,15 +68,15 @@ expect_identical(mcols(y)$SYMBOL, fData(X)$SYMBOL[!is.spike])
 
 # Converting to a CellDataSet.
 
-to.comp <- 2^exprs(X)
+to.comp <- t(t(counts(X))/sizeFactors(X)) 
 y <- convertTo(X, type="monocle")
-expect_identical(exprs(y), to.comp[!is.spike,])
+expect_equal(exprs(y), to.comp[!is.spike,])
 
 y <- convertTo(X, type="monocle", get.spikes=TRUE)
-expect_identical(exprs(y), to.comp)
+expect_equal(exprs(y), to.comp)
 
-y <- convertTo(X, type="monocle", logged.exprs=FALSE)
-expect_identical(exprs(y), exprs(X)[!is.spike,])
+y <- convertTo(X, type="monocle", normalize=FALSE)
+expect_identical(exprs(y), counts(X)[!is.spike,])
 
 y <- convertTo(X, type="monocle", fData.col="SYMBOL", pData.col="other")
 expect_identical(y$other, X$other)
@@ -91,6 +91,7 @@ y <- convertTo(X[,0], type="monocle", pData.col="other")
 expect_identical(exprs(y), to.comp[!is.spike,0])
 expect_identical(y$other, character(0))
 
-
-
+X2 <- X
+sizeFactors(X2) <- NULL
+expect_error(convertTo(X2, type="monocle"), "size factors not defined for normalization")
 
