@@ -5,7 +5,7 @@ set.seed(0)
 N <- 1000L
 rankings <- as.double(seq_len(3))
 collected <- list()
-for (it in 1:200) {
+for (it in 1:500) {
     my.shuffle <- .Call(scran:::cxx_auto_shuffle, rankings, N)
     expect_identical(nrow(my.shuffle), length(rankings))
     expect_identical(ncol(my.shuffle), N)
