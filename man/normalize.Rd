@@ -1,4 +1,5 @@
 \name{Normalized Expression}
+\alias{normalize}
 \alias{normalize,SCESet-method}
 
 \title{Compute normalized expression values}
@@ -39,7 +40,7 @@ Normalized log-expression values are made to be roughly comparable to those of e
 }
 
 \value{
-For \code{normalize,SCESet-method}, a SCESet object is returned with an additional assay named \code{"norm_exprs"}.
+For \code{normalize,SCESet-method}, a SCESet object is returned with an additional assay named \code{"exprs"}.
 This contains normalized log-expression values for the endogenous genes.
 If spike-ins are present, normalized values for the spike-in transcripts are stored in the \code{norm.spikes} field of the \code{colData}.
 }
