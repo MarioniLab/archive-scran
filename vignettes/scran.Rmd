@@ -264,6 +264,33 @@ Significant correlations between pairs of genes can be defined at a false discov
 In this case, no correlations are significant as the counts were randomly generated for each gene.
 In other situations when correlated gene pairs are present, these can be used to construct heatmaps to verify whether subpopulations exist; for choosing marker genes in experimental validation; and to construct gene-gene association networks.
 
+<!--
+The modification simplifies things by allowing the same tie-free null distribution to be used for all genes.
+It also means that we can get spuriously large correlations (which we would have been protected from, had we considered ties).
+However, this is acceptable as we can let the error-control machinery deal with the possibility of such spuriously large values.
+We also don't have to account for HVG identification in multiple testing here, because correlations are independent of the variance of the genes.
+
+```{r, eval=FALSE}
+set.seed(1023423)
+ncells <- 100
+null.dist <- correlateNull(ncells)
+all.p <- list()
+for (it in 1:10000) {
+    x1 <- rpois(ncells, lambda=10)
+    x2 <- rpois(ncells, lambda=20)
+    rho2 <- cor(rank(x1, ties.method="random"), rank(x2, ties.method="random"), method="spearman")
+    all.p[[it]] <- sum(null.dist >= rho2)/length(null.dist)
+}
+sum(unlist(all.p) <= 0.01)/10000
+sum(unlist(all.p) <= 0.05)/10000
+```
+
+The idea is to mitigate dependence on explicit subpopulation identification for follow-up studies.
+We identify strongly correlated genes first, then only need to check for subpopulations as a diagnostic.
+This reduces the sensitivity of the analysis to ambiguity/uncertainty during subpopulation identification.
+It's possible because validation requires genes, not subpopulations (as the current cells are destroyed), so we skip the middleman.
+-->
+
 # Converting to other formats
 
 The `SCESet` object can be easily converted into other formats using the `convertTo` method.
