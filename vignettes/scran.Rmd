@@ -203,29 +203,40 @@ Only the variance of the log-counts does anything close to the right thing here.
 
 ```{r, eval=FALSE}
 set.seed(102251)
-counter1 <- rnbinom(100, mu=5, size=1)
-counter1[1] <- 100000
-counter2 <- rnbinom(100, mu=5, size=0.2) # Arguably, all more variable than above.
-counter3 <- rnbinom(100, mu=20, size=0.2)
-counter4 <- rnbinom(100, mu=100, size=0.2)
+ncells <- 100
+niters <- 20
+averaged.GLM <- averaged.GLMM <- averaged.log <- 0
+for (it in seq_len(niters)) {
+
+counter1 <- rnbinom(ncells, mu=5, size=1)
+counter1[1] <- 10000
+counter2 <- rnbinom(ncells, mu=5, size=0.2) # Arguably, all more variable than above.
+counter3 <- rnbinom(ncells, mu=20, size=0.2)
+counter4 <- rnbinom(ncells, mu=100, size=0.2)
 
 # With GLMs.
 require(edgeR)
-y <- DGEList(rbind(counter1, counter2, counter3, counter4), lib.size=rep(1e6, 100))
-y <- estimateDisp(y, cbind(rep(1, 100)), prior.df=0)
-y$tagwise.dispersion
+y <- DGEList(rbind(counter1, counter2, counter3, counter4), lib.size=rep(1e6, ncells))
+y <- estimateDisp(y, cbind(rep(1, ncells)), prior.df=0)
+averaged.GLM <- averaged.GLM + y$tagwise.dispersion
 
 # With GLMMs (random effect variance is logged).
 require(lme4)
-plate <- integer(100)
-plate[51:100] <- 1 # Just to stop it complaining.
-VarCorr(glmer(counter1 ~ (1|plate), family=negative.binomial(1)))
-VarCorr(glmer(counter2 ~ (1|plate), family=negative.binomial(1)))
-VarCorr(glmer(counter3 ~ (1|plate), family=negative.binomial(1)))
-VarCorr(glmer(counter4 ~ (1|plate), family=negative.binomial(1)))
+plate <- integer(ncells)
+plate[(ncells/2+1):ncells] <- 1 # Just to stop it complaining.
+averaged.GLMM <- averaged.GLMM + c(
+    unlist(VarCorr(glmer(counter1 ~ (1|plate), family=negative.binomial(1)))),
+    unlist(VarCorr(glmer(counter2 ~ (1|plate), family=negative.binomial(1)))),
+    unlist(VarCorr(glmer(counter3 ~ (1|plate), family=negative.binomial(1)))),
+    unlist(VarCorr(glmer(counter4 ~ (1|plate), family=negative.binomial(1)))))
 
 # With variances of log-values.
-apply(cpm(y, log=TRUE), 1, var)
+averaged.log <- averaged.log + apply(cpm(y, log=TRUE), 1, var)
+
+}
+averaged.GLM/niters
+averaged.GLMM/niters
+averaged.log/niters
 ```
 -->
 
