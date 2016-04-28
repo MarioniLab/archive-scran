@@ -195,6 +195,40 @@ alt.fit2 <- trendVar(sce, design=design)
 alt.decomp2 <- decomposeVar(sce, alt.fit)
 ```
 
+<!--
+We use log-transformed values as the count-based models put too much weight on large outliers.
+Consider the example below, where `counter1` contains an outlier but is otherwise less variable than the other `counter*` sets.
+If you run the code, you'll find that `counter1` still has a larger NB dispersion (and by implication, CV^2^) and random effect variance than the others.
+Only the variance of the log-counts does anything close to the right thing here.
+
+```{r, eval=FALSE}
+set.seed(102251)
+counter1 <- rnbinom(100, mu=5, size=1)
+counter1[1] <- 100000
+counter2 <- rnbinom(100, mu=5, size=0.2) # Arguably, all more variable than above.
+counter3 <- rnbinom(100, mu=20, size=0.2)
+counter4 <- rnbinom(100, mu=100, size=0.2)
+
+# With GLMs.
+require(edgeR)
+y <- DGEList(rbind(counter1, counter2, counter3, counter4), lib.size=rep(1e6, 100))
+y <- estimateDisp(y, cbind(rep(1, 100)), prior.df=0)
+y$tagwise.dispersion
+
+# With GLMMs (random effect variance is logged).
+require(lme4)
+plate <- integer(100)
+plate[51:100] <- 1 # Just to stop it complaining.
+VarCorr(glmer(counter1 ~ (1|plate), family=negative.binomial(1)))
+VarCorr(glmer(counter2 ~ (1|plate), family=negative.binomial(1)))
+VarCorr(glmer(counter3 ~ (1|plate), family=negative.binomial(1)))
+VarCorr(glmer(counter4 ~ (1|plate), family=negative.binomial(1)))
+
+# With variances of log-values.
+apply(cpm(y, log=TRUE), 1, var)
+```
+-->
+
 # Detecting correlated genes
 
 The top set of HVGs can be used to identify significant correlations between pairs of genes.
