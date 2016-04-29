@@ -10,7 +10,9 @@
 \usage{
 correlateNull(ncells, iters=1e6, design=NULL) 
 
-\S4method{correlatePairs}{matrix}(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), use.names=TRUE, tol=1e-8)
+\S4method{correlatePairs}{matrix}(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), 
+    use.names=TRUE, tol=1e-8)
+
 \S4method{correlatePairs}{SCESet}(x, ..., assay="exprs", get.spikes=FALSE)
 }
 
@@ -93,6 +95,14 @@ This procedure ensures that the uninteresting factors do not drive strong correl
 Note that tied counts may not lead to tied effects, especially for design matrices with real-valued covariates.
 As a result, large correlations may be obtained for genes with few non-zero counts.
 Some protection is provided by focusing on HVGs, because genes dominated by zeroes will usually have low variance.
+
+% Consider a real-valued covariate of 1:100 for 100 cells, where the count for the last cell is unity in each of two genes, and zeroes everywhere else.
+% You'll get correlations of 1 because the residual effects will be negative for the zeros.
+% This seems unavoidable; after all, the likelihood of obtaining a zero does change across cells, given the changes in the fitted value you want to correct for.
+%
+% Don't bother trying to fit a linear model to the ranks, either.
+% I thought it would be a generalization of the definition of Spearman's (Pearson's on ranks).
+% However, the null distribution will shift depending on the gradient of the (nuisance) covariate, so it's not something that can be relied on.
 }
 
 \section{Approximating Spearman's rho with tied values}{
