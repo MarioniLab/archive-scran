@@ -16,7 +16,7 @@ correlateNull(ncells, iters=1e6, design=NULL)
 
 \arguments{
 \item{ncells}{An integer scalar indicating the number of cells in the data set.}
-\item{iters}{An integer scalar specifying the number of observations in the null distribution.}
+\item{iters}{An integer scalar specifying the number of values in the null distribution.}
 \item{design}{A numeric design matrix describing fixed effects to factorize out.}
 \item{x}{
     A numeric matrix of normalized expression values, where rows are genes and columns are cells.
@@ -41,10 +41,16 @@ By definition, such genes should be correlated as they are behaving in the same 
 In contrast, genes driven by random noise should not exhibit any correlations with other genes.
 
 An approximation of Spearman's rho is used to quantify correlations robustly based on ranks.
-The significance of non-zero correlations is assessed using a permutation test.
-The \code{correlateNull} function constructs an empirical null distribution for the correlations with \code{iters} observations.
+To identify correlated gene pairs, the significance of non-zero correlations is assessed using a permutation test.
+The null hypothesis is that the (ranking of) normalized expression across cells should be independent between genes.
+This allows us to construct a null distribution by randomizing (ranked) expression within each gene.
+
+The \code{correlateNull} function constructs an empirical null distribution for rho computed with \code{ncells} cells.
+This is done by shuffling the ranks, calculating the rho and repeating until \code{iters} values are obtained.
 The p-value for each gene pair is defined as the tail probability of this distribution at the observed correlation (with some adjustment to avoid zero p-values).
 Correction for multiple testing is done using the BH method.
+
+% Yeah, we could use a t-distribution for this, but the empirical distribution is probably more robust if you have few cells (or effects, after batch correction).
 
 For \code{correlatePairs}, a pre-computed empirical distribution can be supplied as \code{null.dist} if available.
 Otherwise, it will be automatically constructed via \code{correlateNull} with \code{ncells} set to the number of columns in \code{exprs}.
@@ -81,17 +87,12 @@ Correlations between genes will then be computed using the residual effects of a
 Similarly, the null distribution of rho values will be constructed with \code{ncells} set as the residual degrees of freedom in \code{design}.
 This procedure ensures that the uninteresting factors do not drive strong correlations between genes.
 
-% # Probably okay - main effects in 'x' aside, any multiplier to 'y' will be preserved in qty, so direction and quality of correlation will be preserved.
-% # Not exactly equal, though, as we lose a couple of observations when converting to effects.
-% y <- rnorm(100)
-% grouping <- sample(LETTERS[1:5], 100, replace=TRUE)
-% design <- model.matrix(~grouping)
-% fit <- lm.fit(y, x=design)
-% x <- c(A=1, B=2, C=-1, D=0, E=-2)
-% r <- rnorm(100)
-% fit2 <- lm.fit(x[grouping] - y + r, x=design)
-% cor(fit2$effects[6:100], fit$effects[6:100])
-% cor(y, -y+r)
+% Probably okay - main effects in 'x' aside, any scalar/multiplier to 'y' will be preserved in qty, so direction and quality of correlation will be preserved.
+% Not exactly equal, though, as we lose a couple of observations when converting to effects.
+
+Note that tied counts may not lead to tied effects, especially for design matrices with real-valued covariates.
+As a result, large correlations may be obtained for genes with few non-zero counts.
+Some protection is provided by focusing on HVGs, because genes dominated by zeroes will usually have low variance.
 }
 
 \section{Approximating Spearman's rho with tied values}{
