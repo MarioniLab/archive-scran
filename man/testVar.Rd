@@ -44,9 +44,9 @@ Ranking HVGs on p-values is better than ranking on \code{total - null}, as the l
 
 The \code{min} value is necessary as the test statistic is the (scaled) ratio of \code{total} over \code{null + min} for each gene.
 Directly using \code{null} in the denominator is not ideal when \code{null} is small, e.g., for high-abundance genes, where a high ratio/low p-value may only result in a small absolute increase in the variance.
-Adding \code{min} ensures that the absolute value of \code{total} must be at least greater than \code{min} to be called as significant.
+Adding \code{min} ensures that the absolute value of \code{bio} must be at least greater than \code{min} to be called as significant.
 The default of 1 was chosen based on the assumption that variances are computed for log2-values.
-This means that significant genes will have at least a two-fold increase/decrease around the mean.
+This means that significant genes will have at least a two-fold increase/decrease around the mean due to biological variability.
 
 % No matter how small \code{null} is, the gene's variance must be 0.5 greater than it. 
 % Of course, genes will small \code{null} will be favoured as the ratio is larger; this is sensible, as the variance estimate is more precise at small \code{null}.
