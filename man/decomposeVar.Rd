@@ -7,7 +7,7 @@
 \description{Decompose the gene-specific variance into biological and technical components for single-cell RNA-seq data.}
 
 \usage{
-\S4method{decomposeVar}{matrix,list}(x, fit, design=NA, min=1)
+\S4method{decomposeVar}{matrix,list}(x, fit, design=NA)
 \S4method{decomposeVar}{SCESet,list}(x, fit, ..., assay="exprs", get.spikes=FALSE)
 }
 
@@ -20,7 +20,6 @@
     A list containing the output of \code{\link{trendVar}}, run on log-expression values for spike-in genes.
 }
 \item{design}{A numeric matrix describing the systematic factors contributing to expression in each cell.}
-\item{min}{A numeric scalar indicating the minimum variance to consider as significant in \code{\link{testVar}}.}
 \item{...}{Additional arguments to pass to \code{decomposeVar,matrix,list-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical scalar specifying whether decomposition should be performed for spike-ins.}
@@ -50,13 +49,13 @@ This contains the numeric fields:
 \item{\code{total}:}{Variance of the normalized log-counts per gene.}
 \item{\code{bio}:}{Biological component of the variance.}
 \item{\code{tech}:}{Technical component of the variance.}
-\item{\code{pvalue, FDR}:}{The p-value against the null hypothesis that \code{bio <= tech + min}, and its BH-corrected equivalent.}
 }
 Rows corresponding to spike-in transcripts are set to \code{NA} unless \code{get.spikes=TRUE}. 
 }
 
 \seealso{
 \code{\link{trendVar}},
+\code{\link{testVar}}
 }
 
 \author{
