@@ -7,6 +7,9 @@
 Added 'min' argument to testVar().
 
 \item
+Transformed correlations to a metric distance in quickCluster().
+
+\item
 Updated documentation and tests.
 }}
 

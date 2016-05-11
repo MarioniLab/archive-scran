@@ -73,4 +73,8 @@ clusters <- quickCluster(counts, min.size=20)
 van Dongen S and Enright AJ (2012).
 Metric distances derived from cosine similarity and Pearson and Spearman correlations.
 \emph{arXiv} 1208.3145
+
+Lun ATL, Bach K and Marioni JC (2016).
+Pooling across cells to normalize single-cell RNA sequencing data with many zero counts.
+\emph{Genome Biol.} 17:75
 }
