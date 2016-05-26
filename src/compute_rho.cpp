@@ -84,7 +84,7 @@ SEXP get_null_rho_design(SEXP qmatrix, SEXP coef, SEXP residdf, SEXP iters) try 
         Rx_random_seed myseed;
     
         std::deque<std::pair<double, int> > collected1(Nobs), collected2(Nobs);
-        std::deque<int> rank1, rank2;
+        std::deque<int> rank1(Nobs), rank2(Nobs);
         std::deque<double> effects(Nobs);
         const double mult=rho_mult(Nobs);
 
