@@ -256,7 +256,7 @@ head(cor.pairs)
 As with variance estimation, if uninteresting substructure is present, this should be blocked on using the `design` argument in both `correlateNull` and `correlatePairs`.
 
 ```{r}
-null.dist2 <- correlateNull(design=design)
+null.dist2 <- correlateNull(design=design, iter=1e5) # fewer iterations, to speed it up.
 cor.pairs2 <- correlatePairs(sce[top.hvgs[1:200],], null.dist=null.dist2, design=design)
 ```
 
