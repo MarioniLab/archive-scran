@@ -21,10 +21,21 @@ set.seed(100)
 out <- correlateNull(12, iters=1e3)
 expect_equal(ref, out)
 
+# Checking with design matrix.
+
 design <- model.matrix(~factor(rep(c(1,2), each=10)))
-df <- nrow(design) - ncol(design)
+Q <- qr.Q(qr(design), complete=TRUE)
+df <- nrow(design)-ncol(design)
+
 set.seed(100)
-out1 <- correlateNull(df, iters=1e3)
+collected <- list()
+for (x in seq_len(1e3)) {
+    first.half <- Q %*% c(0,0, rnorm(df))
+    second.half <- Q %*% c(0, 0, rnorm(df)) 
+    collected[[x]] <- cor(first.half, second.half, method="spearman")
+}
+out1 <- sort(unlist(collected))
+
 set.seed(100)
 out2 <- correlateNull(design=design, iters=1e3)
 expect_equal(out1, out2)
@@ -56,7 +67,7 @@ expect_identical(r, r2)
 ####################################################################################################
 
 checkCorrelations <- function(out, exprs, null.dist) {
-    ranked.exprs <- apply(exprs, 1, FUN=rank, ties.method="random")
+    ranked.exprs <- apply(exprs, 1, FUN=scran:::.tolerant_rank)
     colnames(ranked.exprs) <- rownames(exprs)
     assembled.pval <- assembled.rho <- numeric(nrow(out))
     for (p in seq_along(assembled.rho)) { 
@@ -117,12 +128,13 @@ X <- log(matrix(rpois(Ngenes*Ncells, lambda=10), nrow=Ngenes) + 1)
 rownames(X) <- paste0("X", seq_len(Ngenes))
 design <- model.matrix(~factor(rep(c(1,2), each=50)))
 
-set.seed(100)
-out <- correlatePairs(X, design=design)
-set.seed(100)
-nulls <- correlateNull(design=design)
+set.seed(200)
+nulls <- correlateNull(design=design, iter=1e3)
+set.seed(100) # Need because of random ranking.
+out <- correlatePairs(X, design=design, null=nulls)
 fit <- lm.fit(x=design, y=t(X))
-exprs <- t(fit$effects[-fit$qr$pivot[seq_len(fit$rank)],])
+exprs <- t(fit$residual)
+set.seed(100)
 ref <- checkCorrelations(out, exprs, null.dist=nulls)
 
 expect_equal(out$rho, ref$rho)
@@ -160,3 +172,12 @@ expect_error(correlatePairs(X[0,], nulls), "need at least two genes to compute c
 expect_error(correlatePairs(X[,0], nulls), "number of cells should be greater than 2")
 out <- correlatePairs(X, numeric(0))
 expect_equal(out$p.value, rep(1, nrow(out)))
+
+####################################################################################################
+# A high-level test, to make sure that our stuff gives a uniform distribution of p-values.
+#
+# design <- model.matrix(~factor(rep(1:2, each=5)))
+# y <- matrix(rnorm(1000, mean=rep(c(-1, 1), each=5), sd=2), ncol=10, byrow=TRUE)
+# out <- correlatePairs(y, design=design)
+# plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out)))
+

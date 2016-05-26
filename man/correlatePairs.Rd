@@ -48,7 +48,7 @@ The null hypothesis is that the (ranking of) normalized expression across cells 
 This allows us to construct a null distribution by randomizing (ranked) expression within each gene.
 
 The \code{correlateNull} function constructs an empirical null distribution for rho computed with \code{ncells} cells.
-This is done by shuffling the ranks, calculating the rho and repeating until \code{iters} values are obtained.
+When \code{design=NULL}, this is done by shuffling the ranks, calculating the rho and repeating until \code{iters} values are obtained.
 The p-value for each gene pair is defined as the tail probability of this distribution at the observed correlation (with some adjustment to avoid zero p-values).
 Correction for multiple testing is done using the BH method.
 
@@ -84,17 +84,25 @@ This will focus on genes contributing to cell-to-cell heterogeneity (and thus mo
 There is no need to account for HVG pre-selection in multiple testing, because rank correlations are unaffected by the variance.
 For more genes, set \code{BPPARAM} to use more workers and reduce computational time.
 
-If the experiment has known (and uninteresting) factors of variation, e.g., batch effects, cell cycle phase, these can be included in the \code{design}.
-Correlations between genes will then be computed using the residual effects of a linear model fitted to the normalized expression values with \code{design}.
-Similarly, the null distribution of rho values will be constructed with \code{ncells} set as the residual degrees of freedom in \code{design}.
+If the experiment has known (and uninteresting) factors of variation, e.g., batch effects, cell cycle phase, these can be included in \code{design}.
+Correlations between genes will then be computed using the residuals of a linear model fitted to the normalized expression values with \code{design}.
+Similarly, to obtain a null distribution of rho values, normally-distributed random errors are simulated in a fitted model based on \code{design};
+    the corresponding residuals are generated from these errors; and the correlation between sets of residuals is computed at each iteration.
 This procedure ensures that the uninteresting factors do not drive strong correlations between genes.
 
-% Probably okay - main effects in 'x' aside, any scalar/multiplier to 'y' will be preserved in qty, so direction and quality of correlation will be preserved.
-% Not exactly equal, though, as we lose a couple of observations when converting to effects.
+% Don't use residual effects directly, as they're not robust to outliers.
 
-Note that tied counts may not lead to tied effects, especially for design matrices with real-valued covariates.
-As a result, large correlations may be obtained for genes with few non-zero counts.
-Some protection is provided by focusing on HVGs, because genes dominated by zeroes will usually have low variance.
+(The above procedure to remove nuisance effects assumes normality, during both linear modelling and generation of the null distribution.
+This is largely unavoidable.
+Nuisance effects cannot be precisely removed without placing some quantitative constraints on how observations change in response to those effects.
+In fact, even with \code{design=NULL}, there is the assumption that all observations are equally likely to receive any rank when performing the permutations.
+This will not be the case in practice as some observations are more variable than others, depending on the expected expression in each cell.
+Thus, caution is required at low counts where the log-expression values will be highly non-normal.)
+
+Note that tied counts may not result in tied residual effects.
+Uncertainty in model fitting with \code{design} will introduce differences due to coefficient estimation error (more so if \code{design} was misspecified).
+This will break ties in a consistent manner across genes, which may yield large correlations between genes with many zero counts.
+Focusing on HVGs should avoid detecting such correlations, as genes dominated by zeroes will usually have low variance.
 
 % Consider a real-valued covariate of 1:100 for 100 cells, where the count for the last cell is unity in each of two genes, and zeroes everywhere else.
 % You'll get correlations of 1 because the residual effects will be negative for the zeros.
@@ -112,11 +120,11 @@ This means that a common empirical distribution can be used for all gene pairs, 
 Generally, this modification has little effect on the results for expressed genes (and in any case, differences in library size break ties for normalized expression values).
 Some correlations may end up being spuriously large, but this should be handled by the error control machinery after multiplicity correction.
 
-For example, counts of zero will have the same normalized log-expression, even if the library sizes are different.
-This is because the added prior count is scaled by the library size in \code{\link{cpm.default}}, such that the effect of library size cancels out.
-Thus, all zeroes will have tied ranks (with numerical imprecision handled by \code{tol}) and will not inflate the correlations.
-For non-zero counts, correlations may be driven by library size differences between cells.
-This is, perhaps, less problematic, as two genes with the same counts in both small and large libraries provide evidence for association.
+% Note that counts of zero will have the same normalized log-expression, even if the library sizes are different.
+% This is because the added prior count is scaled by the library size in \code{\link{cpm.default}}, such that the effect of library size cancels out.
+% Thus, all zeroes will have tied ranks (with numerical imprecision handled by \code{tol}) and will not inflate the correlations.
+% For non-zero counts, correlations may be driven by library size differences between cells.
+% This is, perhaps, less problematic, as a gene with the same count in a small and large cell is presumably downregulated in the latter.
 }
 
 \author{

@@ -3,17 +3,22 @@ correlateNull <- function(ncells, iters=1e6, design=NULL)
 #
 # written by Aaron Lun
 # created 10 February 2016
-# last modified 21 February 2016
+# last modified 27 May 2016
 {
     if (!is.null(design)) { 
         if (!missing(ncells)) { 
             stop("cannot specify both 'ncells' and 'design'")
         }
-        ncells <- nrow(design) - qr(design)$rank
-    }
-    out <- .Call(cxx_get_null_rho, as.integer(ncells), as.integer(iters))
-    if (is.character(out)) { 
-        stop(out)
+        Q <- qr.Q(qr(design), complete=TRUE)
+        out <- .Call(cxx_get_null_rho_design, Q, ncol(design), nrow(design) - ncol(design), as.integer(iters))
+        if (is.character(out)) { 
+            stop(out)
+        }
+    } else {
+        out <- .Call(cxx_get_null_rho, as.integer(ncells), as.integer(iters))
+        if (is.character(out)) { 
+            stop(out)
+        }
     }
     out <- sort(out)
     return(out)  
@@ -26,19 +31,24 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
 #
 # written by Aaron Lun
 # created 10 February 2016
-# last modified 17 April 2016
+# last modified 27 May 2016
 {
     exprs <- x
+    ncells <- ncol(exprs)
     if (!is.null(design)) { 
         fit <- lm.fit(y=t(exprs), x=design)
-        exprs <- t(fit$effects[-fit$qr$pivot[seq_len(fit$rank)],])
-    }
-    ncells <- ncol(exprs)
-    if (is.null(null.dist)) { 
-        null.dist <- correlateNull(ncells)
+        exprs <- t(fit$residuals)
+        if (is.null(null.dist)) { 
+            null.dist <- correlateNull(design=design)
+        }
     } else {
-        null.dist <- as.double(null.dist)
+        if (is.null(null.dist)) { 
+            null.dist <- correlateNull(ncells)
+        } 
     }
+
+    # Checking that the null distribution is sensible.
+    null.dist <- as.double(null.dist)
     if (is.unsorted(null.dist)) { 
         null.dist <- sort(null.dist)
     }
