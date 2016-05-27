@@ -91,10 +91,10 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
     }
 
     # Checking that the null distribution is sensible.
+    if (!identical(design, attr(null.dist, "design"))) { 
+        stop("'design' is not the same as that used to generate 'null.dist'")
+    }
     if (!is.null(design)) { 
-        if (!identical(design, attr(null.dist, "design"))) { 
-            stop("'design' is not the same as that used to generate 'null.dist'")
-        }
         if (!identical(simulate, attr(null.dist, "simulate"))) {
             stop("'simulate' is not the same as that used to generate 'null.dist'")
         }
