@@ -65,6 +65,7 @@ This avoids picking up strong technical correlations between pairs of spike-in t
 
 \value{
 For \code{correlateNull}, a numeric vector of length \code{iters} is returned containing the sorted correlations under the null hypothesis of no correlations.
+Arguments to \code{design} and \code{simulate} are stored in the attributes.
 
 For \code{correlatePairs}, a dataframe is returned with one row per gene pair and the following fields:
 \describe{

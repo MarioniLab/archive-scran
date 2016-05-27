@@ -14,13 +14,13 @@ set.seed(100)
 ref <- refnull(1e3, 121)
 set.seed(100)
 out <- correlateNull(121, iters=1e3)
-expect_equal(ref, out)
+expect_equal(ref, as.double(out))
 
 set.seed(100)
 ref <- refnull(1e3, 12)
 set.seed(100)
 out <- correlateNull(12, iters=1e3)
-expect_equal(ref, out)
+expect_equal(ref, as.double(out))
 
 # Checking with design matrix.
 
@@ -39,7 +39,9 @@ out1 <- sort(unlist(collected))
 
 set.seed(100)
 out2 <- correlateNull(design=design, iters=1e3, simulate=TRUE)
-expect_equal(out1, out2)
+expect_equal(out1, as.double(out2))
+expect_equal(attr(out2, "design"), design)
+expect_equal(attr(out2, "simulate"), TRUE)
 
 # A more complicated design.
 
@@ -58,7 +60,9 @@ out1 <- sort(unlist(collected))
 
 set.seed(100)
 out2 <- correlateNull(design=design, iters=1e3, simulate=TRUE)
-expect_equal(out1, out2)
+expect_equal(out1, as.double(out2))
+expect_equal(attr(out2, "design"), design)
+expect_equal(attr(out2, "simulate"), TRUE)
 
 # A one-way layout without simulating the residuals.
 
@@ -75,7 +79,9 @@ out1 <- sort(out1)
 
 set.seed(100)
 out2 <- correlateNull(design=design, iters=1e3)
-expect_equal(out1, out2)
+expect_equal(out1, as.double(out2))
+expect_equal(attr(out2, "design"), design)
+expect_equal(attr(out2, "simulate"), FALSE)
 
 # Checking nonsense inputs.
 
@@ -242,7 +248,7 @@ expect_equal(out$p.value, rep(1, nrow(out)))
 # null <- correlateNull(ncol(y))
 # out <- correlatePairs(y, design=design, null=null)
 # plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out))) # wrong
-# null <- correlateNull(design=design)
+# null <- correlateNull(design=design, simulate=TRUE)
 # out <- correlatePairs(y, design=design, null=null)
 # plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out))) # right
 
