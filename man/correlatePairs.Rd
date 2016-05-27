@@ -8,10 +8,10 @@
 \description{Identify pairs of genes that are significantly correlated based on a modified Spearman's rho.}
 
 \usage{
-correlateNull(ncells, iters=1e6, design=NULL) 
+correlateNull(ncells, iters=1e6, design=NULL, simulate=FALSE) 
 
 \S4method{correlatePairs}{matrix}(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), 
-    use.names=TRUE, tol=1e-8)
+    use.names=TRUE, tol=1e-8, simulate=FALSE)
 
 \S4method{correlatePairs}{SCESet}(x, ..., assay="exprs", get.spikes=FALSE)
 }
@@ -20,6 +20,7 @@ correlateNull(ncells, iters=1e6, design=NULL)
 \item{ncells}{An integer scalar indicating the number of cells in the data set.}
 \item{iters}{An integer scalar specifying the number of values in the null distribution.}
 \item{design}{A numeric design matrix describing fixed effects to factorize out.}
+\item{simulate}{A logical scalar indicating whether residuals should be simulated when \code{design!=NULL}.}
 \item{x}{
     A numeric matrix of normalized expression values, where rows are genes and columns are cells.
     Alternatively, a SCESet object containing such a matrix.
@@ -77,32 +78,31 @@ For \code{correlatePairs}, a dataframe is returned with one row per gene pair an
 Rows are sorted by increasing \code{p.value} and, if tied, decreasing absolute size of \code{rho}.
 }
 
-\section{Gene selection and experimental design}{
-Users should select their genes in \code{x} with some care.
-Using a top set of 100-200 highly variable genes (HVGs) is recommended.
-This will focus on genes contributing to cell-to-cell heterogeneity (and thus more likely to be involved in driving substructure).
-There is no need to account for HVG pre-selection in multiple testing, because rank correlations are unaffected by the variance.
-For more genes, set \code{BPPARAM} to use more workers and reduce computational time.
+\section{Accounting for uninteresting variation}{
+If the experiment has known (and uninteresting) factors of variation, these can be included in \code{design}.
+These factors will be regressed out to ensure that they do not drive strong correlations between genes.
+Examples might be to block on batch effects or cell cycle phase, which may have substantial but uninteresting effects on expression.
 
-If the experiment has known (and uninteresting) factors of variation, e.g., batch effects, cell cycle phase, these can be included in \code{design}.
-Correlations between genes will then be computed using the residuals of a linear model fitted to the normalized expression values with \code{design}.
+The approach used to remove these factors depends on the design matrix.
+If there is only one factor in \code{design}, the levels of the factor are defined as separate groups.
+For each pair of genes, correlations are computed within each group, and a weighted mean (based on the group size) of the correlations is taken across all groups.
+The same strategy is used to generate the null distribution where ranks are computed and shuffled within each group.
+
+For designs containing multiple factors or covariates, a linear model is fitted to the normalized expression values with \code{design}.
+The correlation between a pair of genes is then computed from the residuals of the fitted model.
 Similarly, to obtain a null distribution of rho values, normally-distributed random errors are simulated in a fitted model based on \code{design};
     the corresponding residuals are generated from these errors; and the correlation between sets of residuals is computed at each iteration.
-This procedure ensures that the uninteresting factors do not drive strong correlations between genes.
+This approach can also be used for one-way layouts by setting \code{simulate=TRUE}.
 
 % Don't use residual effects directly, as they're not robust to outliers.
 
-(The above procedure to remove nuisance effects assumes normality, during both linear modelling and generation of the null distribution.
-This is largely unavoidable.
+(The second procedure assumes normality, during both linear modelling and generation of the null distribution.
+This is why it is not used for the simpler one-way layouts by default.
+However, this assumption is largely unavoidable for complex designs.
 Nuisance effects cannot be precisely removed without placing some quantitative constraints on how observations change in response to those effects.
 In fact, even with \code{design=NULL}, there is the assumption that all observations are equally likely to receive any rank when performing the permutations.
 This will not be the case in practice as some observations are more variable than others, depending on the expected expression in each cell.
 Thus, caution is required at low counts where the log-expression values will be highly non-normal.)
-
-Note that tied counts may not result in tied residual effects.
-Uncertainty in model fitting with \code{design} will introduce differences due to coefficient estimation error (more so if \code{design} was misspecified).
-This will break ties in a consistent manner across genes, which may yield large correlations between genes with many zero counts.
-Focusing on HVGs should avoid detecting such correlations, as genes dominated by zeroes will usually have low variance.
 
 % Consider a real-valued covariate of 1:100 for 100 cells, where the count for the last cell is unity in each of two genes, and zeroes everywhere else.
 % You'll get correlations of 1 because the residual effects will be negative for the zeros.
@@ -111,6 +111,20 @@ Focusing on HVGs should avoid detecting such correlations, as genes dominated by
 % Don't bother trying to fit a linear model to the ranks, either.
 % I thought it would be a generalization of the definition of Spearman's (Pearson's on ranks).
 % However, there's no guarantee that unevenly-spaced covariates (or factors, for that matter) will make sense when fitted to ranks.
+}
+
+\section{Gene selection}{
+Users should select their genes in \code{x} with some care.
+Using a top set of 100-200 highly variable genes (HVGs) is recommended.
+This will focus on genes contributing to cell-to-cell heterogeneity (and thus more likely to be involved in driving substructure).
+There is no need to account for HVG pre-selection in multiple testing, because rank correlations are unaffected by the variance.
+For more genes, set \code{BPPARAM} to use more workers and reduce computational time.
+
+It is also advisable to choose HVGs after filtering on abundance to remove lowly-expressed genes.
+This is because tied counts may not result in tied normalized expression values or residuals.
+Uncertainty in model fitting with \code{design} will introduce differences due to coefficient estimation error (more so if \code{design} was misspecified).
+This will break ties in a consistent manner across genes, which may yield large correlations between genes with many zero counts.
+Focusing on HVGs should avoid detecting such correlations, as genes dominated by zeroes will usually have low variance.
 }
 
 \section{Approximating Spearman's rho with tied values}{

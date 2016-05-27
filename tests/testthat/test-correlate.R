@@ -2,11 +2,12 @@
 
 # require(scran); require(testthat); source("test-correlate.R")
 
-refnull <- function(niters, ncells) {
+refnull <- function(niters, ncells, resort=TRUE) {
     rankings <- as.double(seq_len(ncells))
     shuffled <- .Call(scran:::cxx_auto_shuffle, rankings, as.integer(niters))
     out <- cor(shuffled, rankings, method="spearman")
-    sort(out)
+    if (resort) { out <- sort(out) }
+    out
 }
 
 set.seed(100)
@@ -35,6 +36,42 @@ for (x in seq_len(1e3)) {
     collected[[x]] <- cor(first.half, second.half, method="spearman")
 }
 out1 <- sort(unlist(collected))
+
+set.seed(100)
+out2 <- correlateNull(design=design, iters=1e3, simulate=TRUE)
+expect_equal(out1, out2)
+
+# A more complicated design.
+
+design <- model.matrix(~seq_len(10))
+Q <- qr.Q(qr(design), complete=TRUE)
+df <- nrow(design)-ncol(design)
+
+set.seed(100)
+collected <- list()
+for (x in seq_len(1e3)) {
+    first.half <- Q %*% c(0,0, rnorm(df))
+    second.half <- Q %*% c(0, 0, rnorm(df)) 
+    collected[[x]] <- cor(first.half, second.half, method="spearman")
+}
+out1 <- sort(unlist(collected))
+
+set.seed(100)
+out2 <- correlateNull(design=design, iters=1e3, simulate=TRUE)
+expect_equal(out1, out2)
+
+# A one-way layout without simulating the residuals.
+
+grouping <- rep(1:5, each=3)
+design <- model.matrix(~factor(grouping))
+
+set.seed(100)
+out1 <- 0L
+for (gl in table(grouping)) { 
+    out1 <- out1 + refnull(1e3, gl, resort=FALSE) * gl
+}
+out1 <- out1/length(grouping)
+out1 <- sort(out1)
 
 set.seed(100)
 out2 <- correlateNull(design=design, iters=1e3)
@@ -126,12 +163,13 @@ Ngenes <- 20
 Ncells <- 100
 X <- log(matrix(rpois(Ngenes*Ncells, lambda=10), nrow=Ngenes) + 1)
 rownames(X) <- paste0("X", seq_len(Ngenes))
-design <- model.matrix(~factor(rep(c(1,2), each=50)))
+grouping <- factor(rep(c(1,2), each=50))
+design <- model.matrix(~grouping)
 
 set.seed(200)
-nulls <- correlateNull(design=design, iter=1e3)
+nulls <- correlateNull(design=design, iter=1e3, simulate=TRUE)
 set.seed(100) # Need because of random ranking.
-out <- correlatePairs(X, design=design, null=nulls)
+out <- correlatePairs(X, design=design, null=nulls, simulate=TRUE)
 fit <- lm.fit(x=design, y=t(X))
 exprs <- t(fit$residual)
 set.seed(100)
@@ -140,6 +178,29 @@ ref <- checkCorrelations(out, exprs, null.dist=nulls)
 expect_equal(out$rho, ref$rho)
 expect_equal(out$p.value, ref$pvalue)
 expect_equal(out$FDR, ref$FDR)
+
+# Repeating without simulation (need to use a normal matrix to avoid ties;
+# bplapply mucks up the seed).
+
+set.seed(200)
+X[] <- rnorm(length(X))
+nulls <- correlateNull(design=design, iter=1e3)
+
+out <- correlatePairs(X, design=design, null=nulls)
+collected.rho <- 0L
+for (group in split(seq_along(grouping), grouping)) { 
+    ref <- checkCorrelations(out, X[,group], null.dist=nulls)
+    collected.rho <- collected.rho + length(group)/length(grouping) * ref$rho
+}
+
+expect_equal(out$rho, collected.rho)
+
+collected.p <- numeric(length(collected.rho)) 
+for (x in seq_along(collected.rho)) { 
+    collected.p[x] <- min(sum(nulls <= collected.rho[x] + 1e-8), sum(nulls >= collected.rho[x] - 1e-8))
+}
+collected.p <- 2*(collected.p + 1)/(length(nulls)+1)
+expect_equal(out$p.value, collected.p)
 
 # Checking that it works with a SCESet object.
 
@@ -176,8 +237,12 @@ expect_equal(out$p.value, rep(1, nrow(out)))
 ####################################################################################################
 # A high-level test, to make sure that our stuff gives a uniform distribution of p-values.
 #
-# design <- model.matrix(~factor(rep(1:2, each=5)))
-# y <- matrix(rnorm(1000, mean=rep(c(-1, 1), each=5), sd=2), ncol=10, byrow=TRUE)
-# out <- correlatePairs(y, design=design)
-# plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out)))
+# design <- model.matrix(~factor(rep(1:5, 2)))
+# y <- matrix(rnorm(1000, mean=rep(1:5, 5), sd=2), ncol=10, byrow=TRUE)
+# null <- correlateNull(ncol(y))
+# out <- correlatePairs(y, design=design, null=null)
+# plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out))) # wrong
+# null <- correlateNull(design=design)
+# out <- correlatePairs(y, design=design, null=null)
+# plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out))) # right
 
