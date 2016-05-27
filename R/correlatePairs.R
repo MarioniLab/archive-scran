@@ -13,8 +13,7 @@ correlateNull <- function(ncells, iters=1e6, design=NULL, simulate=FALSE)
         groupings <- .isOneWay(design)
         if (is.null(groupings) || simulate) { 
             # Using simulated residual effects if the design matrix is not a one-way layout (or if forced by simulate=TRUE).
-            Q <- qr.Q(qr(design), complete=TRUE)
-            out <- .Call(cxx_get_null_rho_design, Q, ncol(design), nrow(design) - ncol(design), as.integer(iters))
+            out <- .Call(cxx_get_null_rho_design, design, ncol(design), nrow(design), as.integer(iters))
             if (is.character(out)) { 
                 stop(out)
             }
@@ -31,14 +30,19 @@ correlateNull <- function(ncells, iters=1e6, design=NULL, simulate=FALSE)
             }
             out <- out/nrow(design)
         }
+        attrib <- list(design=design, simulate=simulate)
 
     } else {
         out <- .Call(cxx_get_null_rho, as.integer(ncells), as.integer(iters))
         if (is.character(out)) { 
             stop(out)
         }
+        attrib <- NULL
     }
+
+    # Storing attributes, to make sure it matches up.
     out <- sort(out)
+    attributes(out) <- attrib
     return(out)  
 }
 
@@ -87,6 +91,14 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
     }
 
     # Checking that the null distribution is sensible.
+    if (!is.null(design)) { 
+        if (!identical(design, attr(null.dist, "design"))) { 
+            stop("'design' is not the same as that used to generate 'null.dist'")
+        }
+        if (!identical(simulate, attr(null.dist, "simulate"))) {
+            stop("'simulate' is not the same as that used to generate 'null.dist'")
+        }
+    }
     null.dist <- as.double(null.dist)
     if (is.unsorted(null.dist)) { 
         null.dist <- sort(null.dist)

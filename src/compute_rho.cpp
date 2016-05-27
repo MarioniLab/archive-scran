@@ -50,32 +50,56 @@ SEXP get_null_rho (SEXP cells, SEXP iters) try {
 }
 
 /*** Null distribution estimation with a design matrix. ***/
-SEXP get_null_rho_design(SEXP qmatrix, SEXP coef, SEXP residdf, SEXP iters) try {
+SEXP get_null_rho_design(SEXP design, SEXP coef, SEXP obs, SEXP iters) try {
     if (!isInteger(coef) || LENGTH(coef)!=1)  {
         throw std::runtime_error("number of coef should be an integer scalar"); 
     }
     const int Ncoef=asInteger(coef);
-    if (!isInteger(residdf) || LENGTH(residdf)!=1)  {
-        throw std::runtime_error("number of residdf should be an integer scalar"); 
+    if (!isInteger(obs) || LENGTH(obs)!=1)  {
+        throw std::runtime_error("number of obs should be an integer scalar"); 
     }
-    const int Nresiddf=asInteger(residdf);
+    const int Nobs=asInteger(obs);
     if (!isInteger(iters) || LENGTH(iters)!=1)  {
         throw std::runtime_error("number of iterations should be an integer scalar"); 
     }
     const int Niters=asInteger(iters);
     if (Niters <= 0) { throw std::runtime_error("number of iterations should be positive"); }
 
-    // Setting up the matrix.
-    const int Nobs=Ncoef+Nresiddf;
-    if (!isReal(qmatrix) || LENGTH(qmatrix)!=Nobs*Nobs) {
-        throw std::runtime_error("Q matrix dimensions are not consistent with number of observations");
+    // Setting up the Q matrix (in compressed form + auxiliaries).
+    if (!isReal(design) || LENGTH(design)!=Nobs*Ncoef) {
+        throw std::runtime_error("design matrix dimensions are not consistent with number of observations");
     }
-    const double** qptrs=(const double**)R_alloc(Nobs, sizeof(const double*));
-    if (Nobs) { 
-        qptrs[0]=REAL(qmatrix);
-        for (int i=1; i<Nobs; ++i) {
-            qptrs[i]=qptrs[i-1]+Nobs;
+    const double* xptr=REAL(design);
+    double* qptr=(double*)R_alloc(LENGTH(design), sizeof(double));
+    double* qxptr=(double*)R_alloc(Ncoef, sizeof(double)); /* number of elementary reflectors is the minimum of Nobs, Ncoef */
+    {
+        // Getting the QR decomposition after a workspace query.
+        for (int i=0; i<LENGTH(design); ++i) { qptr[i]=xptr[i]; }
+        int info, lwork=-1;
+        double tmpwork=0;
+        F77_CALL(dgeqrf)(&Nobs, &Ncoef, qptr, &Nobs, qxptr, &tmpwork, &lwork, &info);
+
+        lwork=int(tmpwork + 0.5);
+        double* work=(double*)R_alloc(lwork, sizeof(double));
+        F77_CALL(dgeqrf)(&Nobs, &Ncoef, qptr, &Nobs, qxptr, work, &lwork, &info);
+    }
+
+    // Workspace query for 'dormqr'.
+    double* effects=(double*)R_alloc(Nobs, sizeof(double));
+    const char side='L', trans='N';
+    const int nCols=1;
+    int info, lwork=-1;
+    double* work;
+    {
+        double tmpwork=0;
+        F77_CALL(dormqr)(&side, &trans, &Nobs, &nCols, &Ncoef,
+                qptr, &Nobs, qxptr, effects, &Nobs,
+                &tmpwork, &lwork, &info); 
+        if (info) { 
+            throw std::runtime_error("workspace query failed for 'dormqr'");
         }
+        lwork=int(tmpwork+0.5);
+        work=(double*)R_alloc(lwork, sizeof(double));
     }
 
     SEXP output=PROTECT(allocVector(REALSXP, Niters));
@@ -85,7 +109,6 @@ SEXP get_null_rho_design(SEXP qmatrix, SEXP coef, SEXP residdf, SEXP iters) try 
     
         std::deque<std::pair<double, int> > collected1(Nobs), collected2(Nobs);
         std::deque<int> rank1(Nobs), rank2(Nobs);
-        std::deque<double> effects(Nobs);
         const double mult=rho_mult(Nobs);
 
         // Simulating residuals, using the Q-matrix to do it.
@@ -96,19 +119,27 @@ SEXP get_null_rho_design(SEXP qmatrix, SEXP coef, SEXP residdf, SEXP iters) try 
 
         for (int it=0; it<Niters; ++it) {
             for (mode=0; mode<2; ++mode) {
-                std::deque<std::pair<double, int> >& current=(mode ? collected1 : collected2);
+                for (col=0; col<Ncoef; ++col) {
+                    effects[col]=0;
+                }
                 for (col=Ncoef; col<Nobs; ++col) {
                     effects[col]=norm_rand();
                 }
 
-                for (row=0; row<Nobs; ++row) {
-                    double& curval=(current[row].first=0);
-                    current[row].second=row;
-                    for (col=Ncoef; col<Nobs; ++col) {
-                        curval+=qptrs[col][row]*effects[col];
-                    }
+                // Computing the residuals.
+                F77_CALL(dormqr)(&side, &trans, &Nobs, &nCols, &Ncoef,
+                        qptr, &Nobs, qxptr, effects, &Nobs,
+                        work, &lwork, &info); 
+                if (info) { 
+                    throw std::runtime_error("residual calculations failed for 'dormqr'");
                 }
-                
+
+                // Sorting.
+                std::deque<std::pair<double, int> >& current=(mode ? collected1 : collected2);
+                for (row=0; row<Nobs; ++row) {
+                    current[row].first=effects[row];
+                    current[row].second=row;
+                }
                 std::sort(current.begin(), current.end());
                 std::deque<int>& rank=(mode ? rank1 : rank2);
                 for (row=0; row<Nobs; ++row) {
