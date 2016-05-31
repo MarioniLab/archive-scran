@@ -9,7 +9,7 @@ count.sizes <- rnbinom(ncells, mu=100, size=5)
 dummy <- matrix(count.sizes, ncol=ncells, nrow=ngenes, byrow=TRUE)
 
 out <- computeSumFactors(dummy)
-expect_equal(out, count.sizes/exp(mean(log(count.sizes))))
+expect_equal(out, count.sizes/mean(count.sizes))
 
 # Adding some DE genes.
 
@@ -18,14 +18,14 @@ dummy <- matrix(count.sizes, ncol=ncells, nrow=ngenes, byrow=TRUE)
 is.de <- sample(ngenes, 100)
 dummy[is.de,] <- rnbinom(ncells*length(is.de), mu=100, size=1)
 out <- computeSumFactors(dummy)
-expect_equal(out, count.sizes/exp(mean(log(count.sizes))))
+expect_equal(out, count.sizes/mean(count.sizes))
 
 count.sizes <- rnbinom(ncells, mu=100, size=5)
 dummy <- matrix(count.sizes, ncol=ncells, nrow=ngenes, byrow=TRUE)
 is.de <- sample(ngenes, 400)
 dummy[is.de,] <- rnbinom(ncells*length(is.de), mu=100, size=1)
 out <- computeSumFactors(dummy)
-expect_equal(out, count.sizes/exp(mean(log(count.sizes))))
+expect_equal(out, count.sizes/mean(count.sizes))
 
 # Trying it out with other options.
 
@@ -132,7 +132,7 @@ expect_identical(as.character(tail(forced, leftovers)), rep("0", leftovers))
 # Seeing how it interacts with the normalization method.
 
 out <- computeSumFactors(dummy, cluster=known.clusters)
-expect_equal(out, count.sizes/exp(mean(log(count.sizes)))) # Even though there is a majority of DE, each pair of clusters is still okay.
+expect_equal(out, count.sizes/mean(count.sizes)) # Even though there is a majority of DE, each pair of clusters is still okay.
 
 out1 <- computeSumFactors(dummy, cluster=known.clusters, ref=1)
 expect_equal(out, out1)
@@ -175,8 +175,8 @@ rownames(dummy) <- paste0("X", seq_len(ngenes))
 X <- newSCESet(countData=data.frame(dummy))
 isSpike(X) <- is.spike
 out <- computeSpikeFactors(X)
-ref <- log(colSums(dummy[is.spike,]))
-expect_equal(unname(sizeFactors(out)), exp(ref-mean(ref)))
+ref <- colSums(dummy[is.spike,])
+expect_equal(unname(sizeFactors(out)), ref/mean(ref))
 
 # Breaks if you try to feed it silly inputs.
 

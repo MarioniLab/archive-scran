@@ -19,7 +19,7 @@ setMethod("computeSumFactors", "matrix", function(x, sizes=c(20, 40, 60, 80, 100
 #
 # written by Aaron Lun
 # created 23 November 2015
-# last modified 1 December 2015
+# last modified 28 May 2016
 {
     ncells <- ncol(x)
     if (!is.null(clusters)) {
@@ -123,8 +123,7 @@ setMethod("computeSumFactors", "matrix", function(x, sizes=c(20, 40, 60, 80, 100
     final.sf <- final.sf * lib.sizes
     
     is.pos <- final.sf > 0 & !is.na(final.sf)
-    gm <- exp(mean(log(final.sf[is.pos])))
-    final.sf <- final.sf/gm
+    final.sf <- final.sf/mean(final.sf[is.pos])
 
     if (errors) {
         attr(final.sf, "standard.error") <- se.est

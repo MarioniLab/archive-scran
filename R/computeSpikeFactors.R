@@ -1,18 +1,17 @@
 setGeneric("computeSpikeFactors", function(x, ...) { standardGeneric("computeSpikeFactors") })
 
 setMethod("computeSpikeFactors", "SCESet", function(x) 
-# Uses the total of spike-in transcripts as the size factor.
+# Uses the mean-centred total of spike-in transcripts as the size factor.
 #
 # written by Aaron Lun
 # created 17 February 2016
-# last modified 29 February 2016
+# last modified 28 May 2016
 {
     out <- colSums(spikes(x))
     if (any(out < 1e-8)) { 
         warning("zero spike-in counts during spike-in normalization")
     } 
-    out <- log(out)
-    sizeFactors(x) <- exp(out - mean(out, na.rm=TRUE))
+    sizeFactors(x) <- out/mean(out)
     x
 })
 
