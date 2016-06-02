@@ -6,18 +6,22 @@
 \description{Compute size factors based on the coverage of spike-in transcripts.}
 
 \usage{
-\S4method{computeSpikeFactors}{SCESet}(x)
+\S4method{computeSpikeFactors}{SCESet}(x, type=NULL)
 }
 
 \arguments{
 \item{x}{A SCESet object containing rows corresponding spike-in transcripts.}
+\item{type}{A string specifying which spike-in sets to use.}
 }
 
 \details{
 The size factor for each cell is defined as the sum of all spike-in counts in each cell.
 This is equivalent to normalizing to equalize spike-in coverage between cells.
-Spike-in counts are assumed to be stored in rows with \code{fData(x)$is_control_feature} -- see \code{?\link{isSpike<-}} for more details.
-Note that the geometric mean of all size factors is set to unity, for standardization purposes if one were to compare different sets of size factors.
+Size factors are scaled so that the mean of all size factors is unity, for standardization purposes if one were to compare different sets of size factors.
+
+Spike-in counts are assumed to be stored in the rows specified by \code{fData(x)$is_feature_spike} -- see \code{?\link{isSpike<-}} for more details.
+If multiple spike-in sets are available, all of them will be used to compute the size factors, if they were all used to set \code{fData(x)$is_feature_spike}.
+Individual spike-in sets can be used by specifying the name of the spike-in set in \code{type}.
 }
 
 \value{
