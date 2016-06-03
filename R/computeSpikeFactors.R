@@ -39,6 +39,8 @@ setMethod("isSpike", "SCESet", function(x, type=NULL) {
     if (is.null(keep)) {
         if (!is.null(type)) {
             extra <- sprintf(" for type='%s'", type)
+        } else {
+            extra <- ""
         }
         warning(sprintf("'isSpike' is not set%s, returning NULL", extra)) 
     }
@@ -74,6 +76,6 @@ setReplaceMethod("isSpike", signature(x="SCESet", value="character"), function(x
 })
 
 .get_feature_control_names <- function(x) {
-    x@featureControlInfo$names
+    x@featureControlInfo$name
 }
 
