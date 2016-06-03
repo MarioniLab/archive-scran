@@ -194,34 +194,36 @@ ncells <- 200
 ngenes <- 1000
 dummy <- matrix(rnbinom(ncells*ngenes, mu=100, size=5), ncol=ncells, nrow=ngenes, byrow=TRUE)
 rownames(dummy) <- paste0("X", seq_len(ngenes))
-X <- newSCESet(countData=data.frame(dummy))
+colnames(dummy) <- paste0("Y", seq_len(ncells))
+X <- newSCESet(countData=dummy)
 
-ref <- log(colSums(dummy))
-sf <- exp(ref-mean(ref))
+ref <- colSums(dummy)
+sf <- ref/mean(ref)
 sizeFactors(X) <- sf
 out <- normalize(X)
 expect_equivalent(exprs(out), edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=1, log=TRUE))
 
-out <- normalize(X, log=FALSE)
-expect_equivalent(exprs(out), edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=1, log=FALSE))
-out <- normalize(X, prior.count=3)
+expect_equivalent(cpm(out), edgeR::cpm.default(dummy, lib.size=ref, prior.count=1, log=FALSE))
+out <- normalize(X, logExprsOffset=3)
 expect_equivalent(exprs(out), edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=3, log=TRUE))
 
-sf <- log(runif(ncells, 10, 20))
-sf <- exp(ref-mean(ref))
+sf <- runif(ncells, 10, 20)
+sf <- ref/mean(ref)
 sizeFactors(X) <- sf
 out <- normalize(X)
 expect_equivalent(exprs(out), edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=1, log=TRUE))
 
-isSpike(X) <- rbinom(ngenes, 1, 0.7)==0L
-X3 <- normalize(X, separate.spikes=FALSE)
+chosen <- rbinom(ngenes, 1, 0.7)==0L
+X <- calculateQCMetrics(X, feature_controls=list(whee=chosen))
+X3 <- normalize(X)
 expect_equivalent(exprs(out), exprs(X3))
 
+sizeFactors(X, type="whee") <- colSums(counts(X)[chosen,])
 X4 <- normalize(X)
-expect_equivalent(exprs(out)[!isSpike(X),], exprs(X4)[!isSpike(X),])
-X5 <- computeSpikeFactors(X)
-X5 <- normalize(X5)
-expect_equal(exprs(X4)[isSpike(X),], exprs(X5)[isSpike(X),])
+expect_equivalent(exprs(out)[!chosen,], exprs(X4)[!chosen,])
+ref <- sizeFactors(X, type="whee")
+sf <- ref/mean(ref)
+expect_equivalent(exprs(out)[chosen,], edgeR::cpm.default(dummy[chosen,], lib.size=sf*1e6, prior.count=1, log=TRUE))
 
 # Checking out silly inputs.
 
