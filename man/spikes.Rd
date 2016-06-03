@@ -4,7 +4,9 @@
 \alias{isSpike}
 \alias{isSpike,SCESet-method}
 \alias{isSpike<-}
-\alias{isSpike<-,SCESet-method}
+\alias{isSpike<-,SCESet,logical-method}
+\alias{isSpike<-,SCESet,character-method}
+\alias{isSpike<-,SCESet,NULL-method}
 
 \title{Construct the spike-in matrix}
 \description{Identify rows in the SCESet corresponding to spike-in transcripts, and retrieve a matrix of counts or normalized expression values for those rows.}
