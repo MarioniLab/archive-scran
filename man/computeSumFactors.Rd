@@ -9,7 +9,7 @@
 \usage{
 \S4method{computeSumFactors}{matrix}(x, sizes=c(20, 40, 60, 80, 100), 
     clusters=NULL, ref.clust=NULL, positive=FALSE, errors=FALSE)
-\S4method{computeSumFactors}{SCESet}(x, ..., assay="counts", get.spikes=FALSE)
+\S4method{computeSumFactors}{SCESet}(x, ..., assay="counts", get.spikes=FALSE, sf.out=FALSE)
 }
 
 \arguments{
@@ -25,6 +25,7 @@
 \item{...}{Additional arguments to pass to \code{computeSumFactors,matrix-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical scalar specifying whether spike-in transcripts should be used.}
+\item{sf.out}{A logical scalar indicating whether only size factors should be returned.}
 }
 
 \section{Overview of the deconvolution method}{
@@ -80,7 +81,8 @@ Users wanting to perform spike-in normalization should see \code{\link{computeSp
 \value{
 For \code{computeSumFactors,matrix-method}, a numeric vector of size factors for all cells in \code{x} is returned.
 
-For \code{computeSumFactors,SCESet-method}, an object of class \code{x} is returned containing the vector of size factors in \code{sizeFactors(x)}.
+For \code{computeSumFactors,SCESet-method}, an object of class \code{x} is returned containing the vector of size factors in \code{sizeFactors(x)}, if \code{sf.out=FALSE}.
+Otherwise, the vector of size factors is returned directly.
 
 If \code{errors=TRUE}, the standard error of the size factor estimates is stored as the \code{"standard.error"} field of the attributes of the returned vector.
 }

@@ -6,12 +6,13 @@
 \description{Compute size factors based on the coverage of spike-in transcripts.}
 
 \usage{
-\S4method{computeSpikeFactors}{SCESet}(x, type=NULL)
+\S4method{computeSpikeFactors}{SCESet}(x, type=NULL, sf.out=FALSE)
 }
 
 \arguments{
 \item{x}{A SCESet object containing rows corresponding spike-in transcripts.}
 \item{type}{A string specifying which spike-in sets to use.}
+\item{sf.out}{A logical scalar indicating whether only size factors should be returned.}
 }
 
 \details{
@@ -25,7 +26,8 @@ Individual spike-in sets can be used by specifying the name of the spike-in set 
 }
 
 \value{
-An object of class \code{x} is returned, containing a numeric vector of size factors for all cells in \code{sizeFactors(x)}.
+If \code{sf.out=TRUE}, an object of class \code{x} is returned, containing a numeric vector of size factors for all cells in \code{sizeFactors(x)}.
+Otherwise, the size factors are returned directly.
 }
 
 \author{
