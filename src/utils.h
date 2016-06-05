@@ -19,4 +19,21 @@ void Rx_shuffle (Pt start, Pt end) {
     return;
 }
 
+// Check matrix inputs.
+
+struct matrix_info {
+    matrix_info(int, int, bool);
+    const size_t nrow, ncol;
+    const bool is_integer;
+    const int* iptr;
+    const double* dptr;
+};
+
+matrix_info check_matrix(SEXP matrix);
+
+// Special function to check for NA'ness.
+
+bool isNA(int);
+bool isNA(double);
+
 #endif
