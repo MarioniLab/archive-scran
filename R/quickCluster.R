@@ -12,11 +12,7 @@ setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, .
     if (ncol(x) < min.size){
         stop('fewer cells than the mininimum cluster size')
     }
-    if (is.null(subset.row)) { 
-        subset.row <- seq_len(nrow(x))
-    } else {
-        subset.row <- .subset_to_index(subset.row, rownames(x))
-    }
+    subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
 
     distM <- .Call(cxx_compute_cordist, x, subset.row - 1L) # taken into C++ to improve memory efficiency.
     if (is.character(distM)) { stop(distM) }
