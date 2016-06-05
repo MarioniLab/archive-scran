@@ -19,7 +19,15 @@
     return(NULL)
 }
 
-.subset_to_index <- function(subset, names) {
+.subset_to_index <- function(subset, x, byrow=TRUE) {
+    if (byrow) {
+        dimlen <- nrow(x)
+        names <- rownames(x)
+    } else {
+        dimlen <- ncol(x)
+        names <- colnames(x)
+    }
+
     if (is.logical(subset)) { 
         subset <- which(subset)
     } else if (is.character(subset)) {
@@ -27,6 +35,13 @@
         if (any(is.na(subset))) { 
             stop("missing names in subset vector")
         }
+    } else if (is.null(subset)) {
+        subset <- seq_len(dimlen)
+    } else if (is.numeric(subset)) {
+        subset <- as.integer(subset)
+    } else {
+        stop("unrecognized type of subset vector")
     }
-    as.integer(subset)
+
+    return(subset)
 }

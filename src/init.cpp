@@ -11,6 +11,7 @@ static const R_CallMethodDef all_call_entries[] = {
     REGISTER(compute_rho, 4),
     REGISTER(auto_shuffle, 2),
     REGISTER(compute_cordist, 2),
+    REGISTER(subset_and_divide, 3),
     {NULL, NULL, 0}
 };
 
