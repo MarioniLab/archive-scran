@@ -2,7 +2,7 @@
     cur.mat <- assayDataElement(x, assay)
     if (!get.spikes) {
         nokeep <- is.spike(x)
-        if (!is.null(nokeep) && any(!nokeep)) { 
+        if (!is.null(nokeep) && any(nokeep)) { 
             cur.mat <- cur.mat[!nokeep,,drop=FALSE]
         }
     }
@@ -12,7 +12,7 @@
 .spikeSubset <- function(x, get.spikes) {
     if (!get.spikes) {
         nokeep <- is.spike(x)
-        if (!is.null(nokeep) && any(!nokeep)) {
+        if (!is.null(nokeep) && any(nokeep)) {
             return(!nokeep)
         }
     } 
