@@ -118,10 +118,30 @@ dummy[601:900,known.clusters==3L] <- 0
 
 emp.clusters <- quickCluster(dummy)
 expect_true(length(unique(paste0(known.clusters, emp.clusters)))==3L)
+shuffled <- c(1:50, 301:350, 601:650)
+expect_identical(quickCluster(dummy, subset.row=shuffled), emp.clusters)
+
+# Checking out deeper internals.
+
+set.seed(200011)
+mat <- matrix(rpois(10000, lambda=5), nrow=20)
+
+subset.row <- seq_len(nrow(mat))
+distM <- .Call(scran:::cxx_compute_cordist, mat, subset.row - 1L)
+refM <- sqrt(0.5*(1 - cor(mat, method="spearman")))
+expect_equal(distM, refM)
+
+subset.row <- 15:1 # With subsetting
+distM <- .Call(scran:::cxx_compute_cordist, mat, subset.row - 1L)
+refM <- sqrt(0.5*(1 - cor(mat[subset.row,], method="spearman")))
+expect_equal(distM, refM)
+
+suppressWarnings(expect_false(identical(quickCluster(mat), quickCluster(mat[subset.row,])))) # Checking that subsetting gets different results.
+suppressWarnings(expect_identical(quickCluster(mat, subset.row=subset.row), quickCluster(mat[subset.row,]))) # Checking that subset.row works.
 
 # Checking out what happens with silly inputs.
 
-expect_error(quickCluster(dummy[0,]), "NA/NaN/Inf in foreign function call") # because the correlations are undefined.
+expect_error(quickCluster(dummy[0,]), "need at least 2 observations to compute correlations")
 expect_error(quickCluster(dummy[,0]), "fewer cells than the mininimum cluster size")
 
 leftovers <- 100
@@ -202,8 +222,6 @@ sf <- ref/mean(ref)
 sizeFactors(X) <- sf
 out <- normalize(X)
 expect_equivalent(exprs(out), edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=1, log=TRUE))
-
-expect_equivalent(cpm(out), edgeR::cpm.default(dummy, lib.size=ref, prior.count=1, log=FALSE))
 out <- normalize(X, logExprsOffset=3)
 expect_equivalent(exprs(out), edgeR::cpm.default(dummy, lib.size=sf*1e6, prior.count=3, log=TRUE))
 
