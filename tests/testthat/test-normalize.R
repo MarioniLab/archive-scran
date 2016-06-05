@@ -100,6 +100,15 @@ expect_identical(nrow(out$design), as.integer(ncells*(length(sizes)+1L)))
 expect_identical(ncol(out$design), as.integer(ncells))
 expect_equal(out[[2]], rep(c(sizes, sqrt(0.000001)), each=ncells))
 
+# Checking some other internals.
+
+x <- matrix(rpois(20000, lambda=10), nrow=200, ncol=100)
+subset.row <- sample(nrow(x), 50)
+subset.col <- sample(ncol(x), 50)
+cur.out <- .Call(scran:::cxx_subset_and_divide, x, subset.row-1L, subset.col-1L)
+expect_equal(cur.out[[1]], colSums(x[subset.row,subset.col]))
+expect_equal(cur.out[[2]], t(t(x[subset.row,subset.col])/cur.out[[1]]))
+
 ####################################################################################################
 
 # Checking out what happens with clustering.

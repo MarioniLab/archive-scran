@@ -41,10 +41,12 @@ Users are advised to check that the unassigned cells do indeed form their own cl
 If so, it is generally safe to ignore this warning and to treat all unassigned cells as a single cluster.
 Otherwise, it may be necessary to use a custom clustering algorithm.
 
-Users can set \code{subset.row} to specify which rows of \code{x} are to be used to calculate correlations.
-This is equivalent to but more efficient than subsetting \code{x} directly, as it avoids constructing a (potentially large) temporary matrix.
 In \code{quickCluster,SCESet-method}, spike-in transcripts are not used by default as they provide little information on the biological similarities between cells.
 This may not be the case if subpopulations differ by total RNA content, in which case setting \code{get.spikes=TRUE} may provide more discriminative power.
+Users can also set \code{subset.row} to specify which rows of \code{x} are to be used to calculate correlations.
+This is equivalent to but more efficient than subsetting \code{x} directly, as it avoids constructing a (potentially large) temporary matrix.
+Note that if \code{subset.row} is specified, it will overwrite any setting of \code{get.spikes}.
+
 }
 
 \value{

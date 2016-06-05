@@ -7,9 +7,10 @@
 \description{Methods to normalize single-cell RNA-seq data by deconvolving size factors from cell pools.}
 
 \usage{
-\S4method{computeSumFactors}{matrix}(x, sizes=c(20, 40, 60, 80, 100), 
-    clusters=NULL, ref.clust=NULL, positive=FALSE, errors=FALSE)
-\S4method{computeSumFactors}{SCESet}(x, ..., assay="counts", get.spikes=FALSE, sf.out=FALSE)
+\S4method{computeSumFactors}{matrix}(x, sizes=c(20, 40, 60, 80, 100), clusters=NULL, 
+    ref.clust=NULL, positive=FALSE, errors=FALSE, subset.row=NULL)
+\S4method{computeSumFactors}{SCESet}(x, subset.row=NULL, ..., assay="counts", 
+    get.spikes=FALSE, sf.out=FALSE)
 }
 
 \arguments{
@@ -22,6 +23,7 @@
 \item{ref.clust}{A level of \code{clusters} to be used as the reference cluster for inter-cluster normalization.}
 \item{positive}{A logical scalar indicating whether linear inverse models should be used to enforce positive estimates.}
 \item{errors}{A logical scalar indicating whether the standard error should be returned.}
+\item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to \code{computeSumFactors,matrix-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical scalar specifying whether spike-in transcripts should be used.}
@@ -73,9 +75,13 @@ This ensures that non-negative values for the size factors will always be obtain
 Note that some cells may still have size factors of zero and should be removed prior to downstream analysis.
 Such occurrences are unavoidable -- rather, the aim is to prevent negative values from affecting the estimates for all other cells.
 
-By default, \code{get.spikes=FALSE} which means that spike-in transcripts are not included in the set of genes used for deconvolution.
+By default, \code{get.spikes=FALSE} in \code{quickCluster,SCESet-method} which means that spike-in transcripts are not included in the set of genes used for deconvolution.
 This is because they can behave differently from the endogenous genes. 
 Users wanting to perform spike-in normalization should see \code{\link{computeSpikeFactors}} instead.
+
+Users can also set \code{subset.row} to specify which rows of \code{x} are to be used to calculate correlations.
+This is equivalent to but more efficient than subsetting \code{x} directly, as it avoids constructing a (potentially large) temporary matrix.
+If this is specified, it will overwrite any setting of \code{get.spikes}.
 }
 
 \value{
