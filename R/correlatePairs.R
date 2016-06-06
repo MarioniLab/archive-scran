@@ -13,7 +13,8 @@ correlateNull <- function(ncells, iters=1e6, design=NULL, simulate=FALSE)
         groupings <- .isOneWay(design)
         if (is.null(groupings) || simulate) { 
             # Using simulated residual effects if the design matrix is not a one-way layout (or if forced by simulate=TRUE).
-            out <- .Call(cxx_get_null_rho_design, design, ncol(design), nrow(design), as.integer(iters))
+            QR <- .checkDesign(design)
+            out <- .Call(cxx_get_null_rho_design, QR$qr, QR$qraux, as.integer(iters))
             if (is.character(out)) { 
                 stop(out)
             }

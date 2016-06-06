@@ -50,57 +50,26 @@ SEXP get_null_rho (SEXP cells, SEXP iters) try {
 }
 
 /*** Null distribution estimation with a design matrix. ***/
-SEXP get_null_rho_design(SEXP design, SEXP coef, SEXP obs, SEXP iters) try {
-    if (!isInteger(coef) || LENGTH(coef)!=1)  {
-        throw std::runtime_error("number of coef should be an integer scalar"); 
+SEXP get_null_rho_design(SEXP qr, SEXP qraux, SEXP iters) try {
+    matrix_info QR=check_matrix(qr);
+    if (QR.is_integer) {
+        throw std::runtime_error("Q matrix must be double-precision");
     }
-    const int Ncoef=asInteger(coef);
-    if (!isInteger(obs) || LENGTH(obs)!=1)  {
-        throw std::runtime_error("number of obs should be an integer scalar"); 
+    if (!isReal(qraux) || size_t(LENGTH(qraux))!=QR.ncol) {
+        throw std::runtime_error("QR auxiliary vector should be double-precision and of length 'ncol(Q)'");
     }
-    const int Nobs=asInteger(obs);
-    if (!isInteger(iters) || LENGTH(iters)!=1)  {
-        throw std::runtime_error("number of iterations should be an integer scalar"); 
+    const double* qrxptr=REAL(qraux);
+    if (!isInteger(iters) || LENGTH(iters)!=1) {
+        throw std::runtime_error("number of iterations should be an integer scalar");
     }
     const int Niters=asInteger(iters);
     if (Niters <= 0) { throw std::runtime_error("number of iterations should be positive"); }
-
-    // Setting up the Q matrix (in compressed form + auxiliaries).
-    if (!isReal(design) || LENGTH(design)!=Nobs*Ncoef) {
-        throw std::runtime_error("design matrix dimensions are not consistent with number of observations");
-    }
-    const double* xptr=REAL(design);
-    double* qptr=(double*)R_alloc(LENGTH(design), sizeof(double));
-    double* qxptr=(double*)R_alloc(Ncoef, sizeof(double)); /* number of elementary reflectors is the minimum of Nobs, Ncoef */
-    {
-        // Getting the QR decomposition after a workspace query.
-        for (int i=0; i<LENGTH(design); ++i) { qptr[i]=xptr[i]; }
-        int info, lwork=-1;
-        double tmpwork=0;
-        F77_CALL(dgeqrf)(&Nobs, &Ncoef, qptr, &Nobs, qxptr, &tmpwork, &lwork, &info);
-
-        lwork=int(tmpwork + 0.5);
-        double* work=(double*)R_alloc(lwork, sizeof(double));
-        F77_CALL(dgeqrf)(&Nobs, &Ncoef, qptr, &Nobs, qxptr, work, &lwork, &info);
-    }
-
-    // Workspace query for 'dormqr'.
-    double* effects=(double*)R_alloc(Nobs, sizeof(double));
-    const char side='L', trans='N';
-    const int nCols=1;
-    int info, lwork=-1;
-    double* work;
-    {
-        double tmpwork=0;
-        F77_CALL(dormqr)(&side, &trans, &Nobs, &nCols, &Ncoef,
-                qptr, &Nobs, qxptr, effects, &Nobs,
-                &tmpwork, &lwork, &info); 
-        if (info) { 
-            throw std::runtime_error("workspace query failed for 'dormqr'");
-        }
-        lwork=int(tmpwork+0.5);
-        work=(double*)R_alloc(lwork, sizeof(double));
-    }
+    
+    // Setting up to multiply by the Q matrix.
+    run_dormqr multQ(QR.nrow, QR.ncol, QR.dptr, qrxptr, 'N');
+    const int& Nobs=QR.nrow;
+    const int& Ncoef=QR.ncol;
+    double* effects=multQ.rhs;
 
     SEXP output=PROTECT(allocVector(REALSXP, Niters));
     try {
@@ -127,12 +96,7 @@ SEXP get_null_rho_design(SEXP design, SEXP coef, SEXP obs, SEXP iters) try {
                 }
 
                 // Computing the residuals.
-                F77_CALL(dormqr)(&side, &trans, &Nobs, &nCols, &Ncoef,
-                        qptr, &Nobs, qxptr, effects, &Nobs,
-                        work, &lwork, &info); 
-                if (info) { 
-                    throw std::runtime_error("residual calculations failed for 'dormqr'");
-                }
+                multQ.run();
 
                 // Sorting.
                 std::deque<std::pair<double, int> >& current=(mode ? collected1 : collected2);

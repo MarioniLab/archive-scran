@@ -7,7 +7,7 @@ static const R_CallMethodDef all_call_entries[] = {
     REGISTER(forge_system, 6),
     REGISTER(shuffle_scores, 8),
     REGISTER(get_null_rho, 2),
-    REGISTER(get_null_rho_design, 4),
+    REGISTER(get_null_rho_design, 3),
     REGISTER(compute_rho, 4),
     REGISTER(auto_shuffle, 2),
     REGISTER(compute_cordist, 2),

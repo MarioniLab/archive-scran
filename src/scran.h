@@ -21,7 +21,7 @@ SEXP shuffle_scores (SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 SEXP get_null_rho (SEXP, SEXP);
 
-SEXP get_null_rho_design (SEXP, SEXP, SEXP, SEXP);
+SEXP get_null_rho_design (SEXP, SEXP, SEXP);
 
 SEXP compute_rho(SEXP, SEXP, SEXP, SEXP);
 
