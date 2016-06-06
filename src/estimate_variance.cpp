@@ -3,7 +3,7 @@
 SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) try {
     matrix_info QR=check_matrix(qr);
     if (QR.is_integer) { 
-        throw std::runtime_error("QR matrix should be double-precision");
+        throw std::runtime_error("Q matrix should be double-precision");
     }
     matrix_info expr_vals=check_matrix(exprs);
     if (expr_vals.is_integer){ 
@@ -13,7 +13,7 @@ SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) try {
         throw std::runtime_error("'ncol(exprs)' does not equal 'nrow(QR)'");
     }
     if (!isReal(qraux) || size_t(LENGTH(qraux))!=QR.ncol) {
-        throw std::runtime_error("QR auxiliary vector should be double-precision and of length 'ncol(QR)'");
+        throw std::runtime_error("QR auxiliary vector should be double-precision and of length 'ncol(Q)'");
     }
     const double* qrxptr=REAL(qraux);
     subset_values subout=check_subset_vector(subset, expr_vals.nrow);

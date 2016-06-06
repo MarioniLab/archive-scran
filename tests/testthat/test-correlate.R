@@ -25,14 +25,14 @@ expect_equal(ref, as.double(out))
 # Checking with design matrix.
 
 design <- model.matrix(~factor(rep(c(1,2), each=10)))
-Q <- qr.Q(qr(design), complete=TRUE)
+QR <- qr(design)
 df <- nrow(design)-ncol(design)
 
 set.seed(100)
 collected <- list()
 for (x in seq_len(1e3)) {
-    first.half <- Q %*% c(0,0, rnorm(df))
-    second.half <- Q %*% c(0, 0, rnorm(df)) 
+    first.half <- qr.qy(QR, c(0,0, rnorm(df)))
+    second.half <- qr.qy(QR, c(0, 0, rnorm(df)))
     collected[[x]] <- cor(first.half, second.half, method="spearman")
 }
 out1 <- sort(unlist(collected))
@@ -46,14 +46,14 @@ expect_equal(attr(out2, "simulate"), TRUE)
 # A more complicated design.
 
 design <- model.matrix(~seq_len(10))
-Q <- qr.Q(qr(design), complete=TRUE)
+QR <- qr(design, LAPACK=TRUE) # Q2 is not unique, and varies between LAPACK and LINPACK.
 df <- nrow(design)-ncol(design)
 
 set.seed(100)
 collected <- list()
 for (x in seq_len(1e3)) {
-    first.half <- Q %*% c(0,0, rnorm(df))
-    second.half <- Q %*% c(0, 0, rnorm(df)) 
+    first.half <- qr.qy(QR, c(0, 0, rnorm(df)))
+    second.half <- qr.qy(QR, c(0, 0, rnorm(df))) 
     collected[[x]] <- cor(first.half, second.half, method="spearman")
 }
 out1 <- sort(unlist(collected))
