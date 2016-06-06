@@ -12,6 +12,7 @@ static const R_CallMethodDef all_call_entries[] = {
     REGISTER(auto_shuffle, 2),
     REGISTER(compute_cordist, 2),
     REGISTER(subset_and_divide, 3),
+    REGISTER(estimate_variance, 4),
     {NULL, NULL, 0}
 };
 

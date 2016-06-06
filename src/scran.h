@@ -31,6 +31,8 @@ SEXP compute_cordist(SEXP, SEXP);
 
 SEXP subset_and_divide(SEXP, SEXP, SEXP); 
 
+SEXP estimate_variance(SEXP, SEXP, SEXP, SEXP);
+
 }
 
 #include "utils.h"

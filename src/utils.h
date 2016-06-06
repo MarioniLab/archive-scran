@@ -31,9 +31,27 @@ struct matrix_info {
 
 matrix_info check_matrix(SEXP matrix);
 
+// Check subset vector.
+
+typedef std::pair<const int, const int*> subset_values;
+subset_values check_subset_vector(SEXP, int);
+
 // Special function to check for NA'ness.
 
 bool isNA(int);
 bool isNA(double);
+
+// Class to run Qy or QtY multiplications.
+
+struct run_dormqr {
+    run_dormqr(const int, const int, const double*, const double*, const char);
+    void run();
+    const double* qr, *qrx;
+    const int nobs, ncoef, ncol;
+    const char side, trans;           
+    int info, lwork;
+    double* work;
+    double* rhs;
+};
 
 #endif

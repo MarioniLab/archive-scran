@@ -3,21 +3,6 @@
 /* Various utility functions that don't really warrant their own page, 
  * but are helpful for avoiding construction of large temporaries. */
 
-typedef std::pair<const int, const int*> subset_values;
-subset_values check_subset_vector(SEXP subset, int maxdim) {
-    if (!isInteger(subset)) { 
-        throw std::runtime_error("subset vector must be an integer vector");
-    }
-    const int slen=LENGTH(subset);
-    const int* sptr=INTEGER(subset);
-    for (int s=0; s<slen; ++s) {
-        if (sptr[s] < 0 || sptr[s] >= maxdim) {
-            throw std::runtime_error("subset indices out of range");
-        }
-    }
-    return std::make_pair(slen, sptr);
-}
-
 /* A function to (a) subset by row, (b) subset by column, and (c) divide through by the library sizes. 
  * The output is equivalent to t(t(MAT[row_subset,col_subset])/lib.sizes) where lib.sizes itself is
  * computed as colSums(MAT[row_subset,col_subset]).

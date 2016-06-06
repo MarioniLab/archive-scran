@@ -47,3 +47,17 @@ bool isNA(double x) {
     return ISNA(x);
 }
 
+subset_values check_subset_vector(SEXP subset, int maxdim) {
+    if (!isInteger(subset)) { 
+        throw std::runtime_error("subset vector must be an integer vector");
+    }
+    const int slen=LENGTH(subset);
+    const int* sptr=INTEGER(subset);
+    for (int s=0; s<slen; ++s) {
+        if (sptr[s] < 0 || sptr[s] >= maxdim) {
+            throw std::runtime_error("subset indices out of range");
+        }
+    }
+    return std::make_pair(slen, sptr);
+}
+
