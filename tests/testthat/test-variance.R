@@ -150,6 +150,11 @@ expect_equivalent(out$bio, out$total-out$tech)
 expect_true(all(abs(out.all$tech - fit$trend(out.all$mean)) < 1e-8 | is.na(out.all$tech)))
 expect_equivalent(out.all$bio, out.all$total-out.all$tech)
 
+shuffled <- c(500:1, 501:1000)
+out.ref <- decomposeVar(X[shuffled,], fit)
+out2 <- decomposeVar(X, fit, subset.row=shuffled)
+expect_identical(out.ref, out2) # Checking that subset.row works. 
+
 # Testing with a modified design matrix.
 
 out2 <- decomposeVar(X, fit, design=NULL) # defaults to all-ones.
