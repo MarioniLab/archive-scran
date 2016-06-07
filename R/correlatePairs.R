@@ -1,4 +1,4 @@
-correlateNull <- function(ncells, iters=1e6, design=NULL, simulate=FALSE) 
+correlateNull <- function(ncells, iters=1e6, design=NULL, residuals=FALSE) 
 # This builds a null distribution for the modified Spearman's rho.
 #
 # written by Aaron Lun
@@ -11,8 +11,8 @@ correlateNull <- function(ncells, iters=1e6, design=NULL, simulate=FALSE)
         }
 
         groupings <- .isOneWay(design)
-        if (is.null(groupings) || simulate) { 
-            # Using simulated residual effects if the design matrix is not a one-way layout (or if forced by simulate=TRUE).
+        if (is.null(groupings) || residuals) { 
+            # Using residualsd residual effects if the design matrix is not a one-way layout (or if forced by residuals=TRUE).
             QR <- .checkDesign(design)
             out <- .Call(cxx_get_null_rho_design, QR$qr, QR$qraux, as.integer(iters))
             if (is.character(out)) { 
@@ -31,7 +31,7 @@ correlateNull <- function(ncells, iters=1e6, design=NULL, simulate=FALSE)
             }
             out <- out/nrow(design)
         }
-        attrib <- list(design=design, simulate=simulate)
+        attrib <- list(design=design, residuals=residuals)
 
     } else {
         out <- .Call(cxx_get_null_rho, as.integer(ncells), as.integer(iters))
@@ -63,7 +63,7 @@ correlateNull <- function(ncells, iters=1e6, design=NULL, simulate=FALSE)
 
 setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
-setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), use.names=TRUE, tol=1e-8, simulate=FALSE, subset.row=NULL)
+setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), use.names=TRUE, tol=1e-8, residuals=FALSE, subset.row=NULL)
 # This calculates a (modified) Spearman's rho for each pair of genes.
 #
 # written by Aaron Lun
@@ -72,13 +72,14 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
 {
     compute.residuals <- FALSE
     if (!is.null(design)) { 
+        QR <- .checkDesign(design)
         groupings <- .isOneWay(design)
-        if (is.null(groupings) || simulate) { 
+        if (is.null(groupings) || residuals) { 
             compute.residuals <- TRUE
             groupings <- list(seq_len(ncol(x)))
         } 
         if (is.null(null.dist)) { 
-            null.dist <- correlateNull(design=design, simulate=simulate)
+            null.dist <- correlateNull(design=design, residuals=residuals)
         }
     } else {
         groupings <- list(seq_len(ncol(x)))
@@ -92,8 +93,8 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
         stop("'design' is not the same as that used to generate 'null.dist'")
     }
     if (!is.null(design)) { 
-        if (!identical(simulate, attr(null.dist, "simulate"))) {
-            stop("'simulate' is not the same as that used to generate 'null.dist'")
+        if (!identical(residuals, attr(null.dist, "residuals"))) {
+            stop("'residuals' is not the same as that used to generate 'null.dist'")
         }
     }
     null.dist <- as.double(null.dist)
@@ -116,9 +117,19 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
     all.rho <- 0L
     for (subset.col in groupings) { 
 
+        # If we're computing residuals, we intervene here and replace values with the residuals.
+        # Also need to replace the subset vector, as it'll already be subsetted.
+        if (compute.residuals) {
+            x <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L)
+            if (is.character(x)) { stop(x) }
+            current.rows <- seq_len(nrow(x)) - 1L
+        } else {
+            current.rows <- subset.row - 1L
+        }
+
         # Ranking genes, in an error-tolerant way. This avoids getting untied rankings for zeroes
         # (which should have the same value +/- precision, as the prior count scaling cancels out).
-        ranked.exprs <- .Call(cxx_rank_subset, x, subset.row-1L, subset.col-1L, tol)
+        ranked.exprs <- .Call(cxx_rank_subset, x, current.rows, subset.col - 1L, tol)
         if (is.character(ranked.exprs)) {
             stop(ranked.exprs)
         }
@@ -140,7 +151,7 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
         current.rho <- unlist(current.rho)
 
         # Adding a weighted value to the final.
-        all.rho <- all.rho + current.rho * (ncells/ncol(x))
+        all.rho <- all.rho + current.rho * (length(subset.col)/ncol(x))
     }
 
     # Estimating the p-values (need to shift values to break ties conservatively by increasing the p-value).
@@ -190,7 +201,7 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
 
 setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) {
-        subset.row <- .subsetSpikes(x, get.spikes)
+        subset.row <- .spikeSubset(x, get.spikes)
     }
     correlatePairs(assayDataElement(x, assay), subset.row=subset.row, ...)             
 })

@@ -22,12 +22,19 @@ run_dormqr::run_dormqr(const int no, const int nc, const double* qrptr, const do
     return;
 } 
        
-void run_dormqr::run() {
+void run_dormqr::run(double* stuff) {
     F77_CALL(dormqr)(&side, &trans, &nobs, &ncol, &ncoef,
-            qr, &nobs, qrx, rhs, &nobs,
+            qr, &nobs, qrx, stuff, &nobs,
             work, &lwork, &info); 
     if (info) { 
         throw std::runtime_error("residual calculations failed for 'dormqr'");
     }
     return;
 }
+
+void run_dormqr::run() {
+    run(rhs);
+    return;
+}
+
+

@@ -46,6 +46,7 @@ bool isNA(double);
 struct run_dormqr {
     run_dormqr(const int, const int, const double*, const double*, const char);
     void run();
+    void run(double*);
     const double* qr, *qrx;
     const int nobs, ncoef, ncol;
     const char side, trans;           
