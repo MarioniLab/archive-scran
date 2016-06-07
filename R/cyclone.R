@@ -29,9 +29,9 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
     }
 
     if (verbose) { 
-        cat(sprintf("Number of G1 pairs: %d\n", nrow(pairs$G1)))
-        cat(sprintf("Number of S pairs: %d\n", nrow(pairs$S)))
-        cat(sprintf("Number of G2M pairs: %d\n", nrow(pairs$G2)))
+        cat(sprintf("Number of G1 pairs: %d\n", length(pairs$G1[[1]])))
+        cat(sprintf("Number of S pairs: %d\n", length(pairs$S[[1]])))
+        cat(sprintf("Number of G2M pairs: %d\n", length(pairs$G2[[1]])))
     }
   
     # Run the allocation algorithm
