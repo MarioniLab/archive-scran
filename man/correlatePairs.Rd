@@ -11,9 +11,9 @@
 correlateNull(ncells, iters=1e6, design=NULL, simulate=FALSE) 
 
 \S4method{correlatePairs}{matrix}(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), 
-    use.names=TRUE, tol=1e-8, simulate=FALSE)
+    use.names=TRUE, tol=1e-8, simulate=FALSE, subset.row=NULL)
 
-\S4method{correlatePairs}{SCESet}(x, ..., assay="exprs", get.spikes=FALSE)
+\S4method{correlatePairs}{SCESet}(x, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE)
 }
 
 \arguments{
@@ -32,6 +32,7 @@ correlateNull(ncells, iters=1e6, design=NULL, simulate=FALSE)
     Alternatively, a character vector containing the names to use.
 }
 \item{tol}{A numeric scalar indicating the maximum difference under which two expression values are tied.}
+\item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to \code{correlatePairs,matrix-method}.}
 \item{assay}{A string specifying which assay values to use.}
 \item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
@@ -61,6 +62,7 @@ Otherwise, it will be automatically constructed via \code{correlateNull} with \c
 For \code{correlatePairs,SCESet-method}, correlations should be computed for normalized expression values in the specified \code{assay}. 
 By default, rows corresponding to spike-in transcripts are removed with \code{get.spikes=FALSE}. 
 This avoids picking up strong technical correlations between pairs of spike-in transcripts.
+Users can also set \code{subset.row} to specify which genes to test, which will override any setting of \code{get.spikes}.
 }
 
 \value{
@@ -71,7 +73,7 @@ For \code{correlatePairs}, a dataframe is returned with one row per gene pair an
 \describe{
 \item{\code{gene1, gene2}:}{
     Character or integer fields specifying the genes in the pair.
-    If \code{use.names=FALSE}, integer row indices are returned, otherwise gene names are returned.
+    If \code{use.names=FALSE}, integers are returned representing row indices of \code{x}, otherwise gene names are returned.
 }
 \item{\code{rho}:}{A numeric field containing the approximate Spearman's rho.}
 \item{\code{p.value, FDR}:}{Numeric fields containing the permutation p-value and its BH-corrected equivalent.}

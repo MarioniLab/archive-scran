@@ -189,7 +189,7 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
 }
 
 setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
-    if (!get.spikes) {
+    if (is.null(subset.row)) {
         subset.row <- .subsetSpikes(x, get.spikes)
     }
     correlatePairs(assayDataElement(x, assay), subset.row=subset.row, ...)             
