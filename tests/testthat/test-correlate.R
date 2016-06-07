@@ -92,12 +92,27 @@ expect_error(correlateNull(ncells=100, design=design), "cannot specify both 'nce
 ####################################################################################################
 # Checking what happens for the error-tolerant ranking.
 
+.tolerant_rank <- function(y, tol=1e-6) {
+    if (!length(y)) { return(integer(0)) }
+    o <- order(y)
+    rle.out <- rle(y[o])
+    okay <- c(TRUE, diff(rle.out$values) > tol)
+    to.use <- cumsum(okay)
+    rle.out$values <- rle.out$values[okay][to.use]
+    y[o] <- inverse.rle(rle.out)
+    rank(y, ties.method="random")
+}
+
 whee <- runif(100, -1e-16, 1e-16)
 set.seed(100)
 r <- scran:::.tolerant_rank(whee)
 set.seed(100)
 r2 <- rank(integer(100), ties.method="random")
+set.seed(100)
+r3 <- .Call(scran:::cxx_rank_subset, rbind(whee), 0L, seq_along(whee)-1L, 1e-6)
+
 expect_identical(r, r2)
+expect_identical(r, r3)
 
 set.seed(200)
 extra <- sample(10, 100, replace=TRUE)
@@ -105,7 +120,14 @@ set.seed(100)
 r <- scran:::.tolerant_rank(whee + extra)
 set.seed(100)
 r2 <- rank(extra, ties.method="random")
+set.seed(100)
+r3 <- .Call(scran:::cxx_rank_subset, rbind(whee + extra), 0L, seq_along(extra)-1L, 1e-6)
+set.seed(100)
+r4 <- .Call(scran:::cxx_rank_subset, rbind(extra), 0L, seq_along(extra)-1L, 1e-6)
+
 expect_identical(r, r2)
+expect_identical(r, r3)
+expect_identical(r, r4)
 
 ####################################################################################################
 

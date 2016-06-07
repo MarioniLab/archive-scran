@@ -118,7 +118,7 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
 
         # Ranking genes, in an error-tolerant way. This avoids getting untied rankings for zeroes
         # (which should have the same value +/- precision, as the prior count scaling cancels out).
-        ranked.exprs <- .Call(cxx_rank_subset, x, subset.row, subset.col, tol)
+        ranked.exprs <- .Call(cxx_rank_subset, x, subset.row-1L, subset.col-1L, tol)
         if (is.character(ranked.exprs)) {
             stop(ranked.exprs)
         }
@@ -186,17 +186,6 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
 .get_correlation <- function(core, work.start, work.end, gene1, gene2, ranked.exprs) {
     to.use <- work.start[core]:work.end[core]
     .Call(cxx_compute_rho, gene1[to.use], gene2[to.use], ranked.exprs)
-}
-
-.tolerant_rank <- function(y, tol=1e-6) {
-    if (!length(y)) { return(integer(0)) }
-    o <- order(y)                          
-    rle.out <- rle(y[o])
-    okay <- c(TRUE, diff(rle.out$values) > tol)
-    to.use <- cumsum(okay)
-    rle.out$values <- rle.out$values[okay][to.use]
-    y[o] <- inverse.rle(rle.out)
-    rank(y, ties.method="random")
 }
 
 setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
