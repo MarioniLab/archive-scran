@@ -8,10 +8,10 @@
 \description{Identify pairs of genes that are significantly correlated based on a modified Spearman's rho.}
 
 \usage{
-correlateNull(ncells, iters=1e6, design=NULL, simulate=FALSE) 
+correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE) 
 
 \S4method{correlatePairs}{matrix}(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), 
-    use.names=TRUE, tol=1e-8, simulate=FALSE, subset.row=NULL)
+    use.names=TRUE, tol=1e-8, residuals=FALSE, subset.row=NULL)
 
 \S4method{correlatePairs}{SCESet}(x, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE)
 }
@@ -20,7 +20,7 @@ correlateNull(ncells, iters=1e6, design=NULL, simulate=FALSE)
 \item{ncells}{An integer scalar indicating the number of cells in the data set.}
 \item{iters}{An integer scalar specifying the number of values in the null distribution.}
 \item{design}{A numeric design matrix describing fixed effects to factorize out.}
-\item{simulate}{A logical scalar indicating whether residuals should be simulated when \code{design!=NULL}.}
+\item{residuals}{A logical scalar indicating whether correlations should be calculated from residuals when \code{design!=NULL}.}
 \item{x}{
     A numeric matrix of normalized expression values, where rows are genes and columns are cells.
     Alternatively, a SCESet object containing such a matrix.
@@ -67,7 +67,7 @@ Users can also set \code{subset.row} to specify which genes to test, which will 
 
 \value{
 For \code{correlateNull}, a numeric vector of length \code{iters} is returned containing the sorted correlations under the null hypothesis of no correlations.
-Arguments to \code{design} and \code{simulate} are stored in the attributes.
+Arguments to \code{design} and \code{residuals} are stored in the attributes.
 
 For \code{correlatePairs}, a dataframe is returned with one row per gene pair and the following fields:
 \describe{
@@ -95,7 +95,7 @@ For designs containing multiple factors or covariates, a linear model is fitted 
 The correlation between a pair of genes is then computed from the residuals of the fitted model.
 Similarly, to obtain a null distribution of rho values, normally-distributed random errors are simulated in a fitted model based on \code{design};
     the corresponding residuals are generated from these errors; and the correlation between sets of residuals is computed at each iteration.
-This approach can also be used for one-way layouts by setting \code{simulate=TRUE}.
+This approach can also be used for one-way layouts by setting \code{residuals=TRUE}.
 
 % Don't use residual effects directly, as they're not robust to outliers.
 
