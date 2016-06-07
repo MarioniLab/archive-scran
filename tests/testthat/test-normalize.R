@@ -75,7 +75,7 @@ subsphere <- sample(ncells)
 sphere <- c(subsphere, subsphere)
 sizes <- c(20, 51)
 use.ave.cell <- rep(1, ngenes)
-out <- scran:::.create_linear_system(as.integer(ngenes), as.integer(ncells), cur.exprs, sphere, as.integer(sizes), use.ave.cell)
+out <- scran:::.create_linear_system(cur.exprs, sphere, as.integer(sizes), use.ave.cell)
 
 out$design <- as.matrix(out$design)
 size <- sizes[1]
