@@ -38,10 +38,10 @@ for (x in seq_len(1e3)) {
 out1 <- sort(unlist(collected))
 
 set.seed(100)
-out2 <- correlateNull(design=design, iters=1e3, simulate=TRUE)
+out2 <- correlateNull(design=design, iters=1e3, residuals=TRUE)
 expect_equal(out1, as.double(out2))
 expect_equal(attr(out2, "design"), design)
-expect_equal(attr(out2, "simulate"), TRUE)
+expect_equal(attr(out2, "residuals"), TRUE)
 
 # A more complicated design.
 
@@ -59,10 +59,10 @@ for (x in seq_len(1e3)) {
 out1 <- sort(unlist(collected))
 
 set.seed(100)
-out2 <- correlateNull(design=design, iters=1e3, simulate=TRUE)
+out2 <- correlateNull(design=design, iters=1e3, residuals=TRUE)
 expect_equal(out1, as.double(out2))
 expect_equal(attr(out2, "design"), design)
-expect_equal(attr(out2, "simulate"), TRUE)
+expect_equal(attr(out2, "residuals"), TRUE)
 
 # A one-way layout without simulating the residuals.
 
@@ -81,7 +81,7 @@ set.seed(100)
 out2 <- correlateNull(design=design, iters=1e3)
 expect_equal(out1, as.double(out2))
 expect_equal(attr(out2, "design"), design)
-expect_equal(attr(out2, "simulate"), FALSE)
+expect_equal(attr(out2, "residuals"), FALSE)
 
 # Checking nonsense inputs.
 
@@ -105,19 +105,19 @@ expect_error(correlateNull(ncells=100, design=design), "cannot specify both 'nce
 
 whee <- runif(100, -1e-16, 1e-16)
 set.seed(100)
-r <- scran:::.tolerant_rank(whee)
+r <- .tolerant_rank(whee)
 set.seed(100)
 r2 <- rank(integer(100), ties.method="random")
 set.seed(100)
 r3 <- .Call(scran:::cxx_rank_subset, rbind(whee), 0L, seq_along(whee)-1L, 1e-6)
 
 expect_identical(r, r2)
-expect_identical(r, r3)
+expect_identical(r, r3[,1])
 
 set.seed(200)
 extra <- sample(10, 100, replace=TRUE)
 set.seed(100)
-r <- scran:::.tolerant_rank(whee + extra)
+r <- .tolerant_rank(whee + extra)
 set.seed(100)
 r2 <- rank(extra, ties.method="random")
 set.seed(100)
@@ -126,13 +126,13 @@ set.seed(100)
 r4 <- .Call(scran:::cxx_rank_subset, rbind(extra), 0L, seq_along(extra)-1L, 1e-6)
 
 expect_identical(r, r2)
-expect_identical(r, r3)
-expect_identical(r, r4)
+expect_identical(r, r3[,1])
+expect_identical(r, r4[,1])
 
 ####################################################################################################
 
 checkCorrelations <- function(out, exprs, null.dist) {
-    ranked.exprs <- apply(exprs, 1, FUN=scran:::.tolerant_rank)
+    ranked.exprs <- apply(exprs, 1, FUN=.tolerant_rank)
     colnames(ranked.exprs) <- rownames(exprs)
     assembled.pval <- assembled.rho <- numeric(nrow(out))
     for (p in seq_along(assembled.rho)) { 
@@ -195,9 +195,9 @@ grouping <- factor(rep(c(1,2), each=50))
 design <- model.matrix(~grouping)
 
 set.seed(200)
-nulls <- correlateNull(design=design, iter=1e3, simulate=TRUE)
+nulls <- correlateNull(design=design, iter=1e3, residuals=TRUE)
 set.seed(100) # Need because of random ranking.
-out <- correlatePairs(X, design=design, null=nulls, simulate=TRUE)
+out <- correlatePairs(X, design=design, null=nulls, residuals=TRUE)
 fit <- lm.fit(x=design, y=t(X))
 exprs <- t(fit$residual)
 set.seed(100)
@@ -229,6 +229,14 @@ for (x in seq_along(collected.rho)) {
 }
 collected.p <- 2*(collected.p + 1)/(length(nulls)+1)
 expect_equal(out$p.value, collected.p)
+
+QR <- qr(design, LAPACK=TRUE)
+ref.resid <- t(lm.fit(y=t(X), x=design)$residuals)
+out.resid <- .Call(scran:::cxx_get_residuals, X, QR$qr, QR$qraux, seq_len(nrow(X))-1L) # Deeper test of the residual calculator.
+expect_equal(unname(ref.resid), out.resid)
+subset.chosen <- sample(nrow(X), 10)
+out.resid <- .Call(scran:::cxx_get_residuals, X, QR$qr, QR$qraux, subset.chosen-1L) 
+expect_equal(unname(ref.resid[subset.chosen,]), out.resid)
 
 # Checking that it works with a SCESet object.
 
@@ -270,7 +278,7 @@ expect_equal(out$p.value, rep(1, nrow(out)))
 # null <- correlateNull(ncol(y))
 # out <- correlatePairs(y, design=design, null=null)
 # plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out))) # wrong
-# null <- correlateNull(design=design, simulate=TRUE)
+# null <- correlateNull(design=design, residuals=TRUE)
 # out <- correlatePairs(y, design=design, null=null)
 # plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out))) # right
 
