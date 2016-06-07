@@ -68,11 +68,10 @@ setMethod("computeSumFactors", "matrix", function(x, sizes=c(20, 40, 60, 80, 100
         keep <- ave.cell > .Machine$double.xmin
         use.ave.cell <- ave.cell[keep]
         cur.exprs <- cur.exprs[keep,,drop=FALSE]
-        ngenes <- sum(keep)
 
         # Using our summation approach.
         sphere <- .generateSphere(cur.libs) 
-        new.sys <- .create_linear_system(ngenes, cur.cells, cur.exprs, sphere, sizes, use.ave.cell) 
+        new.sys <- .create_linear_system(cur.exprs, sphere, sizes, use.ave.cell) 
         design <- new.sys$design
         output <- new.sys$output
 
@@ -143,13 +142,14 @@ setMethod("computeSumFactors", "SCESet", function(x, subset.row=NULL, ..., assay
     x
 })
 
-.create_linear_system <- function(ngenes, cur.cells, cur.exprs, sphere, sizes, use.ave.cell) {
+.create_linear_system <- function(cur.exprs, sphere, sizes, use.ave.cell) {
     sphere <- sphere - 1L # zero-indexing in C++.
     row.dex <- col.dex <- output <- list()
     last.row <- 0L
+    cur.cells <- ncol(cur.exprs)
 
     for (si in seq_along(sizes)) { 
-        out <- .Call(cxx_forge_system, ngenes, cur.cells, cur.exprs, sphere, sizes[si], use.ave.cell)
+        out <- .Call(cxx_forge_system, cur.exprs, sphere, sizes[si], use.ave.cell)
         if (is.character(out)) { stop(out) }
         row.dex[[si]] <- out[[1]] + last.row
         col.dex[[si]] <- out[[2]]
@@ -158,7 +158,7 @@ setMethod("computeSumFactors", "SCESet", function(x, subset.row=NULL, ..., assay
     }
     
     # Adding extra equations to guarantee solvability (downweighted).
-    out <- .Call(cxx_forge_system, ngenes, cur.cells, cur.exprs, sphere, 1L, use.ave.cell)
+    out <- .Call(cxx_forge_system, cur.exprs, sphere, 1L, use.ave.cell)
     if (is.character(out)) { stop(out) }
     si <- length(row.dex) + 1L
     row.dex[[si]] <- out[[1]] + last.row

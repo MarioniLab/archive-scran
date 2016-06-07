@@ -1,12 +1,16 @@
 #include "scran.h"
 
-SEXP forge_system (SEXP ng, SEXP nc, SEXP exprs, SEXP ordering, SEXP size, SEXP ref) try {
+SEXP forge_system (SEXP exprs, SEXP ordering, SEXP size, SEXP ref) try {
     // Checking inputs
-    if (!isInteger(ng) || LENGTH(ng) > 1) { throw std::runtime_error("number of genes must be a positive integer"); }
-    if (!isInteger(nc) || LENGTH(nc) > 1) { throw std::runtime_error("number of cells must be a positive integer"); }
-    const int ncells=asInteger(nc), ngenes=asInteger(ng);
+    const matrix_info emat=check_matrix(exprs);
+    const int& ncells=emat.ncol;
+    const int& ngenes=emat.nrow;
     if (ncells==0) { throw std::runtime_error("at least one cell required for normalization"); }
-    
+    const double** eptrs=(const double**)R_alloc(ncells, sizeof(const double*));
+    eptrs[0]=emat.dptr;
+    int cell=0;
+    for (cell=1; cell<ncells; ++cell) { eptrs[cell]=eptrs[cell-1]+ngenes; }
+
     if (!isInteger(ordering)) { throw std::runtime_error("ordering vector should be integer"); }
     if (LENGTH(ordering)<ncells*2-1)  { throw std::runtime_error("ordering vector is too short for number of cells"); }
     const int* orptr=INTEGER(ordering);
@@ -18,13 +22,6 @@ SEXP forge_system (SEXP ng, SEXP nc, SEXP exprs, SEXP ordering, SEXP size, SEXP 
     if (!isNumeric(ref)) { throw std::runtime_error("reference expression vector should be double-precision"); }
     const double* rptr=REAL(ref);
     if (ngenes!=LENGTH(ref)) { throw std::runtime_error("length of reference vector is inconsistent with number of cells"); }
-
-    if (!isNumeric(exprs)) { throw std::runtime_error("expression matrix should be double-precision"); }
-    if (LENGTH(exprs)!=ncells*ngenes) { throw std::runtime_error("matrix dimensions are inconsistent with the number of genes/cells"); }
-    const double** eptrs=(const double**)R_alloc(ncells, sizeof(const double*));
-    eptrs[0]=REAL(exprs);
-    int cell=0;
-    for (cell=1; cell<ncells; ++cell) { eptrs[cell]=eptrs[cell-1]+ngenes; }
 
     // Setting up the output matrix.
     SEXP output=PROTECT(allocVector(VECSXP, 3));
