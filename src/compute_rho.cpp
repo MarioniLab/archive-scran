@@ -132,12 +132,15 @@ SEXP get_null_rho_design(SEXP qr, SEXP qraux, SEXP iters) try {
 }
 
 /*** Estimating correlations (without expanding into a matrix to do so via 'cor'). ***/
-SEXP compute_rho(SEXP g1, SEXP g2, SEXP cells, SEXP rankings) try {
-    if (!isInteger(cells) || LENGTH(cells)!=1)  {
-        throw std::runtime_error("number of cells should be an integer scalar"); 
+SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings) try {
+    const matrix_info rmat=check_matrix(rankings);
+    if (!rmat.is_integer) {
+        throw std::runtime_error("rankings must be integer");
     }
-    const int Ncells=asInteger(cells);
+    const int* rptr=rmat.iptr;
+    const int& Ncells=rmat.nrow;
     if (Ncells <= 1) { throw std::runtime_error("number of cells should be greater than 2"); }
+    const int& Ngenes=rmat.ncol;
 
     if (!isInteger(g1) || !isInteger(g2)) { 
         throw std::runtime_error("gene indices must be integer vectors");
@@ -148,15 +151,6 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP cells, SEXP rankings) try {
     }
     const int *g1ptr=INTEGER(g1), *g2ptr=INTEGER(g2);
     
-    if (!isInteger(rankings)) { 
-        throw std::runtime_error("ranking matrix must be integer");
-    }
-    const int Ngenes=LENGTH(rankings)/Ncells;
-    if (Ngenes*Ncells!=LENGTH(rankings)) { 
-        throw std::runtime_error("dimensions of ranking matrix are not consistent with number of cells"); 
-    }
-    const int* rptr=INTEGER(rankings);
-
     SEXP output=PROTECT(allocVector(REALSXP, Npairs));
     try {
         double* orptr=REAL(output);

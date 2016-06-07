@@ -63,29 +63,25 @@ correlateNull <- function(ncells, iters=1e6, design=NULL, simulate=FALSE)
 
 setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
-setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), use.names=TRUE, tol=1e-8, simulate=FALSE)
+setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), use.names=TRUE, tol=1e-8, simulate=FALSE, subset.row=NULL)
 # This calculates a (modified) Spearman's rho for each pair of genes.
 #
 # written by Aaron Lun
 # created 10 February 2016
 # last modified 27 May 2016
 {
+    compute.residuals <- FALSE
     if (!is.null(design)) { 
         groupings <- .isOneWay(design)
         if (is.null(groupings) || simulate) { 
-            fit <- lm.fit(y=t(x), x=design)
-            exprs.list <- list(t(fit$residuals))
-        } else {
-            exprs.list <- list()
-            for (g in seq_along(groupings)) {
-                exprs.list[[g]] <- x[,groupings[[g]],drop=FALSE]
-            }
-        }
+            compute.residuals <- TRUE
+            groupings <- list(seq_len(ncol(x)))
+        } 
         if (is.null(null.dist)) { 
             null.dist <- correlateNull(design=design, simulate=simulate)
         }
     } else {
-        exprs.list <- list(x)
+        groupings <- list(seq_len(ncol(x)))
         if (is.null(null.dist)) { 
             null.dist <- correlateNull(ncol(x))
         } 
@@ -105,8 +101,12 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
         null.dist <- sort(null.dist)
     }
 
+    # Checking the subsetting and tolerance
+    subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
+    tol <- as.double(tol)
+
     # Generating all pairs of genes
-    ngenes <- nrow(x)
+    ngenes <- length(subset.row)
     if (ngenes < 2L) { stop("need at least two genes to compute correlations") }
     all.pairs <- combn(ngenes, 2L)
     gene1 <- all.pairs[1,]
@@ -114,18 +114,20 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
 
     # Iterating through all subgroups (for one-way layouts; otherwise, this is a loop of length 1).
     all.rho <- 0L
-    for (exprs in exprs.list) { 
-        ncells <- ncol(exprs)
+    for (subset.col in groupings) { 
 
         # Ranking genes, in an error-tolerant way. This avoids getting untied rankings for zeroes
         # (which should have the same value +/- precision, as the prior count scaling cancels out).
-        ranked.exprs <- apply(exprs, 1, FUN=.tolerant_rank, tol=tol)
+        ranked.exprs <- .Call(cxx_rank_subset, x, subset.row, subset.col, tol)
+        if (is.character(ranked.exprs)) {
+            stop(ranked.exprs)
+        }
 
         # Running through each set of jobs 
         workass <- .workerAssign(length(gene1), BPPARAM)
         out <- bplapply(seq_along(workass$start), FUN=.get_correlation,
             work.start=workass$start, work.end=workass$end,
-            gene1=gene1, gene2=gene2, ncells=ncells, ranked.exprs=ranked.exprs, 
+            gene1=gene1, gene2=gene2, ranked.exprs=ranked.exprs, 
             BPPARAM=BPPARAM)
 
         # Peeling apart the output.
@@ -148,6 +150,8 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
     all.pval <- pmin(all.pval, 1)
 
     # Returning some useful output
+    gene1 <- subset.row[gene1]
+    gene2 <- subset.row[gene2]
     newnames <- NULL
     if (is.logical(use.names)) {
         if (use.names) {
@@ -179,9 +183,9 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
     return(list(start=starting, end=ending))
 }
 
-.get_correlation <- function(core, work.start, work.end, gene1, gene2, ncells, ranked.exprs) {
+.get_correlation <- function(core, work.start, work.end, gene1, gene2, ranked.exprs) {
     to.use <- work.start[core]:work.end[core]
-    .Call(cxx_compute_rho, gene1[to.use], gene2[to.use], ncells, ranked.exprs)
+    .Call(cxx_compute_rho, gene1[to.use], gene2[to.use], ranked.exprs)
 }
 
 .tolerant_rank <- function(y, tol=1e-6) {
@@ -195,7 +199,10 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
     rank(y, ties.method="random")
 }
 
-setMethod("correlatePairs", "SCESet", function(x, ..., assay="exprs", get.spikes=FALSE) {
-    correlatePairs(.getUsedMatrix(x, assay, get.spikes), ...)             
+setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
+    if (!get.spikes) {
+        subset.row <- .subsetSpikes(x, get.spikes)
+    }
+    correlatePairs(assayDataElement(x, assay), subset.row=subset.row, ...)             
 })
 
