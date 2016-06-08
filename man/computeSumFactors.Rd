@@ -44,7 +44,6 @@ Repeating this process for multiple pools will yield a linear system that can be
 In this manner, pool-based factors are deconvolved to yield the relevant cell-based factors.
 The advantage is that the pool-based estimates are more accurate, as summation reduces the number of stochastic zeroes and the associated bias of the size factor estimate.
 This accuracy will feed back into the deconvolution process, thus improving the accuracy of the cell-based size factors.
-The standard error of the estimates can be obtained by setting \code{errors=TRUE}.
 }
 
 \section{Normalization within and between clusters}{
@@ -90,7 +89,7 @@ For \code{computeSumFactors,matrix-method}, a numeric vector of size factors for
 For \code{computeSumFactors,SCESet-method}, an object of class \code{x} is returned containing the vector of size factors in \code{sizeFactors(x)}, if \code{sf.out=FALSE}.
 Otherwise, the vector of size factors is returned directly.
 
-If \code{errors=TRUE}, the standard error of the size factor estimates is stored as the \code{"standard.error"} field of the attributes of the returned vector.
+If \code{errors=TRUE}, the standard errors of the size factor estimates are stored as the \code{"standard.error"} field of the attributes of the returned vector.
 }
 
 \author{

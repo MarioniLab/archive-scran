@@ -80,16 +80,19 @@ setMethod("computeSumFactors", "matrix", function(x, sizes=c(20, 40, 60, 80, 100
             design <- as.matrix(design)
             fitted <- limSolve::lsei(A=design, B=output, G=diag(cur.cells), H=numeric(cur.cells), type=2)
             final.nf <- fitted$X
-        } else if (errors) {
-            design <- as.matrix(design)
-            fit <- limma::lmFit(output, design)
-            final.nf <- fit$coefficients
-            se.est <- fit$stdev.unscaled[1] * fit$sigma # All balanced, so they're all the same.
         } else {
-            final.nf <- qr.coef(qr(design), output)
+            QR <- qr(design)
+            final.nf <- qr.coef(QR, output)
             if (any(final.nf < 0)) { 
                 if (!warned.neg) { warning("negative factor estimates, re-run with 'positive=TRUE'") }
                 warned.neg <- TRUE
+            }
+
+            if (errors) {
+                # Our "observations" here _are_ our size factors, so variance refers to that of the size factors.
+                # Don't compute the standard error of the coefficients, as that isn't the relevant value here.
+                sigma2 <- mean(qr.qty(QR, output)[-seq_len(ncol(design))]^2)
+                se.est <- sqrt(sigma2)
             }
         }
 
@@ -111,21 +114,26 @@ setMethod("computeSumFactors", "matrix", function(x, sizes=c(20, 40, 60, 80, 100
             stop("'ref.clust' value not in 'clusters'")
         }
     }
+    clust.nf.scaled <- list()
     for (clust in seq_along(indices)) { 
-        clust.nf[[clust]] <- clust.nf[[clust]] * median(clust.profile[[clust]]/clust.profile[[ref.col]], na.rm=TRUE)
+        clust.nf.scaled[[clust]] <- clust.nf[[clust]] * median(clust.profile[[clust]]/clust.profile[[ref.col]], na.rm=TRUE)
     }
-    clust.nf <- unlist(clust.nf)
+    clust.nf.scaled <- unlist(clust.nf.scaled)
 
     # Returning centered size factors, rather than normalization factors.
-    clust.sf <- clust.nf * unlist(clust.libsizes) 
+    clust.sf <- clust.nf.scaled * unlist(clust.libsizes) 
     final.sf <- rep(NA_integer_, ncells)
-    final.sf[unlist(indices)] <- clust.sf
+    indices <- unlist(indices)
+    final.sf[indices] <- clust.sf
     
     is.pos <- final.sf > 0 & !is.na(final.sf)
     final.sf <- final.sf/mean(final.sf[is.pos])
 
     if (errors) {
-        attr(final.sf, "standard.error") <- se.est
+        # Calculating all the changes to get to this point, and scaling the standard error by them.
+        clust.nf <- unlist(clust.nf)
+        clust.nf[indices] <- clust.nf
+        attr(final.sf, "standard.error") <- se.est * final.sf/clust.nf
     }
     return(final.sf)
 })

@@ -15,10 +15,9 @@ exportMethods(
 )
 
 importFrom("dynamicTreeCut", cutreeDynamic)
-importFrom("Matrix", sparseMatrix, qr, qr.coef)
+importFrom("Matrix", sparseMatrix, qr, qr.coef, qr.qty)
 importFrom("zoo", zoo, rollapply, index)
 importFrom("edgeR", cpm.default, DGEList, "[.DGEList", designAsFactor)
-importFrom("limma", lmFit)
 importFrom("BiocGenerics", normalize)
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, featureData, phenoData, pData)
 importFrom("utils", combn)
