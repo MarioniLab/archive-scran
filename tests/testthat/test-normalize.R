@@ -33,7 +33,22 @@ outx <- computeSumFactors(dummy, positive=TRUE)
 expect_true(all(abs(outx -  out) < 1e-3)) # need to be a bit generous here, the solution code is different.
 outx <- computeSumFactors(dummy, errors=TRUE)
 expect_equal(as.numeric(outx), out)
-expect_identical(names(attributes(outx)), "standard.error")
+
+expect_identical(names(attributes(outx)), "standard.error") # Checking that the standard errors are equal.
+sphere <- scran:::.generateSphere(colSums(dummy))
+sizes <- c(20, 40, 60, 80, 100)
+use.ave.cell <- rowMeans(dummy)
+collected <- scran:::.create_linear_system(dummy, sphere, as.integer(sizes), use.ave.cell)
+sqw <- rep(c(1, 1e-3), c(ncells*length(sizes), ncells))
+fit <- limma::lmFit(design=as.matrix(collected[[1]])/sqw, object=collected[[2]]/sqw, weight=sqw^2) # Checking to limma's value.
+expect_equal(unname(attributes(outx)$standard.error), unname(fit$sigma * fit$coefficients[1,]/as.numeric(outx)))
+
+## obs.sf <- rnorm(200, mean=5) # True size factors for all cells (not quite realistic, as we shouldn't get negative values)..
+## pooled <- as.matrix(collected[[1]]) %*% obs.sf
+## pooled <- pooled + rnorm(length(pooled), sd=0.5) # estimation error in each pool (not quite realistic, as error scales with the mean; but oh well).
+## fit <- limma::lmFit(design=as.matrix(collected[[1]]), object=t(pooled))
+## fit$sigma # Should be the estimation error, equal to 0.5.
+## head(as.numeric(fit$sigma  * fit$stdev.unscaled)) # NOT the estimation error as it is huge.
 
 # Trying it out on a SCESet object.
 
