@@ -117,19 +117,17 @@ setMethod("correlatePairs", "matrix", function(x, null.dist=NULL, design=NULL, B
     all.rho <- 0L
     for (subset.col in groupings) { 
 
-        # If we're computing residuals, we intervene here and replace values with the residuals.
-        # Also need to replace the subset vector, as it'll already be subsetted.
-        if (compute.residuals) {
-            x <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L)
-            if (is.character(x)) { stop(x) }
-            current.rows <- seq_len(nrow(x)) - 1L
+        if (!compute.residuals) {
+            # Ranking genes, in an error-tolerant way. This avoids getting untied rankings for zeroes
+            # (which should have the same value +/- precision, as the prior count scaling cancels out).
+            ranked.exprs <- .Call(cxx_rank_subset, x, subset.row - 1L, subset.col - 1L, tol)
         } else {
-            current.rows <- subset.row - 1L
+            # If we're computing residuals, we intervene here and replace values with the residuals.
+            # Also need to replace the subset vector, as it'll already be subsetted.
+            rx <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L)
+            if (is.character(rx)) { stop(rx) }
+            ranked.exprs <- .Call(cxx_rank_subset, rx, seq_len(nrow(rx)) - 1L, subset.col - 1L, tol)
         }
-
-        # Ranking genes, in an error-tolerant way. This avoids getting untied rankings for zeroes
-        # (which should have the same value +/- precision, as the prior count scaling cancels out).
-        ranked.exprs <- .Call(cxx_rank_subset, x, current.rows, subset.col - 1L, tol)
         if (is.character(ranked.exprs)) {
             stop(ranked.exprs)
         }
