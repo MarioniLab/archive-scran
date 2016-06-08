@@ -29,6 +29,9 @@
     }
 
     if (is.logical(subset)) { 
+        if (length(subset)!=dimlen) {
+            stop("subset vector is longer than matrix dimensions") 
+        }
         subset <- which(subset)
     } else if (is.character(subset)) {
         subset <- match(subset, names)
@@ -39,6 +42,9 @@
         subset <- seq_len(dimlen)
     } else if (is.numeric(subset)) {
         subset <- as.integer(subset)
+        if (min(subset) < 1L || max(subset) > dimlen) {
+            stop("subset indices out of range")
+        }
     } else {
         stop("unrecognized type of subset vector")
     }
