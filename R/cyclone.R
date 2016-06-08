@@ -15,9 +15,9 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
     min.iter <- as.integer(min.iter)
     min.pairs <- as.integer(min.pairs)
    
-    # Checking subset vector and modifying gene.names appropriately.
+    # Checking subset vector and blanking out the unused names.
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
-    gene.names <- gene.names[subset.row]
+    gene.names[-subset.row] <- NA
     
     # Only keeping training pairs where both genes are in the test data.
     for (p in names(pairs)) {
