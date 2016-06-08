@@ -8,8 +8,8 @@
 
 \usage{
 \S4method{cyclone}{matrix}(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, 
-    BPPARAM=bpparam(), verbose=FALSE)
-\S4method{cyclone}{SCESet}(x, ..., assay="counts", get.spikes=FALSE)
+    BPPARAM=bpparam(), verbose=FALSE, subset.row=NULL)
+\S4method{cyclone}{SCESet}(x, pairs, subset.row=NULL, ..., assay="counts", get.spikes=FALSE)
 }
 
 \arguments{
@@ -24,6 +24,7 @@
 \item{min.pairs}{An integer scalar specifying the minimum number of pairs for cycle estimation.}
 \item{BPPARAM}{A BiocParallelParam object to use in \code{bplapply} for parallel processing.}
 \item{verbose}{A logical scalar specifying whether diagnostics should be printed to screen.}
+\item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to \code{cyclone,matrix-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
@@ -58,6 +59,10 @@ Cells can be assigned to S phase based on the S phase score, but a more reliable
 For \code{cyclone,SCESet-method}, the matrix of counts is used but can be replaced with expression values by setting \code{assays}.
 By default, \code{get.spikes=FALSE} which means that any rows corresponding to spike-in transcripts will not be considered for score calculation.
 This is for the same reasons as described in \code{?\link{sandbag}}.
+
+Users can also manually set \code{subset.row} to specify which rows of \code{x} are to be used.
+This is better than subsetting \code{x} directly, as it reduces memory usage and also subsets \code{gene.names} at the same time.
+If this is specified, it will overwrite any setting of \code{get.spikes}.
 }
 
 \value{

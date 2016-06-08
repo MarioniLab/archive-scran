@@ -14,11 +14,10 @@ Suggests: limSolve, testthat, knitr, BiocStyle, org.Mm.eg.db, DESeq2,
         monocle, S4Vectors
 biocViews: Normalization, Sequencing, RNASeq, Software, GeneExpression,
         Transcriptomics
-Description: This package implements a variety of low-level analyses of
-        single-cell RNA-seq data. Methods are provided for
-        normalization of cell-specific biases, assignment of cell cycle
-        phase, and detection of highly variable and significantly
-        correlated genes.
+Description: Implements a variety of low-level analyses of single-cell 
+        RNA-seq data. Methods are provided for normalization of 
+        cell-specific biases, assignment of cell cycle phase, and 
+        detection of highly variable and significantly correlated genes.
 License: GPL-3
 NeedsCompilation: yes
 VignetteBuilder: knitr
