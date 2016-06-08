@@ -7,8 +7,11 @@
 \description{Use gene expression data to train a classifier for cell cycle phase.}
 
 \usage{
-\S4method{sandbag}{matrix}(x, is.G1, is.S, is.G2M, gene.names=rownames(x), fraction=0.5)
-\S4method{sandbag}{SCESet}(x, ..., assay="counts", get.spikes=FALSE)
+\S4method{sandbag}{matrix}(x, is.G1, is.S, is.G2M, gene.names=rownames(x), 
+    fraction=0.5, subset.row=NULL)
+
+\S4method{sandbag}{SCESet}(x, .is.G1, is.S, is.G2M, subset.row=NULL, ..., 
+    assay="counts", get.spikes=FALSE)
 }
 
 \arguments{
@@ -19,6 +22,7 @@
 \item{is.G1, is.S, is.G2M}{A vector indicating which cells are in each phase of the cell cycle.}
 \item{gene.names}{A character vector of gene names.}
 \item{fraction}{A numeric scalar specifying the minimum fraction to define a marker gene pair.}
+\item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to \code{sandbag,matrix-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
@@ -39,8 +43,9 @@ The cell is then assigned to the phase that is consistent with the direction of 
 
 For \code{sandbag,SCESet-method}, the matrix of counts is used but can be replaced with expression values by setting \code{assays}.
 By default, \code{get.spikes=FALSE} which means that any rows corresponding to spike-in transcripts will not be considered when picking markers.
-This is because the amount of spike-in RNA added will vary between experiments, such that the relative expression of genes to spike-ins will not be a reliable predictor.
+This is because the amount of spike-in RNA added will vary between experiments and will not be a robust predictor.
 Nonetheless, if all rows are required, users can set \code{get.spikes=TRUE}.
+Users can also manually select which rows to use via \code{subset.row}, which will override any setting of \code{get.spikes}.
 }
 
 \value{
