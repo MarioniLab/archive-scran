@@ -28,16 +28,6 @@ setMethod("spikes", "SCESet", function(x, assay="counts", type=NULL) {
 
 setGeneric("isSpike", function(x, ...) standardGeneric("isSpike"))
 
-is.spike <- function(x, type=NULL) { 
-    if (is.null(type)) { 
-        return(fData(x)$is_feature_spike)
-    } else if (type %in% .get_feature_control_names(x)) { 
-        return(fData(x)[[paste0("is_feature_control_", type)]])
-    } else {
-        return(NULL)
-    }
-}
-
 setMethod("isSpike", "SCESet", function(x, type=NULL) {
     keep <- is.spike(x, type=type)
     if (is.null(keep)) {
@@ -78,8 +68,4 @@ setReplaceMethod("isSpike", signature(x="SCESet", value="character"), function(x
     fData(x)$is_feature_spike <- is.spike
     return(x) 
 })
-
-.get_feature_control_names <- function(x) {
-    x@featureControlInfo$name
-}
 

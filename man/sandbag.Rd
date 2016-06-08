@@ -10,7 +10,7 @@
 \S4method{sandbag}{matrix}(x, is.G1, is.S, is.G2M, gene.names=rownames(x), 
     fraction=0.5, subset.row=NULL)
 
-\S4method{sandbag}{SCESet}(x, .is.G1, is.S, is.G2M, subset.row=NULL, ..., 
+\S4method{sandbag}{SCESet}(x, is.G1, is.S, is.G2M, subset.row=NULL, ..., 
     assay="counts", get.spikes=FALSE)
 }
 

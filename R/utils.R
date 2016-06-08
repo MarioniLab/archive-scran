@@ -1,12 +1,15 @@
-.getUsedMatrix <- function(x, assay="counts", get.spikes=FALSE) {
-    cur.mat <- assayDataElement(x, assay)
-    if (!get.spikes) {
-        nokeep <- is.spike(x)
-        if (!is.null(nokeep) && any(nokeep)) { 
-            cur.mat <- cur.mat[!nokeep,,drop=FALSE]
-        }
+.get_feature_control_names <- function(x) {
+    x@featureControlInfo$name
+}
+
+is.spike <- function(x, type=NULL) { 
+    if (is.null(type)) { 
+        return(fData(x)$is_feature_spike)
+    } else if (type %in% .get_feature_control_names(x)) { 
+        return(fData(x)[[paste0("is_feature_control_", type)]])
+    } else {
+        return(NULL)
     }
-    return(cur.mat)
 }
 
 .spikeSubset <- function(x, get.spikes) {
