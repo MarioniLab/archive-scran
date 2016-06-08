@@ -8,10 +8,10 @@ Authors@R: c(person("Aaron", "Lun", role = c("aut", "cre"), email =
         "Scialdone", role="ctb"))
 Maintainer: Aaron Lun <alun@wehi.edu.au>
 Depends: R (>= 3.3.0), BiocParallel, scater
-Imports: dynamicTreeCut, zoo, edgeR, limma, stats, BiocGenerics,
-        methods, Biobase, utils, Matrix
-Suggests: limSolve, testthat, knitr, BiocStyle, org.Mm.eg.db, DESeq2,
-        monocle, S4Vectors
+Imports: dynamicTreeCut, zoo, edgeR, stats, BiocGenerics, methods, 
+        Biobase, utils, Matrix, shiny, graphics, grDevices
+Suggests: limSolve, limma, testthat, knitr, BiocStyle, org.Mm.eg.db, 
+        DESeq2, monocle, S4Vectors, ggplot2
 biocViews: Normalization, Sequencing, RNASeq, Software, GeneExpression,
         Transcriptomics
 Description: Implements a variety of low-level analyses of single-cell 

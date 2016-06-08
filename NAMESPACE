@@ -2,7 +2,8 @@ useDynLib(scran, .registration=TRUE, .fixes="cxx_")
 
 export(
     DM, testVar,
-    correlateNull
+    correlateNull,
+    selectorPlot
 )
 
 exportMethods(
@@ -22,6 +23,11 @@ importFrom("BiocGenerics", normalize)
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, featureData, phenoData, pData)
 importFrom("utils", combn)
 importFrom("stats", approx, as.dist, cor, fitted, hclust, lm, lm.fit, loess, median, p.adjust, pchisq, predict, quantile)
+
+importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, plotOutput, renderPlot, shinyApp, stopApp)
+importFrom("grDevices", grey.colors)
+importFrom("graphics", text)
+
 
 import(BiocParallel)
 import(scater)
