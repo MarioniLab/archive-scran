@@ -32,12 +32,14 @@
 
 \details{
 This function implements the classification step of the pair-based prediction method described by Scialdone et al. (2015).
-Pairs of marker genes are trained with \code{\link{sandbag}}, where the sign of the relative expression between gene in each pair changes across phases.
-For each phase and each cell, the function calculates the proportion of all marker pairs where the expression of the first gene is greater than the second
+Consider classification into G1 phase.
+Pairs of marker genes are identified with \code{\link{sandbag}}, where the expression of the first gene in the training data is greater than the second in G1 phase but less than the second in all other phases.
+For each cell, \code{cyclone} calculates the proportion of all marker pairs where the expression of the first gene is greater than the second in the new data \code{x}
     (pairs with the same expression are ignored).
-A distribution of proportions is constructed by shuffling the expression values within the cell and recalculating the proportion at each iteration.
-The phase score for that cell is then defined as the lower tail probability of this distribution.
+A high proportion suggests that the cell is likely to belong in G1 phase, as the expression ranking in the new data is consistent with that in the training data.
 
+To make the proportions comparable between phases, a distribution of proportions is constructed by shuffling the expression values within the cell and recalculating the proportion at each iteration.
+The phase score for that cell is then defined as the lower tail probability of this distribution.
 By default, shuffling is performed \code{iter} times to obtain the distribution from which the score is estimated.
 However, some iterations may not be used if there are fewer than \code{min.pairs} pairs with different expression, such that the proportion cannot be calculated precisely.
 Also, a score is only returned if the distribution is large enough for stable calculation of the tail probability, i.e., consists of results from at least \code{min.iter} iterations.
@@ -49,12 +51,15 @@ Also, a score is only returned if the distribution is large enough for stable ca
 % The most appropriate comparison would involve the same number of ties as that used to calculate the observed score.
 % Thus, I would set the marker set genes as the empirical distribution, rather than the entire training set of genes.
 
-Cells with G1 and G2M scores above 0.5 should be assigned to the G1 and G2M phases, respectively.
+The same process is repeated for all phases, using the appropriate set of marker pairs in \code{pairs} for each phase.
+Cells with G1 or G2M scores above 0.5 should be assigned to the G1 or G2M phases, respectively.
+(If both are above 0.5, the higher score is used for assignment.)
 This is based on the interpretation of the score as 1 minus the p-value for the null distribution of proportions.
 The null hypothesis here is that expression of the marker genes is independent within each cell, i.e., with no cycle-induced correlations between marker pairs.
 Cells can be assigned to S phase based on the S phase score, but a more reliable approach is to define S phase cells based on those cells with G1 and G2M scores below 0.5.
 
-% That said, you can have non-cycle-based correlations, so full independence is probably liberal.
+% Training should protect against non-cycle-based correlations, as such they should be present across all phases and not get included in the marker set.
+% This is analogous to randomization to get p-values against the null in correlatePairs().
 
 For \code{cyclone,SCESet-method}, the matrix of counts is used but can be replaced with expression values by setting \code{assays}.
 By default, \code{get.spikes=FALSE} which means that any rows corresponding to spike-in transcripts will not be considered for score calculation.
@@ -66,9 +71,12 @@ If this is specified, it will overwrite any setting of \code{get.spikes}.
 }
 
 \value{
-A list of two data frames is returned -- 
-    \code{scores}, containing the phase scores for each phase and cell (i.e., each row is a cell); 
-    and \code{normalized.scores}, containing the row-normalized scores (i.e., where the row sum for each cell is equal to 1).
+A list is returned containing:
+\describe{
+\item{\code{phases}:}{A character vector containing the predicted phase for each cell.} 
+\item{\code{scores}:}{A data frame containing the numeric phase scores for each phase and cell (i.e., each row is a cell).}
+\item{\code{normalized.scores}:}{A data frame containing the row-normalized scores (i.e., where the row sum for each cell is equal to 1).}
+}
 }
 
 \author{

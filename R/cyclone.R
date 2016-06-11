@@ -54,10 +54,15 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
     score.G1 <- unlist(out.G1)
     score.S <- unlist(out.S)
     score.G2M <- unlist(out.G2M)
-    
+
     scores <- data.frame(G1=score.G1, S=score.S, G2M=score.G2M)
     scores.normalised <- scores/rowSums(scores)
-    return(list(scores=scores, normalized.scores=scores.normalised))  
+
+    # Getting the phases.
+    phases <- ifelse(score.G1 >= score.G2M, "G1", "G2M")
+    phases[score.G1 < 0.5 & score.G2M < 0.5] <- "S"
+
+    return(list(phases=phases, scores=scores, normalized.scores=scores.normalised))  
 })
 
 .get_phase_score <- function(core, work.start, work.end, exprs, pairings, iter, min.iter, min.pairs) {

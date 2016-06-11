@@ -36,7 +36,8 @@ Pairs of genes (A, B) are identified from a training data set where in each pair
 These pairs are defined as the marker pairs for G1.
 This is repeated for each phase to obtain a separate marker pair set.
 
-Pre-defined sets of marker pairs are provided for mouse (see Examples).
+Pre-defined sets of marker pairs are provided for mouse and human (see Examples).
+The mouse set was generated as described by Scialdone et al. (2015), while the human training set was generated with data from Leng et al. (2015).
 Classification from test data can be performed using the \code{\link{cyclone}} function.
 For each cell, this involves comparing expression values between genes in each marker pair. 
 The cell is then assigned to the phase that is consistent with the direction of the difference in expression in the majority of pairs.
@@ -81,6 +82,10 @@ hs.pairs <- readRDS(system.file("exdata", "human_cycle_markers.rds", package="sc
 Scialdone A, Natarajana KN, Saraiva LR et al. (2015). 
 Computational assignment of cell-cycle stage from single-cell transcriptome data.
 \emph{Methods} 85:54--61
+
+Leng N, Chu LF, Barry C et al. (2015).
+Oscope identifies oscillatory genes in unsynchronized single-cell RNA-seq experiments.
+\emph{Nat. Methods} 12:947--50
 }
 
 \keyword{clustering}
