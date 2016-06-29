@@ -38,22 +38,27 @@ try {
     const bool is_even=bool(ngenes%2==0);
     const int halfway=int(ngenes/2);
     double* combined=(double*)R_alloc(ngenes, sizeof(double));
+    const double* cur_eptr;
+    const int* cur_window;
     
     for (cell=0; cell<ncells; ++cell) {
         std::fill(combined, combined+ngenes, 0);
+        std::fill(row_optr, row_optr+SIZE, cell);
+        row_optr+=SIZE;
+        cur_window=orptr+cell;
 
         for (index=0; index<SIZE; ++index) {
-            const int& curcell=orptr[index+cell];
-            *(row_optr++) = cell;
+            const int& curcell=cur_window[index];
             *(col_optr++) = curcell;
+            cur_eptr=eptrs[curcell];
 
             for (gene=0; gene<ngenes; ++gene) { 
-                combined[gene]+=eptrs[curcell][gene];
+                combined[gene]+=cur_eptr[gene];
             }
         }
 
         // Computing the median ratio against the reference.
-        for  (gene=0; gene<ngenes; ++gene) { 
+        for (gene=0; gene<ngenes; ++gene) { 
             combined[gene]/=rptr[gene];
         }
         std::partial_sort(combined, combined+halfway+1, combined+ngenes);

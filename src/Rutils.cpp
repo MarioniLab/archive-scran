@@ -114,27 +114,31 @@ SEXP rank_subset_internal (const T* ptr, const matrix_info& MAT, SEXP subset_row
 
     SEXP output=PROTECT(allocMatrix(INTSXP, cslen, rslen));
     try {
+        if (!cslen || !rslen) {
+            UNPROTECT(1);
+            return output;
+        }
         int* optr=INTEGER(output);
         data_holder dh(cslen);
         Rx_random_seed myseed;
 
-        int cs, last_unique;
+        int cs;
+        double last_unique;
         for (int rs=0; rs<rslen; ++rs) {
             for (cs=0; cs<cslen; ++cs) {
                 dh.index[cs]=cs;
-            }
-            for (cs=0; cs<cslen; ++cs) {
                 dh.arg1[cs]=ptrs[csptr[cs]][rsptr[rs]];
             }
 
             // First stage sorting and equalization of effective ties.
             R_orderVector1(dh.index, dh.nobs, dh.holder1, FALSE, FALSE);
-            last_unique=0;
+            last_unique=dh.arg1[dh.index[0]]; // Should be okay, as we remove cases where cslen=0.
             for (cs=1; cs<cslen; ++cs) {
-                if (dh.arg1[dh.index[cs]] - dh.arg1[dh.index[last_unique]] <= tolerance) {
-                    dh.arg1[dh.index[cs]]=dh.arg1[dh.index[last_unique]];
+                double& val=dh.arg1[dh.index[cs]];
+                if (val - last_unique <= tolerance) {
+                    val=last_unique;
                 } else {
-                    last_unique=cs;
+                    last_unique=val;
                 }
             }
 

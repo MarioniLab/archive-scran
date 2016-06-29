@@ -88,8 +88,9 @@ SEXP cordist_internal(const T* ptr, const matrix_info& MAT, SEXP subset) {
             curmean/=slen;
 
             double& curdev=stdev[c];
+            const double* currank=ranked[c];
             for (size_t s=0; s<slen; ++s) {
-                tmpdiff=ranked[c][s]-curmean;
+                tmpdiff=currank[s]-curmean;
                 curdev+=tmpdiff*tmpdiff;
             }
             curdev/=slen-1;
@@ -100,7 +101,7 @@ SEXP cordist_internal(const T* ptr, const matrix_info& MAT, SEXP subset) {
         }
 
         // Running through every pair of cells and computing the correlation-based distance.
-        double* c1ranks, *c2ranks;
+        const double* c1ranks, *c2ranks;
         for (size_t c1=0; c1<MAT.ncol; ++c1) {
             c1ranks=ranked[c1];
             const double& c1mean=means[c1];

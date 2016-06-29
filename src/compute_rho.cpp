@@ -155,28 +155,29 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings) try {
     try {
         double* orptr=REAL(output);
         
-        int off1, off2, cell;
-        double tmp, tmp2;
+        const int* r1ptr, * r2ptr;
+        int cell, tmp, working;
         const double mult=rho_mult(Ncells); 
 
         for (int p=0; p<Npairs; ++p) {
-            off1=(g1ptr[p]-1)*Ncells;
-            off2=(g2ptr[p]-1)*Ncells;
-            if (g1ptr[p] < 1 || g1ptr[p] > Ngenes) {
+            const int& g1x=g1ptr[p];
+            const int& g2x=g2ptr[p];
+            if (g1x < 1 || g1x > Ngenes) {
                 throw std::runtime_error("first gene index is out of range");
             }
-            if (g2ptr[p] < 1 || g2ptr[p] > Ngenes) {
+            if (g2x < 1 || g2x > Ngenes) {
                 throw std::runtime_error("second gene index is out of range");
             }
+            r1ptr=rptr+(g1x-1)*Ncells;
+            r2ptr=rptr+(g2x-1)*Ncells;
 
             // Computing the correlation.
-            tmp=0;
+            working=0;
             for (cell=0; cell<Ncells; ++cell) {
-                tmp2=rptr[off1+cell] - rptr[off2+cell];
-                tmp+=tmp2*tmp2;
+                tmp=r1ptr[cell] - r2ptr[cell];
+                working+=tmp*tmp;
             }
-            tmp*=mult;
-            orptr[p]=1-tmp;
+            orptr[p]=1 - working*mult;
         }       
     } catch (std::exception& e) { 
         UNPROTECT(1);
