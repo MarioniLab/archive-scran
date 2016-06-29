@@ -265,7 +265,7 @@ X4 <- normalize(X)
 expect_equivalent(exprs(out)[!chosen,], exprs(X4)[!chosen,])
 ref <- sizeFactors(X, type="whee")
 sf <- ref/mean(ref)
-expect_equivalent(exprs(out)[chosen,], edgeR::cpm.default(dummy[chosen,], lib.size=sf*1e6, prior.count=1, log=TRUE))
+expect_equivalent(exprs(X4)[chosen,], edgeR::cpm.default(dummy[chosen,], lib.size=sf*1e6, prior.count=1, log=TRUE))
 
 # Checking out silly inputs.
 
