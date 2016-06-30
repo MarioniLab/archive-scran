@@ -22,7 +22,8 @@ Allowed compute*Factors() functions to directly return the size factors.
 Added selectorPlot() function for interactive plotting.
 
 \item 
-Switched to residuals for calculating correlations with a design matrix in correlatePairs(), correlateNull().
+Switched to a group-based weighted correlation for one-way layouts in correlatePairs() and correlateNull(),
+and to a correlation of residuals for more complex design matrices.
 
 \item
 Added phase assignments to the cyclone() output.
