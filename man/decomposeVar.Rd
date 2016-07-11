@@ -84,7 +84,8 @@ combined <- rbind(cell.data, spike.data)
 colnames(combined) <- seq_len(ncells)
 rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
-isSpike(y) <- rep(c(FALSE, TRUE), c(ngenes, nspikes))
+y <- calculateQCMetrics(y, list(Spike=rep(c(FALSE, TRUE), c(ngenes, nspikes))))
+isSpike(y) <- "Spike"
 
 # Normalizing.
 y <- computeSpikeFactors(y) # or computeSumFactors
