@@ -39,6 +39,11 @@ To identify highly variable genes, the null hypothesis is that the total CV2 for
 Deviations from the null are identified using a chi-squared test.
 The additional \code{min.bio.disp} is necessary for a ratio-based test, as otherwise genes with large relative (but small absolute) CV2 would be favoured.
 
+% For NB-distributed counts, log-counts are more normal-looking than the counts themselves.
+% (Assessed based on the former yielding variance estimates that are more chi-squared, especially at high dispersions.)
+% However, this is probably academic as they're both fairly bad (4-fold for log, 20-fold for row over the type I error rate for a chi-squared test).
+% This would be compounded by instability in the curve fitting with limited numbers of spike-ins.
+
 If \code{sf.cell} or \code{sf.spike} are not specified, \code{\link[DESeq2]{estimateSizeFactorsForMatrix}} function is applied to compute size factors.
 For \code{technicalCV2,SCESet-method}, size factors for the endogenous genes are automatically extracted via \code{\link{sizeFactors}}.
 Spike-in-specific size factors for \code{spike.type} are extracted, if available; otherwise they are set to the size factors for the endogenous genes.
@@ -47,7 +52,8 @@ Currently, this function does not support custom normalization multiple spike-in
 }
 
 \value{
-A data frame is returned containing:
+A data frame is returned containing one row per row of \code{x}.
+Each row contains:
 \describe{
 \item{\code{mean}:}{A numeric field, containing mean (scaled) counts for all genes.}
 \item{\code{var}:}{A numeric field, containing the variances for all genes.}
