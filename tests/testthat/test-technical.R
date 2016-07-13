@@ -43,9 +43,14 @@ expect_equal(default, as.sceset)
 # Testing what happens when is.spike=NA.
 all.used <- technicalCV2(counts, is.spike=NA)
 counts2 <- rbind(counts, counts)
+rownames(counts2) <- paste0("X", seq_len(nrow(counts2)))
 is.spike2 <- rep(c(FALSE, TRUE), each=nrow(counts))
 all.used2 <- technicalCV2(counts2, is.spike2)
 expect_equal(all.used, all.used2[!is.spike2,])
+
+all.used <- technicalCV2(counts(X), sf.cell=sizeFactors(X), sf.spike=sizeFactors(X), is.spike=NA)
+all.used3 <- technicalCV2(X, spike.type=NA)
+expect_equal(all.used, all.used3)
 
 # Testing for silly inputs.
 expect_error(technicalCV2(X, spike.type="whee"), "'arg' should be one of")

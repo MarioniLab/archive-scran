@@ -76,7 +76,7 @@
     output.p <- rep(NA_real_, nrow(x))
     output.p[is.cell] <- pA
     return(data.frame(mean=output.mean, var=output.var, cv2=output.cv2, trend=output.trend,
-                      p.value=output.p, FDR=p.adjust(output.p, method="BH")))
+                      p.value=output.p, FDR=p.adjust(output.p, method="BH"), row.names=rownames(x)))
 }
 
 setGeneric("technicalCV2", function(x, ...) standardGeneric("technicalCV2"))
@@ -84,12 +84,18 @@ setGeneric("technicalCV2", function(x, ...) standardGeneric("technicalCV2"))
 setMethod("technicalCV2", "matrix", .technicalCV2)
 
 setMethod("technicalCV2", "SCESet", function(x, spike.type, ..., assay="counts") {
-    sf.cell <- sizeFactors(x)          
-    sf.spike <- sizeFactors(x, type=spike.type)
-    if (is.null(sf.spike)) { 
+    sf.cell <- sizeFactors(x)
+    if (!is.na(spike.type)) {  
+        sf.spike <- sizeFactors(x, type=spike.type)
+        if (is.null(sf.spike)) { 
+            sf.spike <- sf.cell
+        }
+        is.spike <- isSpike(x, type=spike.type)
+    } else {
         sf.spike <- sf.cell
+        is.spike <- NA
     }
-    .technicalCV2(assayDataElement(x, assay), isSpike(x, type=spike.type),
+    .technicalCV2(assayDataElement(x, assay), is.spike=is.spike, 
                   sf.cell=sizeFactors(x), sf.spike=sf.spike, ...)          
 })
 
