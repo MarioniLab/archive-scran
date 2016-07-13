@@ -32,7 +32,8 @@
 This function will estimate the squared coefficient of variation (CV2) and mean for each spike-in transcript.
 A mean-dependent trend is fitted to the CV2 values for the transcripts using a Gamma GLM with \code{\link[statmod]{glmgam.fit}}.
 Only high-abundance transcripts are used for stable trend fitting.
-(Specifically, a mean threshold is selected by taking all transcripts with CV2 above \code{cv2.limit}, and taking the quantile of this subset at \code{cv2.tol}.)
+(Specifically, a mean threshold is selected by taking all transcripts with CV2 above \code{cv2.limit}, and taking the quantile of this subset at \code{cv2.tol}.
+A warning will be thrown and all spike-ins will be used if the subset is empty.)
 
 The trend is used to determine the technical CV2 for each endogenous gene based on its mean.
 To identify highly variable genes, the null hypothesis is that the total CV2 for each gene is less than or equal to the technical CV2 plus \code{min.bio.disp}.
@@ -55,11 +56,13 @@ Currently, this function does not support custom normalization multiple spike-in
 A data frame is returned containing one row per row of \code{x} (including both endogenous genes and spike-in transcripts).
 Each row contains the following information:
 \describe{
-\item{\code{mean}:}{A numeric field, containing mean (scaled) counts for all genes.}
-\item{\code{var}:}{A numeric field, containing the variances for all genes.}
-\item{\code{cv2}:}{A numeric field, containing CV2 values for all genes.}
+\item{\code{mean}:}{A numeric field, containing mean (scaled) counts for all genes and transcripts.}
+\item{\code{var}:}{A numeric field, containing the variances for all genes and transcripts.}
+\item{\code{cv2}:}{A numeric field, containing CV2 values for all genes and transcripts.}
+\item{\code{trend}:}{A numeric field, containing the fitted value of the trend in the CV2 values.
+Note that the fitted value is reported for all genes and transcripts, but the trend is only fitted using the transcripts.}
 \item{\code{p.value}:}{A numeric field, containing p-values for all endogenous genes (\code{NA} for rows corresponding to spike-in transcripts).}
-\item{\code{FDR}:}{A numeric field, containing adjusted p-values for all endogenous genes.}
+\item{\code{FDR}:}{A numeric field, containing adjusted p-values for all genes.}
 }
 }
 

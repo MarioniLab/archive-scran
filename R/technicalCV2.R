@@ -40,8 +40,14 @@
     cv2.spike <- vars.spike/means.spike^2
 
     # Fitting the trend.
-    minMeanForFitA <- unname( quantile( means.spike[ which( cv2.spike > cv2.limit ) ], cv2.tol ) )
-    useForFitA <- means.spike >= minMeanForFitA
+    above.limit <- cv2.spike > cv2.limit
+    if (any(above.limit)) { 
+        minMeanForFitA <- unname( quantile( means.spike[ above.limit ], cv2.tol ) )
+        useForFitA <- means.spike >= minMeanForFitA
+    } else {
+        warning("no spike-ins above 'cv2.limit', using all spikes for trend fitting")
+        useForFitA <- !logical(length(means.spike)) # using all spikes.
+    }
     fitA <- glmgam.fit( cbind( a0 = 1, a1tilde = 1/means.spike[useForFitA] ), cv2.spike[useForFitA] )
 
     #  Testing whether the null is true.
