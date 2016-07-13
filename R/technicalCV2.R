@@ -7,21 +7,26 @@
 # based on code by Phillipe Brennecke et al. (2013).
 # created 11 July 2016
 {
-    if (!all(is.na(is.spike))) { 
-        is.spike <- .subset_to_index(is.spike, x, byrow=TRUE)
-        if (length(is.spike)==nrow(x) || length(is.spike)==0L) {
-            stop("none or all of the rows correspond to spike-in transcripts")
-        } else if (any(is.na(is.spike))) { 
+    if (any(!is.na(is.spike))) { 
+        if (any(is.na(is.spike))) { 
             stop("missing values in 'is.spike'")
         }
+        is.spike <- .subset_to_index(is.spike, x, byrow=TRUE)
         is.cell <- seq_len(nrow(x))[-is.spike]
     } else {
         is.cell <- is.spike <- seq_len(nrow(x))
     }
+    if (length(is.spike) < 2L) {
+        stop("need at least 2 spike-ins for trend fitting")
+    }
 
     # Computing size factors, if not supplied.
     if (is.null(sf.cell)) { 
-        sf.cell <- DESeq2::estimateSizeFactorsForMatrix(x[is.cell,,drop=FALSE])
+        if (length(is.cell)) { 
+            sf.cell <- DESeq2::estimateSizeFactorsForMatrix(x[is.cell,,drop=FALSE])
+        } else {
+            sf.cell <- rep(1, ncol(x)) # Any value will do here.
+        }
     } 
     if (is.null(sf.spike)) {
         sf.spike <- DESeq2::estimateSizeFactorsForMatrix(x[is.spike,,drop=FALSE])

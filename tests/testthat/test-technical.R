@@ -54,6 +54,10 @@ expect_equal(all.used, all.used3)
 
 # Testing for silly inputs.
 expect_error(technicalCV2(X, spike.type="whee"), "'arg' should be one of")
-expect_error(technicalCV2(X[0,], spike.type="Spikes"), "none or all of the rows correspond to spike-in transcripts")
+expect_error(technicalCV2(X[0,], spike.type="Spikes"), "need at least 2 spike-ins for trend fitting")
 expect_error(technicalCV2(X[,0], spike.type="Spikes"), "need two or more cells to compute variances")
+
+out <- technicalCV2(counts, is.spike=!logical(ngenes))
+expect_true(all(is.na(out$p.value)))
+expect_error(technicalCV2(counts, is.spike=logical(ngenes)), "need at least 2 spike-ins for trend fitting")
 
