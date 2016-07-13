@@ -8,6 +8,9 @@ SEXP compute_CV2_internal(const T* ptr, const matrix_info& MAT, SEXP subset_row,
     const int* rsptr=rsubout.second;
 
     const size_t& ncells=MAT.ncol;
+    if (ncells < 2) {
+        throw std::runtime_error("need two or more cells to compute variances");
+    }
     if (!isReal(size_factors)) {
         throw std::runtime_error("size factors should be double-precision");
     } else  if (LENGTH(size_factors)!=int(ncells)) {

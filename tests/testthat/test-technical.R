@@ -42,5 +42,5 @@ expect_equal(default, as.sceset)
 # Testing for silly inputs.
 expect_error(technicalCV2(X, spike.type="whee"), "'arg' should be one of")
 expect_error(technicalCV2(X[0,], spike.type="Spikes"), "none or all of the rows correspond to spike-in transcripts")
-expect_error(technicalCV2(X[,0], spike.type="Spikes"), "All values must be finite and non-missing")
+expect_error(technicalCV2(X[,0], spike.type="Spikes"), "need two or more cells to compute variances")
 
