@@ -2,6 +2,7 @@
 
 require(scran); require(testthat)
 
+set.seed(6000)
 ngenes <- 10000
 means <- 2^runif(ngenes, 6, 10)
 dispersions <- 10/means + 0.2
@@ -38,6 +39,13 @@ sizeFactors(X, type="Spikes") <- 1
 default <- technicalCV2(counts, is.spike, sf.cell=sf, sf.spike=rep(1, nsamples))
 as.sceset <- technicalCV2(X, spike.type="Spikes")
 expect_equal(default, as.sceset)
+
+# Testing what happens when is.spike=NA.
+all.used <- technicalCV2(counts, is.spike=NA)
+counts2 <- rbind(counts, counts)
+is.spike2 <- rep(c(FALSE, TRUE), each=nrow(counts))
+all.used2 <- technicalCV2(counts2, is.spike2)
+expect_equal(all.used, all.used2[!is.spike2,])
 
 # Testing for silly inputs.
 expect_error(technicalCV2(X, spike.type="whee"), "'arg' should be one of")

@@ -49,6 +49,10 @@ If either \code{sf.cell} or \code{sf.spike} are not specified, the \code{\link[D
 For \code{technicalCV2,SCESet-method}, size factors for the endogenous genes are automatically extracted via \code{\link{sizeFactors}}.
 Spike-in-specific size factors for \code{spike.type} are extracted, if available; otherwise they are set to the size factors for the endogenous genes.
 
+If \code{is.spike=NA}, all rows will be used for trend fitting, and statistics will be reported for all rows.
+This should be used in cases where there are no spike-ins, such that the endogenous genes need to be used for trend fitting.
+Here, the assumption is that most genes do not exhibit high biological variability and thus can be used to model technical variation. 
+
 Currently, this function does not support custom normalization multiple spike-in sets, nor does it allow for arbitrary design matrices to be used in calculating the variance.
 }
 

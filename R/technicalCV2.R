@@ -7,21 +7,27 @@
 # based on code by Phillipe Brennecke et al. (2013).
 # created 11 July 2016
 {
-    is.spike <- .subset_to_index(is.spike, x, byrow=TRUE)
-    if (length(is.spike)==nrow(x) || length(is.spike)==0L) {
-        stop("none or all of the rows correspond to spike-in transcripts")
+    if (!all(is.na(is.spike))) { 
+        is.spike <- .subset_to_index(is.spike, x, byrow=TRUE)
+        if (length(is.spike)==nrow(x) || length(is.spike)==0L) {
+            stop("none or all of the rows correspond to spike-in transcripts")
+        } else if (any(is.na(is.spike))) { 
+            stop("missing values in 'is.spike'")
+        }
+        is.cell <- seq_len(nrow(x))[-is.spike]
+    } else {
+        is.cell <- is.spike <- seq_len(nrow(x))
     }
 
     # Computing size factors, if not supplied.
     if (is.null(sf.cell)) { 
-        sf.cell <- DESeq2::estimateSizeFactorsForMatrix(x[-is.spike,,drop=FALSE])
+        sf.cell <- DESeq2::estimateSizeFactorsForMatrix(x[is.cell,,drop=FALSE])
     } 
     if (is.null(sf.spike)) {
         sf.spike <- DESeq2::estimateSizeFactorsForMatrix(x[is.spike,,drop=FALSE])
     }
 
     # Computing the statistics.
-    is.cell <- seq_len(nrow(x))[-is.spike]
     cell.out <- .Call(cxx_compute_CV2, x, is.cell-1L, sf.cell)
     if (is.character(cell.out)) { 
         stop(cell.out)
