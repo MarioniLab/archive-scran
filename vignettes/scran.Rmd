@@ -335,13 +335,14 @@ Naively comparing against a null distribution of correlations that was construct
 Rather, the null distribution should be compared to an appropriate null, as shown below.
 
 ```{r}
+set.seed(12120)
 design <- model.matrix(~factor(rep(1:5, 2)))
 y <- matrix(rnorm(1000, mean=rep(1:5, 5), sd=2), ncol=10, byrow=TRUE)
 null <- correlateNull(ncol(y))
 out <- correlatePairs(y, design=design, null=null)
 plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out))) # wrong
 null <- correlateNull(design=design, residuals=TRUE)
-out <- correlatePairs(y, design=design, null=null)
+out <- correlatePairs(y, design=design, null=null, residuals=TRUE)
 plot(log10(sort(out$p.value)/1:nrow(out)*nrow(out))) # right
 ```
 -->
