@@ -121,7 +121,7 @@ If we decide to use the deconvolution size factors, it is recommended to compute
 This is because the spike-ins are not affected by total mRNA content.
 Using the deconvolution size factors will over-normalize the spike-in counts, whereas the spike-in size factors are more appropriate.
 To obtain the latter without overwriting the former, we can set `general.use=FALSE` in `computeSpikeFactors` such that the spike-in-based size factors will be computed and stored in the `SCESet` object, but will only be used by the spike-in transcripts.
-(Obviously, if the spike-in size factors were already being used for normalization, then this extra step is unnecessary.)
+(Obviously, if the spike-in size factors were already being used for normalization, e.g., in `sce2`, then this extra step is unnecessary.)
 
 ```{r}
 sce <- computeSpikeFactors(sce, general.use=FALSE)
@@ -191,7 +191,6 @@ head(decomp[top.hvgs,])
 This can be examined more visually by constructing a mean-variance plot.
 Here, the black points represent the endogenous genes; the red points represent spike-in transcripts; and the red line represents the mean-variance trend fitted to the spike-ins.
 
-
 ```{r}
 plot(decomp$mean, decomp$total, xlab="Mean log-expression", ylab="Variance")
 o <- order(decomp$mean)
@@ -219,6 +218,9 @@ design <- model.matrix(~batch)
 alt.fit2 <- trendVar(sce, design=design)
 alt.decomp2 <- decomposeVar(sce, alt.fit)
 ```
+
+Alternative approaches to identifying HVGs are implemented in the `DM` and `technicalCV2` functions.
+These are based on the coefficient of variation for count data, which provides more power for rare subpopulations but is also more sensitive to outliers.
 
 <!--
 We use log-transformed values as the count-based models put too much weight on large outliers.
