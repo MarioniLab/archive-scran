@@ -2,7 +2,7 @@
 \title{scran News}
 \encoding{UTF-8}
 
-\section{Version 1.1.7}{\itemize{
+\section{Version 1.1.8}{\itemize{
 \item
 Added 'min' argument to testVar().
 
