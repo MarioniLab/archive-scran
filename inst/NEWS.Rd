@@ -39,6 +39,9 @@ Updated convertTo() to store spike-in-specific size factors as offsets.
 Moved code and subsetting into C++ to improve memory efficiency.
 
 \item
+Switched to loess-based trend fitting as the default in trendVar().
+
+\item
 Updated documentation and tests.
 }}
 
