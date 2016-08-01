@@ -7,8 +7,9 @@
 \description{Fit a mean-dependent trend to the gene-specific variances in single-cell RNA-seq data.}
 
 \usage{
-\S4method{trendVar}{matrix}(x, trend=c("poly", "loess"), df=5, span=0.3, 
+\S4method{trendVar}{matrix}(x, trend=c("loess", "poly"), df=5, span=0.3, 
     design=NULL, subset.row=NULL)
+
 \S4method{trendVar}{SCESet}(x, subset.row=NULL, ..., 
     assay="exprs", use.spikes=TRUE)
 }
