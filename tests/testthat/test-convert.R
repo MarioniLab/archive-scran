@@ -149,7 +149,7 @@ X <- newSCESet(countData=data.frame(dummy))
 y <- convertTo(X, type="edgeR")
 expect_identical(counts(X), y$counts)
 dds <- convertTo(X, type="DESeq2")
-expect_identical(counts(X), counts(dds))
+expect_equal(counts(X), counts(dds))
 sizeFactors(X) <- 1
 y <- convertTo(X, type="monocle")
 expect_equal(exprs(y), counts(X))
