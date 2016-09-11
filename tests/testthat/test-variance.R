@@ -143,23 +143,22 @@ out <- decomposeVar(X, fit)
 out.all <- decomposeVar(X, fit, get.spikes=TRUE)
 expect_identical(rownames(out), rownames(X))
 expect_identical(rownames(out.all), rownames(X))
+basic <- c("mean", "total", "bio", "tech")
+expect_equivalent(out.all[,basic], out[,basic]) 
 
 ref.mean <- rowMeans(exprs(X))
 expect_equivalent(out.all$mean, ref.mean)
-ref.mean[isSpike(X)] <- NA_real_
-expect_equivalent(out$mean, ref.mean)
-
 ref.var <- apply(exprs(X), 1, var)
-expect_true(all(is.na(out.all$total)==is.na(ref.var)))
-expect_true(all(abs(unname(out.all$total)-ref.var) < 1e-8 | is.na(ref.var)))
-ref.var[isSpike(X)] <- NA_real_
-expect_true(all(is.na(out$total)==is.na(ref.var)))
-expect_true(all(abs(unname(out$total)-ref.var) < 1e-8 | is.na(ref.var)))
-
+expect_equivalent(ref.var, out.all$total)
 expect_equivalent(out$tech, fit$trend(ref.mean))
 expect_equivalent(out$bio, out$total-out$tech)
-expect_true(all(abs(out.all$tech - fit$trend(out.all$mean)) < 1e-8 | is.na(out.all$tech)))
-expect_equivalent(out.all$bio, out.all$total-out.all$tech)
+
+ref.p <- testVar(out$total, out$tech, df=ncells-1)
+expect_equivalent(ref.p, out.all$p.value)
+expect_equivalent(p.adjust(ref.p, method="BH"), out.all$FDR)
+ref.p[isSpike(X)] <- NA_real_
+expect_equivalent(ref.p, out$p.value)
+expect_equivalent(p.adjust(ref.p, method="BH"), out$FDR)
 
 shuffled <- c(500:1, 501:1000)
 out.ref <- decomposeVar(X[shuffled,], fit)
@@ -178,11 +177,15 @@ expect_equal(out$mean, out3$mean)
 refit <- lm.fit(y=t(exprs(X)), x=design)
 effects <- refit$effects[-seq_len(ncol(design)),]
 test.var <- colMeans(effects^2)
-test.var[isSpike(X)] <- NA
-expect_equivalent(out3$total, test.var)
 
+expect_equivalent(out3$total, test.var)
 expect_equivalent(out3$tech, fit$trend(ref.mean))
 expect_equivalent(out3$bio, out3$total-out3$tech)
+
+ref.p <- testVar(out3$total, out3$tech, df=nrow(design) - ncol(design))
+ref.p[isSpike(X)] <- NA_real_
+expect_equivalent(ref.p, out3$p.value)
+expect_equivalent(p.adjust(ref.p, method="BH"), out3$FDR)
 
 ####################################################################################################
 
