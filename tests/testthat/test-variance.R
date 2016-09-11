@@ -73,9 +73,9 @@ expect_equal(out4$var, out2$var)
 expect_equal(out4$trend, out2$trend)
 expect_equal(out4$design, out2$design)
 
-# Trying again but with the polynomial.
+# Trying again but with the semiloessnomial.
 
-out2 <- trendVar(d, trend="poly")
+suppressWarnings(out2 <- trendVar(d, trend="semiloess"))
 expect_equal(out$mean, out2$mean)
 expect_equal(out$var, out2$var)
 expect_equal(out2$design, out$design)
@@ -118,7 +118,7 @@ expect_equal(out$var, colMeans(effects^2))
 # There's a lot of ways it can fail when silly inputs are supplied.
 
 expect_error(trendVar(d[0,,drop=FALSE]), "invalid 'x'") # loess fails with empty input vectors.
-expect_error(trendVar(d[2,,drop=FALSE], trend="poly"), "'degree' must be less than number of unique points")
+expect_error(trendVar(d[0,,drop=FALSE], trend="semiloess"), "need at least 4 values for non-linear curve fitting")
 expect_error(trendVar(d[,0,drop=FALSE]), "design matrix is not of full rank")
 expect_error(trendVar(d[,1,drop=FALSE]), "design matrix is not of full rank")
 
