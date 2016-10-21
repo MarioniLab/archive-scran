@@ -35,7 +35,7 @@ The strategy is to fit an abundance-dependent trend to the variance of the log-n
 For SCESet objects, these expression values can be computed by \code{\link{normalize}} after setting the size factors, e.g., with \code{\link{computeSpikeFactors}}.
 Log-transformed values are used as these are more robust to genes/transcripts with strong expression in only one or two outlier cells.
 
-The mean and variance of the log-CPMs is calculated for each spike-in transcript, and a trend is fitted to the variance against the mean for all transcripts.
+The mean and variance of the normalized log-counts is calculated for each spike-in transcript, and a trend is fitted to the variance against the mean for all transcripts.
 The fitted value of this trend represents technical variability due to sequencing, drop-outs during capture, etc.
 Variance decomposition to biological and technical components for endogenous genes can then be performed later with \code{\link{decomposeVar}}.
 

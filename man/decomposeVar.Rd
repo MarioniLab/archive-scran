@@ -27,15 +27,15 @@
 }
 
 \details{
-This function computes the variance of the log-CPMs for each endogenous gene.
-The technical component of the variance for each gene is determined by interpolating the fitted trend in \code{fit} at the mean log-CPM for that gene.
+This function computes the variance of the normalized log-counts for each endogenous gene.
+The technical component of the variance for each gene is determined by interpolating the fitted trend in \code{fit} at the mean log-count for that gene.
 This represents variance due to sequencing noise, variability in capture efficiency, etc.
 The biological component is determined by subtracting the technical component from the total variance.
 
 Highly variable genes (HVGs) can be identified as those with large biological components.
-Unlike other methods for decomposition, this approach estimates the variance of the log-CPMs rather than of the counts themselves.
+Unlike other methods for decomposition, this approach estimates the variance of the log-counts rather than of the counts themselves.
 The log-transformation blunts the impact of large positive outliers and ensures that the HVG list is not dominated by outliers.
-Interpretation is not compromised -- HVGs will still be so, regardless of whether counts or log-CPMs are considered.
+Interpretation is not compromised -- HVGs will still be so, regardless of whether counts or log-counts are considered.
 
 The design matrix can be set if there are factors that should be blocked, e.g., batch effects, known (and uninteresting) clusters.
 If \code{NULL}, it will be set to an all-ones matrix, i.e., all cells are replicates.
