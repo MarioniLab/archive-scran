@@ -2,6 +2,11 @@
 \title{scran News}
 \encoding{UTF-8}
 
+\section{Version 1.3.1}{\itemize{
+\item
+Added run argument to selectorPlot().
+}}
+
 \section{Version 1.2.0}{\itemize{
 \item
 Transformed correlations to a metric distance in quickCluster().

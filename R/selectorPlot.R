@@ -1,4 +1,4 @@
-selectorPlot <- function(x, y, persist=FALSE, plot.width=5, plot.height=500, pch=16, ...)
+selectorPlot <- function(x, y, persist=FALSE, plot.width=5, plot.height=500, run=TRUE, pch=16, ...)
 # This generates an interactive plot where x/y coordinates can be selected
 # for further examination within R.
 #
@@ -77,7 +77,12 @@ selectorPlot <- function(x, y, persist=FALSE, plot.width=5, plot.height=500, pch
         })
     }
 
-    shinyApp(ui, server)
+    app <- shinyApp(ui, server)
+    if (run) {
+        return(runApp(app))
+    } else {
+        return(app)
+    }
 }
 
 # A battery of internal functions, taken out to reduce the length of the main function.

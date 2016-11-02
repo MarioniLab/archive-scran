@@ -30,7 +30,7 @@ importFrom("stats", approx, as.dist, cor, fitted, hclust, loess, median, p.adjus
 importFrom("grDevices", grey.colors)
 importFrom("graphics", text)
 
-importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, plotOutput, renderPlot, shinyApp, stopApp)
+importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, plotOutput, renderPlot, shinyApp, stopApp, runApp)
 
 import(BiocParallel)
 import(scater)
