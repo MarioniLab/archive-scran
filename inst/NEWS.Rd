@@ -7,6 +7,9 @@
 Added run argument to selectorPlot().
 
 \item
+Minor bug fix to DM() when extrapolation is required.
+
+\item
 Streamlined examples when mocking up data sets.
 }}
 

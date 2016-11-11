@@ -4,6 +4,7 @@ selectorPlot <- function(x, y, persist=FALSE, plot.width=5, plot.height=500, run
 #
 # created by Aaron Lun
 # written 8 June 2016
+# last modified 11 November 2016
 {
     N <- length(x)
     if (length(y)!=N) { stop("length of x and y vectors should be equal") }
@@ -34,7 +35,7 @@ selectorPlot <- function(x, y, persist=FALSE, plot.width=5, plot.height=500, run
             column(width = plot.width,
                 plotOutput("plot2", height = plot.height)
             )
-        ),
+        ), hr(),
         actionButton("select", "Select"),
         actionButton("unselect", "Deselect"),
         actionButton("clear", "Clear selection"),
