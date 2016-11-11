@@ -105,7 +105,7 @@ rownames(counts) <- paste0("X", seq_len(ngenes))
 colnames(counts) <- paste0("Y", seq_len(nsamples))
 X <- newSCESet(countData=counts)
 X <- calculateQCMetrics(X, list(Spikes=is.spike))
-isSpike(X) <- "Spikes"
+setSpike(X) <- "Spikes"
 
 # Dummying up some size factors (for convenience only, use computeSumFactors() instead).
 sizeFactors(X) <- 1

@@ -10,6 +10,12 @@ Added run argument to selectorPlot().
 Minor bug fix to DM() when extrapolation is required.
 
 \item
+Added setSpike<-, whichSpike() for setting and getting spike-in names.
+
+\item
+Deprecated isSpike<- to avoid confusion over input/output types.
+
+\item
 Streamlined examples when mocking up data sets.
 }}
 

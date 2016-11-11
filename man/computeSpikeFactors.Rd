@@ -66,7 +66,7 @@ colnames(combined) <- seq_len(ncells)
 rownames(combined) <- seq_len(nrow(combined))
 y <- newSCESet(countData=combined)
 y <- calculateQCMetrics(y, list(Spike=rep(c(FALSE, TRUE), c(ngenes, nspikes))))
-isSpike(y) <- "Spike"
+setSpike(y) <- "Spike"
 
 ################
 # Computing and storing spike-in size factors. 
