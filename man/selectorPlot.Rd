@@ -60,11 +60,10 @@ Aaron Lun
 \examples{
 example(newSCESet)
 pca <- plotPCA(example_sceset)
+x <- pca$data$PC1
+y <- pca$data$PC2
 
-# Slightly tedious to extract x/y from ggplot objects:
-x <- ggplot2::ggplot_build(pca)$data[[1]][,1]
-y <- ggplot2::ggplot_build(pca)$data[[1]][,2]
-
+# Creating the app object.
 app <- selectorPlot(x, y, run=FALSE)
 
 \dontrun{# Running the app object.

@@ -101,26 +101,9 @@ Aaron Lun
 }
 
 \examples{
-set.seed(100)
+example(computeSpikeFactors) # Using the mocked-up data 'y' from this example.
 
-nspikes <- ncells <- 200
-spike.means <- 2^runif(nspikes, 3, 8)
-spike.disp <- 100/spike.means + 0.5
-spike.data <- matrix(rnbinom(nspikes*ncells, mu=spike.means, size=1/spike.disp), ncol=ncells)
-
-ngenes <- 10000
-cell.means <- 2^runif(ngenes, 2, 10)
-cell.disp <- 100/cell.means + 0.5
-cell.data <- matrix(rnbinom(ngenes*ncells, mu=cell.means, size=1/cell.disp), ncol=ncells)
-
-combined <- rbind(cell.data, spike.data)
-colnames(combined) <- seq_len(ncells)
-rownames(combined) <- seq_len(nrow(combined))
-y <- newSCESet(countData=combined)
-y <- calculateQCMetrics(y, list(Spike=rep(c(FALSE, TRUE), c(ngenes, nspikes))))
-isSpike(y) <- "Spike"
-
-# Normalizing.
+# Normalizing (gene-based factors for genes, spike-in factors for spike-ins)
 y <- computeSumFactors(y) 
 y <- computeSpikeFactors(y, general.use=FALSE)
 y <- normalize(y)
@@ -128,14 +111,19 @@ y <- normalize(y)
 # Fitting a trend to the spike-ins.
 fit <- trendVar(y)
 plot(fit$mean, fit$var)
-x <- sort(fit$mean)
-lines(x, fit$trend(x), col="red", lwd=2)
+curve(fit$trend(x), col="red", lwd=2, add=TRUE)
 
 # Fitting a trend to the endogenous genes. 
-fit <- trendVar(y, use.spikes=FALSE)
-plot(fit$mean, fit$var)
-x <- sort(fit$mean)
-lines(x, fit$trend(x), col="red", lwd=2)
+fit.g <- trendVar(y, use.spikes=FALSE)
+plot(fit.g$mean, fit.g$var)
+curve(fit.g$trend(x), col="red", lwd=2, add=TRUE)
+}
+
+\references{
+Lun ATL, McCarthy DJ and Marioni JC (2016). 
+A step-by-step workflow for low-level analysis of single-cell RNA-seq data with Bioconductor.
+\emph{F1000Res.} 5:2122
+
 }
 
 \keyword{variance}

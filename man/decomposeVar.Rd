@@ -69,39 +69,32 @@ Aaron Lun
 }
 
 \examples{
-set.seed(100)
-
-nspikes <- ncells <- 200
-spike.means <- 2^runif(nspikes, 3, 8)
-spike.disp <- 100/spike.means + 0.5
-spike.data <- matrix(rnbinom(nspikes*ncells, mu=spike.means, size=1/spike.disp), ncol=ncells)
-
-ngenes <- 10000
-cell.means <- 2^runif(ngenes, 2, 10)
-cell.disp <- 100/cell.means + 0.5
-cell.data <- matrix(rnbinom(ngenes*ncells, mu=cell.means, size=1/cell.disp), ncol=ncells)
-
-combined <- rbind(cell.data, spike.data)
-colnames(combined) <- seq_len(ncells)
-rownames(combined) <- seq_len(nrow(combined))
-y <- newSCESet(countData=combined)
-y <- calculateQCMetrics(y, list(Spike=rep(c(FALSE, TRUE), c(ngenes, nspikes))))
-isSpike(y) <- "Spike"
-
-# Normalizing.
-y <- computeSumFactors(y)
-y <- computeSpikeFactors(y, general.use=FALSE)
-y <- normalize(y)
+example(computeSpikeFactors) # Using the mocked-up data 'y' from this example.
+y <- computeSumFactors(y) # Size factors for the the endogenous genes.
+y <- computeSpikeFactors(y, general.use=FALSE) # Size factors for spike-ins. 
+y <- normalize(y) # Normalizing the counts by the size factors.
 
 # Decomposing technical and biological noise.
 fit <- trendVar(y)
 results <- decomposeVar(y, fit)
+head(results)
 
 plot(results$mean, results$total)
 o <- order(results$mean)
 lines(results$mean[o], results$tech[o], col="red", lwd=2)
 
 plot(results$mean, results$bio)
+
+# A trend fitted to endogenous genes can also be used, pending assumptions.
+fit.g <- trendVar(y, use.spikes=FALSE)
+results.g <- decomposeVar(y, fit.g)
+head(results.g)
+}
+
+\references{
+Lun ATL, McCarthy DJ and Marioni JC (2016). 
+A step-by-step workflow for low-level analysis of single-cell RNA-seq data with Bioconductor.
+\emph{F1000Res.} 5:2122
 }
 
 \keyword{variance}

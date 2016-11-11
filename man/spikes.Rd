@@ -71,23 +71,15 @@ Aaron Lun
 }
 
 \examples{
-set.seed(100)
-popsize <- 10
-ngenes <- 1000
-all.facs <- 2^rnorm(popsize, sd=0.5)
-counts <- matrix(rnbinom(ngenes*popsize, mu=10*all.facs, size=1), ncol=popsize, byrow=TRUE)
-spikes <- matrix(rnbinom(100*popsize, mu=10*all.facs, size=0.5), ncol=popsize, byrow=TRUE)
+example(computeSpikeFactors) # Using the mocked-up data 'y' in this example
 
-combined <- rbind(counts, spikes)
-colnames(combined) <- seq_len(popsize)
-rownames(combined) <- seq_len(nrow(combined))
-y <- newSCESet(countData=combined)
-y <- calculateQCMetrics(y, list(IAmASpike=rep(c(FALSE, TRUE), c(ngenes, 100))))
-isSpike(y) <- "IAmASpike"
+# Setting the spike-ins and computing normalized values for them.
+isSpike(y) <- "Spike"
+y <- computeSpikeFactors(y) # can also do with general.use=FALSE.
+y <- normalize(y) 
 
-y <- computeSpikeFactors(y)
-y <- normalize(y)
-spikes(y)[1:10,]
-spikes(y, assay="exprs")[1:10,]
-isSpike(y)
+# Extracting the spike-in data.
+head(spikes(y))
+head(spikes(y, assay="exprs"))
+summary(isSpike(y))
 }

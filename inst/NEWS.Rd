@@ -5,6 +5,9 @@
 \section{Version 1.3.1}{\itemize{
 \item
 Added run argument to selectorPlot().
+
+\item
+Streamlined examples when mocking up data sets.
 }}
 
 \section{Version 1.2.0}{\itemize{
