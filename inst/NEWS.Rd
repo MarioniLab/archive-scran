@@ -15,6 +15,9 @@ Moved spike-in specification to the scater package.
 \item
 Deprecated isSpike<- to avoid confusion over input/output types.
 
+\item 
+Generalized sandbag(), cyclone() to work for other classification problems.
+
 \item
 Streamlined examples when mocking up data sets.
 }}
