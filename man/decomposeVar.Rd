@@ -43,6 +43,8 @@ If \code{NA}, it will be extracted from \code{fit$design}, assuming that the sam
 
 Users can also directly specify which rows to use with \code{subset.row}.
 This is equivalent to running \code{decomposeVar} on \code{x[subset.row,]}, but is more efficient as it avoids the construction of large temporary matrices.
+
+If \code{assay="exprs"} and the size factors are not centred at unity, a warning will be raised - see \code{?\link{trendVar}} for details.
 }
 
 \value{

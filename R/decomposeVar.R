@@ -31,6 +31,9 @@ setMethod("decomposeVar", c("matrix", "list"), function(x, fit, design=NA, subse
 })
 
 setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
+    if (assay=="exprs" && !areSizeFactorsCentred(x)) {
+        warning("size factors not centred, run 'normalize()' first")
+    }
     out <- decomposeVar(assayDataElement(x, assay), fit, ..., subset.row=subset.row)
     if (!get.spikes) {
         nokeep <- isSpike(x, warning=FALSE)

@@ -25,7 +25,7 @@ expect_equal(out$trend(m), out$trend(m-1))
 
 expect_equal(out$design, as.matrix(rep(1, ncells)))
 
-# Get the same results directly on a SCESet.
+# Get the same results directly on a SCESet, with various spike-in specifications.
 
 suppressWarnings(expect_error(trendVar(X), "invalid 'x'")) # because there aren't any spike-ins for loess.
 
@@ -59,7 +59,7 @@ expect_equal(out3$var, out3b$var)
 expect_equal(out3$trend, out3b$trend)
 expect_equal(out3$design, out3b$design)
 
-dummy2 <- rbind(dummy, 0)
+dummy2 <- rbind(dummy, 0) # Checking what happens if all but one feature is a spike-in.
 rownames(dummy2) <- paste0("X", seq_len(nrow(dummy2)))
 X2 <- newSCESet(countData=data.frame(dummy2))
 X2 <- calculateQCMetrics(X2, list(Chosen=rep(c(TRUE, FALSE), c(ngenes, 1))))
@@ -72,6 +72,10 @@ expect_equal(out4$mean, out2$mean)
 expect_equal(out4$var, out2$var)
 expect_equal(out4$trend, out2$trend)
 expect_equal(out4$design, out2$design)
+
+subX <- X[,1:10] # Checking that it raises a warning upon subsetting (where the size factors are no longer centered).
+expect_warning(trendVar(subX), "size factors not centred")
+expect_warning(trendVar(normalize(subX)), NA)
 
 # Trying again but with the semiloess.
 
@@ -164,6 +168,10 @@ shuffled <- c(500:1, 501:1000)
 out.ref <- decomposeVar(X[shuffled,], fit)
 out2 <- decomposeVar(X, fit, subset.row=shuffled)
 expect_identical(out.ref, out2) # Checking that subset.row works. 
+
+subX <- X[,1:10] # Checking that it raises a warning upon subsetting (where the size factors are no longer centered).
+expect_warning(decomposeVar(subX, fit, design=NULL), "size factors not centred")
+expect_warning(decomposeVar(normalize(subX), fit, design=NULL), NA)
 
 # Testing with a modified design matrix.
 

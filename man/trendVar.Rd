@@ -75,6 +75,11 @@ This assumes that most genes exhibit technical variation and little biological v
 If \code{use.spikes=NA}, every row will be used for trend fitting, regardless of whether it corresponds to a spike-in transcript or endogenous gene.
 Users can also directly specify which rows to use with \code{subset.row}.
 This will override any setting of \code{use.spikes}.
+
+If \code{assay="exprs"} and the size factors are not centred at unity, a warning will be issued.
+This is because different size factors are typically used for endogenous genes and spike-in transcripts.
+If these sets are not centred at the same value, there will be systematic differences in abundance between these features.
+This precludes the use of a spike-in-fitted trend on abundances for endogenous genes.
 }
 
 \value{
