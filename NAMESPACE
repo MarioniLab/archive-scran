@@ -19,7 +19,7 @@ importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("Matrix", sparseMatrix, qr, qr.coef, qr.qty)
 importFrom("zoo", zoo, rollapply, index)
 
-importFrom("edgeR", DGEList, "[.DGEList", designAsFactor)
+importFrom("edgeR", DGEList, "[.DGEList", designAsFactor, scaleOffset.DGEList)
 importFrom("statmod", glmgam.fit)
 
 importFrom("BiocGenerics", normalize)
