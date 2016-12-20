@@ -2,12 +2,15 @@
 \title{scran News}
 \encoding{UTF-8}
 
-\section{Version 1.3.3}{\itemize{
+\section{Version 1.3.5}{\itemize{
 \item
 Added run argument to selectorPlot().
 
 \item
 Minor bug fix to DM() when extrapolation is required.
+
+\item
+Added check for centred size factors in trendVar(), decomposeVar() methods.
 
 \item
 Moved spike-in specification to the scater package.
