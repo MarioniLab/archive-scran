@@ -73,7 +73,7 @@ expect_equal(out4$var, out2$var)
 expect_equal(out4$trend, out2$trend)
 expect_equal(out4$design, out2$design)
 
-subX <- X[,1:10] # Checking that it raises a warning upon subsetting (where the size factors are no longer centered).
+subX <- X2[,1:10] # Checking that it raises a warning upon subsetting (where the size factors are no longer centered).
 expect_warning(trendVar(subX), "size factors not centred")
 expect_warning(trendVar(normalize(subX)), NA)
 

@@ -75,11 +75,21 @@ This assumes that most genes exhibit technical variation and little biological v
 If \code{use.spikes=NA}, every row will be used for trend fitting, regardless of whether it corresponds to a spike-in transcript or endogenous gene.
 Users can also directly specify which rows to use with \code{subset.row}.
 This will override any setting of \code{use.spikes}.
+}
 
-If \code{assay="exprs"} and the size factors are not centred at unity, a warning will be issued.
+\section{Warning on size factor centring}{ 
+If \code{assay="exprs"}, \code{trendVar,SCESet-method} will attempt to determine if the expression values were computed from counts via \code{\link[scater]{normalize}}.
+If so, a warning will be issued if the size factors are not centred at unity.
 This is because different size factors are typically used for endogenous genes and spike-in transcripts.
-If these sets are not centred at the same value, there will be systematic differences in abundance between these features.
-This precludes the use of a spike-in-fitted trend on abundances for endogenous genes.
+If these size factors sets are not centred at the same value, there will be systematic differences in abundance between these features.
+This precludes the use of a spike-in-fitted trend with abundances for endogenous genes in \code{\link{decomposeVar}}.
+
+For user-specified expression values and in \code{trendVar,matrix-method}, the onus is on the user to ensure that normalization preserves differences in abundance.
+In other words, the scaling factors used to normalize each feature should have the same mean.
+This ensures that spurious differences in abundance are not introduced by the normalization process.
+
+% Forcibly recomputing the expression values within trendVar() is safer, but slightly expensive and restricted to this function.
+% Better to request a re-calculation on the user's side, such that the recalculated values are consistently used here and elsewhere.
 }
 
 \value{
