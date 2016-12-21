@@ -91,10 +91,15 @@ This ensures that spurious differences in abundance are not introduced by the no
 % Forcibly recomputing the "exprs" values within trendVar() is arguably safer, as normalize() enforces centring.
 % However, it's slightly expensive, hidden from the user and restricted to this function.
 % Better to request a re-calculation on the user's side, such that the recalculated values are consistently used here and elsewhere.
+%
 % The attempted check should only fail in pathological cases:
 % - false positives when counts are added to "x" after computing "exprs" (fairly unusual to not put them in as raw data first)
+% - false positives when normalize() is run with centre_size_factors=FALSE (don't know why you would do that)
 % - false negatives when counts are removed from "x" after computing "exprs" (this is pretty stupid)
 % - false negatives when size factors are modified by centring but "exprs" is not re-computed (arguably a problem for the entire workflow)
+%
+% The other options would involve enforcing validity checks on "exprs" within the SCESet object itself.
+% However, this is probably too obtrusive for little gain; only this function requires consistency in the absolute values of the size factors.
 }
 
 \value{
