@@ -2,7 +2,7 @@
 \title{scran News}
 \encoding{UTF-8}
 
-\section{Version 1.3.5}{\itemize{
+\section{Version 1.3.6}{\itemize{
 \item
 Added run argument to selectorPlot().
 
@@ -20,6 +20,9 @@ Deprecated isSpike<- to avoid confusion over input/output types.
 
 \item 
 Generalized sandbag(), cyclone() to work for other classification problems.
+
+\item
+Added test="f" option in testVar() to account for additional scatter.
 
 \item
 Streamlined examples when mocking up data sets.
