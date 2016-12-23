@@ -224,7 +224,7 @@ exprs <- log2(spike.data/(colSums(spike.data)/mean(colSums(spike.data)))+1)
 fit <- trendVar(exprs)
 pvals <- testVar(fit$var, fit$trend(fit$mean), df=ncells-1, fit=fit, test='f')
 
-rat <- fit$var/fit$trend(fit$mean)
+rat <- (fit$var/fit$trend(fit$mean))[fit$var > 0]
 df1 <- nrow(fit$design)-ncol(fit$design)
 ffit <- limma::fitFDistRobustly(rat, df=df1)
 expect_equal(pvals, pf(rat/ffit$scale, df1=df1, df2=ffit$df2, lower.tail=FALSE))

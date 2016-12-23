@@ -17,7 +17,7 @@ testVar <- function(total, null, df, design=NULL, test=c("chisq", "f"), fit=NULL
     } else {
         if (is.null(fit)) { stop("fit object from trendVar() must be specified for test='f'") }
         vals <- fit$var/fit$trend(fit$mean)
-        ffit <- fitFDistRobustly(vals, df1=nrow(fit$design) - ncol(fit$design))
+        ffit <- fitFDistRobustly(vals[fit$var > 0], df1=nrow(fit$design) - ncol(fit$design))
 
         if (verbose) message(sprintf("testing on %i and %.2f degrees of freedom, scaled by %.2f", df, ffit$df2, ffit$scale))
         # Assumes that the scaled inverse-chisq distribution for true variances is the same.
