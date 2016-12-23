@@ -64,18 +64,23 @@ The phase score is defined as the lower tail probability at the observed proport
 High scores indicate that the proportion is greater than what is expected by chance if the expression of marker genes were independent 
 (i.e., with no cycle-induced correlations between marker pairs within each cell).
 
-% Training should protect against non-cycle-based correlations, as such they should be present across all phases and not get included in the marker set.
+% The shuffling assumes that the marker genes are IID from the same distribution of expression values, such that there's no correlations.
+% The question is then what distribution of expression values to use - see below.
+% Training also should protect against non-cycle-based correlations, as such they should be present across all phases and not get included in the marker set.
 
 By default, shuffling is performed \code{iter} times to obtain the distribution from which the score is estimated.
 However, some iterations may not be used if there are fewer than \code{min.pairs} pairs with different expression, such that the proportion cannot be calculated precisely.
-Also, a score is only returned if the distribution is large enough for stable calculation of the tail probability, i.e., consists of results from at least \code{min.iter} iterations.
+A score is only returned if the distribution is large enough for stable calculation of the tail probability, i.e., consists of results from at least \code{min.iter} iterations.
 
-% The original implementation shuffled expression values from all genes in the training set, rather than only genes in the marker set for each phase.
+Note that the score calculation in \code{cyclone} is slightly different from that described originally by Scialdone et al.
+The original code shuffles all expression values within each cell, while in this implementation, only the expression values of genes in the marker pairs are shuffled.
+This modification aims to use the most relevant expression values to build the null score distribution.
+
 % In theory, this shouldn't matter, as the score calculation depends on the ranking of each gene.
 % That should be the same regardless of the distribution of expression values -- each set of rankings is equally likely, no matter what.
-% In practice, the number of ties will differ between different set of genes.
+% In practice, the number of tied expression values will differ between different set of genes, e.g., due to abundance (low counts more likely to get ties).
 % The most appropriate comparison would involve the same number of ties as that used to calculate the observed score.
-% Thus, I would set the marker set genes as the empirical distribution, rather than the entire training set of genes.
+% It doesn't make sense, for example, to shuffle in a whole bunch of non-expressed genes (lots of zeroes, ties) when the markers are always expressed.
 }
 
 \value{
