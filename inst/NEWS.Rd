@@ -2,7 +2,7 @@
 \title{scran News}
 \encoding{UTF-8}
 
-\section{Version 1.3.6}{\itemize{
+\section{Version 1.3.7}{\itemize{
 \item
 Added run argument to selectorPlot().
 
@@ -23,6 +23,9 @@ Generalized sandbag(), cyclone() to work for other classification problems.
 
 \item
 Added test="f" option in testVar() to account for additional scatter.
+
+\item
+Added per.gene=FALSE option in correlatePairs(), expanded accepted value types for subset.row.
 
 \item
 Streamlined examples when mocking up data sets.

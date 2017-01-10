@@ -339,14 +339,14 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings) try {
         for (int p=0; p<Npairs; ++p) {
             const int& g1x=g1ptr[p];
             const int& g2x=g2ptr[p];
-            if (g1x < 1 || g1x > Ngenes) {
+            if (g1x < 0 || g1x >= Ngenes) {
                 throw std::runtime_error("first gene index is out of range");
             }
-            if (g2x < 1 || g2x > Ngenes) {
+            if (g2x < 0 || g2x >= Ngenes) {
                 throw std::runtime_error("second gene index is out of range");
             }
-            r1ptr=rptr+(g1x-1)*Ncells;
-            r2ptr=rptr+(g2x-1)*Ncells;
+            r1ptr=rptr+g1x*Ncells;
+            r2ptr=rptr+g2x*Ncells;
 
             // Computing the correlation.
             working=0;
@@ -367,4 +367,86 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings) try {
     return mkString(e.what());
 }
 
+/*** Combining correlated p-values for each gene into a single combined p-value. ***/
+SEXP combine_corP (SEXP ng, SEXP g1, SEXP g2, SEXP rho, SEXP pval, SEXP order) try {
+    // Checking inputs.
+    if (!isInteger(ng) || LENGTH(ng)!=1) {
+        throw std::runtime_error("number of genes must be an integer scalar");
+    }
+    const int Ngenes=asInteger(ng);
+    if (Ngenes < 0) { throw std::runtime_error("number of genes should be non-zero"); }
+
+    if (!isInteger(g1) || !isInteger(g2)) { 
+        throw std::runtime_error("gene indices must be integer vectors");
+    }
+    const int Npairs=LENGTH(g1);
+    if (Npairs!=LENGTH(g2)) { 
+        throw std::runtime_error("gene index vectors must be of the same length"); 
+    }
+    const int *g1ptr=INTEGER(g1), *g2ptr=INTEGER(g2);
+
+    if (!isReal(rho) || LENGTH(rho)!=Npairs) {
+        throw std::runtime_error("'rho' must be a double precision vector of length equal to the number of pairs");
+    }
+    const double* rptr=REAL(rho);
+
+    if (!isReal(pval) || LENGTH(pval)!=Npairs) {
+        throw std::runtime_error("'pval' must be a double precision vector of length equal to the number of pairs");
+    }
+    const double* pptr=REAL(pval);
+
+    if (!isInteger(order) || LENGTH(order)!=Npairs) {
+        throw std::runtime_error("'order' must be an integer vector of length equal to the number of pairs");
+    }
+    const int* optr=INTEGER(order);
+   
+    // Going through and computing the combined p-value for each gene. 
+    SEXP output=PROTECT(allocVector(VECSXP, 2));
+    try {
+        SET_VECTOR_ELT(output, 0, allocVector(REALSXP, Ngenes));
+        double* opptr=REAL(VECTOR_ELT(output, 0));
+        SET_VECTOR_ELT(output, 1, allocVector(REALSXP, Ngenes));
+        double* orptr=REAL(VECTOR_ELT(output, 1));
+        int* sofar=(int*)R_alloc(Ngenes, sizeof(int));
+        std::fill(sofar, sofar+Ngenes, 0);
+
+        double temp_combined, temp_abs_rho;
+        for (int o=0; o<Npairs; ++o) {
+            const int& curp=optr[o];
+            const double& currho=rptr[curp];
+            const double& curpval=pptr[curp];
+
+            for (int i=0; i<2; ++i) {
+                const int& gx=(i==0 ? g1ptr[curp] : g2ptr[curp]);
+                if (gx < 0 || gx >= Ngenes) {
+                    throw std::runtime_error("supplied gene index is out of range");
+                }
+                
+                // Checking if this is smaller than what is there, or if nothing is there yet.
+                int& already_there=sofar[gx];
+                ++already_there;
+                temp_combined=curpval/already_there;
+                double& combined_pval=opptr[gx];
+                if (already_there==1 || temp_combined < combined_pval) {
+                    combined_pval=temp_combined;
+                }
+                double& max_rho=orptr[gx];
+                if (already_there==1 || std::abs(max_rho) < std::abs(currho)) {
+                    max_rho=currho;
+                }
+            }
+        }
+        
+        // Multiplying by the total number of tests for each gene.        
+        for (int g=0; g<Ngenes; ++g) { opptr[g]*=sofar[g]; }
+    } catch (std::exception& e) { 
+        UNPROTECT(1);
+        throw;
+    }
+
+    UNPROTECT(1);       
+    return(output);
+} catch (std::exception& e) {
+    return mkString(e.what());
+}
 
