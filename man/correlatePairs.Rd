@@ -86,11 +86,13 @@ For \code{correlatePairs} with \code{per.gene=FALSE}, a dataframe is returned wi
 \item{\code{p.value, FDR}:}{Numeric fields containing the permutation p-value and its BH-corrected equivalent.}
 } 
 Rows are sorted by increasing \code{p.value} and, if tied, decreasing absolute size of \code{rho}.
+The exception is if \code{subset.row} is a matrix, in which case each row in the dataframe correspond to a row of \code{subset.row}.
 
 For \code{correlatePairs} with \code{per.gene=TRUE}, a dataframe is returned with one row per gene.
 For each row, the \code{rho} field contains the correlation with the largest magnitude across all gene pairs involving the corresponding gene.
 The \code{p.value} field contains the Simes p-value, and the \code{FDR} field contains the corresponding adjusted p-value.
-No sorting is performed.
+No sorting is performed, so if \code{subset.row=NULL}, each row of the returned dataframe corresponds to a row of \code{x}.
+For the \code{SCESet} method, if \code{get.spikes=FALSE}, rows corresponding to spike-in features will have \code{NA} entries for most fields.
 }
 
 \section{Accounting for uninteresting variation}{

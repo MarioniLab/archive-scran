@@ -258,10 +258,23 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
 setMethod("correlatePairs", "matrix", .correlate_pairs)
 
-setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
+setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, use.names=TRUE, per.gene=FALSE, ..., assay="exprs", get.spikes=FALSE) {
+    by.spikes <- FALSE
     if (is.null(subset.row)) {
         subset.row <- .spikeSubset(x, get.spikes)
+        by.spikes <- TRUE
     }
-    correlatePairs(assayDataElement(x, assay), subset.row=subset.row, ...)             
+    out <- correlatePairs(assayDataElement(x, assay), subset.row=subset.row, per.gene=per.gene, use.names=use.names, ...)
+
+    # Returning a row for all elements, even if it is NA.
+    if (per.gene && by.spikes) {
+        expanded <- rep(NA_integer_, nrow(x))
+        expanded[subset.row] <- seq_len(nrow(out))
+        out <- out[expanded,]
+        out$gene <- .choose_gene_names(seq_len(nrow(x)), x, use.names)
+        rownames(out) <- NULL
+    }
+
+    return(out)
 })
 

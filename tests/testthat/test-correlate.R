@@ -351,6 +351,21 @@ set.seed(100)
 out <- correlatePairs(X2, null.dist=nulls)
 expect_equal(out, ref)
 
+# With spikes and per.gene=TRUE.
+
+set.seed(100)
+out <- correlatePairs(X2, null.dist=nulls, per.gene=TRUE)
+expect_identical(out$gene, rownames(X2))
+expect_true(all(is.na(out$rho[isSpike(X2)])))
+expect_true(all(is.na(out$p.value[isSpike(X2)])))
+
+leftovers <- !isSpike(X2)
+set.seed(100)
+ref <- correlatePairs(exprs(X2)[leftovers,], null.dist=nulls, per.gene=TRUE)
+gene.out <- out[leftovers,]
+rownames(gene.out) <- NULL
+expect_equal(gene.out, ref)
+
 # Checking nonsense inputs.
 
 expect_error(correlatePairs(X[0,], nulls), "need at least two genes to compute correlations")
