@@ -368,7 +368,7 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings) try {
 }
 
 /*** Combining correlated p-values for each gene into a single combined p-value. ***/
-SEXP combine_corP (SEXP ng, SEXP g1, SEXP g2, SEXP rho, SEXP pval, SEXP order) try {
+SEXP combine_corP (SEXP ng, SEXP g1, SEXP g2, SEXP rho, SEXP pval, SEXP limited, SEXP order) try {
     // Checking inputs.
     if (!isInteger(ng) || LENGTH(ng)!=1) {
         throw std::runtime_error("number of genes must be an integer scalar");
@@ -395,18 +395,25 @@ SEXP combine_corP (SEXP ng, SEXP g1, SEXP g2, SEXP rho, SEXP pval, SEXP order) t
     }
     const double* pptr=REAL(pval);
 
+    if (!isLogical(limited) || LENGTH(limited)!=Npairs) {
+        throw std::runtime_error("'limited' must be a logical vector of length equal to the number of pairs");
+    }
+    const int* lptr=LOGICAL(limited);
+
     if (!isInteger(order) || LENGTH(order)!=Npairs) {
         throw std::runtime_error("'order' must be an integer vector of length equal to the number of pairs");
     }
     const int* optr=INTEGER(order);
    
     // Going through and computing the combined p-value for each gene. 
-    SEXP output=PROTECT(allocVector(VECSXP, 2));
+    SEXP output=PROTECT(allocVector(VECSXP, 3));
     try {
         SET_VECTOR_ELT(output, 0, allocVector(REALSXP, Ngenes));
         double* opptr=REAL(VECTOR_ELT(output, 0));
         SET_VECTOR_ELT(output, 1, allocVector(REALSXP, Ngenes));
         double* orptr=REAL(VECTOR_ELT(output, 1));
+        SET_VECTOR_ELT(output, 2, allocVector(LGLSXP, Ngenes));
+        int* olptr=LOGICAL(VECTOR_ELT(output, 2));
         int* sofar=(int*)R_alloc(Ngenes, sizeof(int));
         std::fill(sofar, sofar+Ngenes, 0);
 
@@ -415,6 +422,7 @@ SEXP combine_corP (SEXP ng, SEXP g1, SEXP g2, SEXP rho, SEXP pval, SEXP order) t
             const int& curp=optr[o];
             const double& currho=rptr[curp];
             const double& curpval=pptr[curp];
+            const int& curlimit=lptr[curp];
 
             for (int i=0; i<2; ++i) {
                 const int& gx=(i==0 ? g1ptr[curp] : g2ptr[curp]);
@@ -429,6 +437,7 @@ SEXP combine_corP (SEXP ng, SEXP g1, SEXP g2, SEXP rho, SEXP pval, SEXP order) t
                 double& combined_pval=opptr[gx];
                 if (already_there==1 || temp_combined < combined_pval) {
                     combined_pval=temp_combined;
+                    olptr[gx]=curlimit; // is the combined p-value computed from a limited p-value?
                 }
                 double& max_rho=orptr[gx];
                 if (already_there==1 || std::abs(max_rho) < std::abs(currho)) {

@@ -144,15 +144,18 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
     # Estimating the p-values (need to shift values to break ties conservatively by increasing the p-value).
     left <- findInterval(all.rho + 1e-8, null.dist)
     right <- length(null.dist) - findInterval(all.rho - 1e-8, null.dist)
+    limited <- left==0L | right==0L
     all.pval <- (pmin(left, right)+1)*2/(length(null.dist)+1)
     all.pval <- pmin(all.pval, 1)
 
     # Returning output on a per-gene basis, testing if each gene is correlated to any other gene.
     if (per.gene) {
-        by.gene <- .Call(cxx_combine_corP, length(subset.row), gene1 - 1L, gene2 - 1L, all.rho, all.pval, order(all.pval) - 1L) 
+        by.gene <- .Call(cxx_combine_corP, length(subset.row), gene1 - 1L, gene2 - 1L, 
+                         all.rho, all.pval, limited, order(all.pval) - 1L) 
         if (is.character(by.gene)) stop(by.gene)
         out <- data.frame(gene=final.names, rho=by.gene[[2]], p.value=by.gene[[1]],
-                          FDR=p.adjust(by.gene[[1]], method="BH"), stringsAsFactors=FALSE)
+                          FDR=p.adjust(by.gene[[1]], method="BH"), 
+                          limited=by.gene[[3]], stringsAsFactors=FALSE)
         rownames(out) <- NULL
         return(out)
     }
@@ -161,7 +164,8 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
     gene1 <- final.names[gene1]
     gene2 <- final.names[gene2]
     out <- data.frame(gene1=gene1, gene2=gene2, rho=all.rho, p.value=all.pval, 
-                      FDR=p.adjust(all.pval, method="BH"), stringsAsFactors=FALSE)
+                      FDR=p.adjust(all.pval, method="BH"), 
+                      limited=limited, stringsAsFactors=FALSE)
     if (reorder) {
         out <- out[order(out$p.value, -abs(out$rho)),]
         rownames(out) <- NULL

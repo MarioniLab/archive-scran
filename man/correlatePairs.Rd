@@ -13,7 +13,8 @@ correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE)
 \S4method{correlatePairs}{matrix}(x, null.dist=NULL, design=NULL, BPPARAM=bpparam(), 
     use.names=TRUE, tol=1e-8, residuals=FALSE, subset.row=NULL, per.gene=FALSE)
 
-\S4method{correlatePairs}{SCESet}(x, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE)
+\S4method{correlatePairs}{SCESet}(x, subset.row=NULL, use.names=TRUE, per.gene=FALSE,
+    ..., assay="exprs", get.spikes=FALSE)
 }
 
 \arguments{
@@ -60,6 +61,8 @@ Correction for multiple testing is done using the BH method.
 
 For \code{correlatePairs}, a pre-computed empirical distribution can be supplied as \code{null.dist} if available.
 Otherwise, it will be automatically constructed via \code{correlateNull} with \code{ncells} set to the number of columns in \code{exprs}.
+If the \code{limited} field is \code{TRUE} in the returned dataframe, it may be possible to obtain lower p-values by increasing \code{iters}.
+This should be examined for non-significant pairs, in case some correlations are overlooked due to computational limitations.
 
 For \code{correlatePairs,SCESet-method}, correlations should be computed for normalized expression values in the specified \code{assay}. 
 By default, rows corresponding to spike-in transcripts are removed with \code{get.spikes=FALSE}. 
@@ -84,6 +87,7 @@ For \code{correlatePairs} with \code{per.gene=FALSE}, a dataframe is returned wi
 }
 \item{\code{rho}:}{A numeric field containing the approximate Spearman's rho.}
 \item{\code{p.value, FDR}:}{Numeric fields containing the permutation p-value and its BH-corrected equivalent.}
+\item{\code{limited}:}{A logical scalar indicating whether the p-value is at its lower bound, defined by \code{iters}.}
 } 
 Rows are sorted by increasing \code{p.value} and, if tied, decreasing absolute size of \code{rho}.
 The exception is if \code{subset.row} is a matrix, in which case each row in the dataframe correspond to a row of \code{subset.row}.

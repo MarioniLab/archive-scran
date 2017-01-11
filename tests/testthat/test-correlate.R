@@ -324,6 +324,18 @@ for (x in rownames(X)) {
     expect_equal(ref$rho[collected][max.i], gref$rho[gref$gene==x])
 }
 
+# Checking the limits were computed properly.
+
+X <- rbind(1:Ncells, 1:Ncells, as.numeric(rbind(1:(Ncells/2), Ncells - 1:(Ncells/2) + 1L)))
+out <- correlatePairs(X, null.dist=nulls)
+expect_identical(out$gene1, c(1L, 1L, 2L))
+expect_identical(out$gene2, c(2L, 3L, 3L))
+expect_identical(out$limited, c(TRUE, FALSE, FALSE))
+
+out <- correlatePairs(X, null.dist=nulls, per.gene=TRUE)
+expect_identical(out$gene, c(1L, 2L, 3L))
+expect_identical(out$limited, c(TRUE, TRUE, FALSE))
+
 # Checking that it works with a SCESet object.
 
 set.seed(10003)
