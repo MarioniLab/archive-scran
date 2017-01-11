@@ -268,7 +268,7 @@ setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, use.names=TRU
         subset.row <- .spikeSubset(x, get.spikes)
         by.spikes <- TRUE
     }
-    out <- correlatePairs(assayDataElement(x, assay), subset.row=subset.row, per.gene=per.gene, use.names=use.names, ...)
+    out <- .correlate_pairs(assayDataElement(x, assay), subset.row=subset.row, per.gene=per.gene, use.names=use.names, ...)
 
     # Returning a row for all elements, even if it is NA.
     if (per.gene && by.spikes) {
