@@ -2,7 +2,10 @@
 \title{scran News}
 \encoding{UTF-8}
 
-\section{Version 1.3.7}{\itemize{
+\section{Version 1.3.8}{\itemize{
+\item 
+Switched default BPPARAM to SerialParam() in all functions.
+
 \item
 Added run argument to selectorPlot().
 
