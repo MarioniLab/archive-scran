@@ -178,13 +178,9 @@ An improved Bonferroni procedure for multiple tests of significance.
 set.seed(0)
 ncells <- 100
 null.dist <- correlateNull(ncells, iters=100000)
-\dontshow{# Stalls on Windows for some reason; so we force single-core.
-old <- bpparam()
-register(SerialParam())}
 exprs <- matrix(rpois(ncells*100, lambda=10), ncol=ncells)
 out <- correlatePairs(exprs, null.dist=null.dist)
 hist(out$p.value) 
-\dontshow{register(old)}
 }
 
 \keyword{

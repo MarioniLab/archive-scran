@@ -1,7 +1,6 @@
 # This checks the correlateNull function.
 
 # require(scran); require(testthat); source("test-correlate.R")
-register(SerialParam())
 
 refnull <- function(niters, ncells, resort=TRUE) {
     rankings <- as.double(seq_len(ncells))
@@ -212,7 +211,7 @@ expect_equal(out$p.value, ref$pvalue)
 expect_equal(out$FDR, ref$FDR)
 
 # Repeating without simulation (need to use a normal matrix to avoid ties;
-# bplapply mucks up the seed for tie breaking).
+# bplapply mucks up the seed for tie breaking, even with a single core).
 
 set.seed(200)
 X[] <- rnorm(length(X))
