@@ -29,6 +29,8 @@ Added test="f" option in testVar() to account for additional scatter.
 
 \item
 Added per.gene=FALSE option in correlatePairs(), expanded accepted value types for subset.row.
+Fixed an integer overflow in correlatePairs().
+Also added information on whether the permutation p-value reaches its lower bound.
 
 \item
 Streamlined examples when mocking up data sets.
