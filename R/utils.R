@@ -45,7 +45,7 @@
     # Checks if 'exprs' was requested, and if it could have been computed from counts,
     # If so, then it checks if the size factors are centered.
     if (assay=="exprs" && 
-        !is.null(get_exprs(x, "counts", warning=FALSE)) && 
+        !is.null(suppressWarnings(get_exprs(x, "counts", warning=TRUE))) && 
         !areSizeFactorsCentred(x)) {
         warning("size factors not centred, run 'normalize()' first")
     }
