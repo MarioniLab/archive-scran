@@ -9,8 +9,8 @@ combineVar(..., method=c("fisher", "simes", "berger"))
 }
 
 \arguments{
-\code{...}{Two or more data frames, each produced by \code{\link{decomposeVar}}.}
-\code{method}{A string specifying how p-values are to be combined.}
+\item{...}{Two or more data frames, each produced by \code{\link{decomposeVar}}.}
+\item{method}{A string specifying how p-values are to be combined.}
 }
 
 \details{
