@@ -8,6 +8,7 @@ Switched default BPPARAM to SerialParam() in all functions.
 
 \item
 Added run argument to selectorPlot().
+Bug fix to avoid adding an empty list.
 
 \item
 Minor bug fix to DM() when extrapolation is required.
@@ -33,7 +34,7 @@ Fixed an integer overflow in correlatePairs().
 Also added information on whether the permutation p-value reaches its lower bound.
 
 \item
-Bug fix to selectorPlot() to avoid adding an empty list.
+Added the combineVar() function to combine results from separate decomposeVar() calls.
 
 \item
 Streamlined examples when mocking up data sets.
