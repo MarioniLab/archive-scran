@@ -6,6 +6,7 @@
 # written by Aaron Lun
 # based on code by Phillipe Brennecke et al. (2013).
 # created 11 July 2016
+# last modified 27 January 2017
 {
     if (any(!is.na(is.spike))) { 
         if (any(is.na(is.spike))) { 
@@ -50,6 +51,27 @@
     vars.spike <- spike.out[[2]]
     cv2.spike <- vars.spike/means.spike^2
 
+    # Protection against all-zero rows.
+    non.zero <- means.cell > 0L
+    if (any(non.zero)) {
+        means.cell <- means.cell[non.zero]
+        vars.cell <- vars.cell[non.zero]
+        cv2.cell <- cv2.cell[non.zero]
+        is.cell <- is.cell[non.zero]
+    }
+
+    non.zero <- means.spike > 0L
+    if (any(non.zero)) {
+        means.spike <- means.spike[non.zero]
+        vars.spike <- vars.spike[non.zero]
+        cv2.spike <- cv2.spike[non.zero]
+        is.spike <- is.spike[non.zero]
+    }
+
+    if (length(is.spike) < 2L) {
+        stop("need at least 2 non-zero spike-ins for trend fitting")
+    }
+
     # Fitting the trend.
     above.limit <- cv2.spike > cv2.limit
     if (any(above.limit)) { 
@@ -91,7 +113,7 @@ setMethod("technicalCV2", "matrix", .technicalCV2)
 setMethod("technicalCV2", "SCESet", function(x, spike.type=NULL, ..., assay="counts") {
     sf.cell <- sizeFactors(x)
 
-    if (is.null(spike.type) || !is.na(spike.type)) {  
+    if (is.null(spike.type) || !is.na(spike.type)) { 
         is.spike <- isSpike(x, type=spike.type)
         if (is.null(spike.type)) { 
             # Get all spikes.
