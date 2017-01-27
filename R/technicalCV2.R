@@ -92,14 +92,17 @@
     pA <- 1 - pchisq( vars.cell * (m-1) / testDenomA, m-1 )
 
     # Formatting the returned output.
-    output.mean <- output.var <- output.cv2 <- numeric(nrow(x))
+    output.mean <- output.var <- numeric(nrow(x))
+    output.cv2 <- rep(NaN, nrow(x))
     output.mean[is.spike] <- means.spike
     output.var[is.spike] <- vars.spike
     output.cv2[is.spike] <- cv2.spike
     output.mean[is.cell] <- means.cell
     output.var[is.cell] <- vars.cell
     output.cv2[is.cell] <- cv2.cell
+
     output.trend <- coefficients(fitA)["a0"] + coefficients(fitA)["a1tilde"]/output.mean
+    output.trend[is.infinite(output.trend)] <- NA_real_
     output.p <- rep(NA_real_, nrow(x))
     output.p[is.cell] <- pA
     return(data.frame(mean=output.mean, var=output.var, cv2=output.cv2, trend=output.trend,

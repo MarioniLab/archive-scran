@@ -36,6 +36,9 @@ Also added information on whether the permutation p-value reaches its lower boun
 \item
 Added the combineVar() function to combine results from separate decomposeVar() calls.
 
+\item 
+Added protection against all-zero rows in technicalCV2().
+
 \item
 Streamlined examples when mocking up data sets.
 }}
