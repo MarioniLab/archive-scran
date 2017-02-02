@@ -7,7 +7,7 @@ Authors@R: c(person("Aaron", "Lun", role = c("aut", "cre"), email =
         person("Jong Kyoung", "Kim", role = "ctb"), person("Antonio", 
         "Scialdone", role="ctb"))
 Maintainer: Aaron Lun <alun@wehi.edu.au>
-Depends: R (>= 3.3.0), BiocParallel, scater
+Depends: R (>= 3.4), BiocParallel, scater
 Imports: dynamicTreeCut, zoo, edgeR, stats, BiocGenerics, methods, 
         Biobase, utils, Matrix, shiny, graphics, grDevices, statmod,
         limma

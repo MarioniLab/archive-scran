@@ -40,6 +40,9 @@ Added the combineVar() function to combine results from separate decomposeVar() 
 Added protection against all-zero rows in technicalCV2().
 
 \item
+Removed warning requiring at least twice the max size in computeSumFactors().
+
+\item
 Streamlined examples when mocking up data sets.
 }}
 
