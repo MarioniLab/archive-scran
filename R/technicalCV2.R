@@ -6,7 +6,7 @@
 # written by Aaron Lun
 # based on code by Phillipe Brennecke et al. (2013).
 # created 11 July 2016
-# last modified 27 January 2017
+# last modified 9 February 2017
 {
     if (any(!is.na(is.spike))) { 
         if (any(is.na(is.spike))) { 
@@ -34,11 +34,11 @@
     }
 
     # Computing the statistics.
-    cell.out <- .Call(cxx_compute_CV2, x, is.cell-1L, sf.cell)
+    cell.out <- .Call(cxx_compute_CV2, x, is.cell-1L, sf.cell, NULL)
     if (is.character(cell.out)) { 
         stop(cell.out)
     }
-    spike.out <- .Call(cxx_compute_CV2, x, is.spike-1L, sf.spike)
+    spike.out <- .Call(cxx_compute_CV2, x, is.spike-1L, sf.spike, NULL)
     if (is.character(spike.out)) {
         stop(spike.out)
     }
