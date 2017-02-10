@@ -28,9 +28,13 @@
         } else {
             sf.cell <- rep(1, ncol(x)) # Any value will do here.
         }
-    } 
+    } else {
+        sf.cell <- rep(sf.cell, length.out=ncol(x))
+    }
     if (is.null(sf.spike)) {
         sf.spike <- DESeq2::estimateSizeFactorsForMatrix(x[is.spike,,drop=FALSE])
+    } else {
+        sf.spike <- rep(sf.spike, length.out=ncol(x))
     }
 
     # Computing the statistics.
@@ -114,50 +118,8 @@ setGeneric("technicalCV2", function(x, ...) standardGeneric("technicalCV2"))
 setMethod("technicalCV2", "matrix", .technicalCV2)
 
 setMethod("technicalCV2", "SCESet", function(x, spike.type=NULL, ..., assay="counts") {
-    sf.cell <- sizeFactors(x)
-
-    if (is.null(spike.type) || !is.na(spike.type)) { 
-        is.spike <- isSpike(x, type=spike.type)
-        if (is.null(spike.type)) { 
-            # Get all spikes.
-            spike.type <- whichSpike(x)            
-        }
-        if (!length(spike.type)) { 
-            stop("no spike-in sets specified from 'x'")
-        }
-
-        # Collecting the size factors for the requested spike-in sets.
-        collected <- list() 
-        for (st in spike.type) {
-            cur.sf <- suppressWarnings(sizeFactors(x, type=st))
-            if (is.null(cur.sf)) { 
-                collected[st] <- list(NULL)
-            } else {
-                collected[[st]] <- cur.sf
-            }
-        }
-
-        # Check that all spike-in factors are either NULL or identical.
-        if (length(collected)) {
-            for (i in seq_along(collected)[-1]) { 
-                if (!isTRUE(all.equal(collected[[i]], collected[[1]]))) { 
-                    stop("size factors differ between spike-in sets")
-                }
-            }
-            sf.spike <- collected[[1]]
-        } 
-
-        # Diverting to the cell-based size factors if all spike-in factors are NULL.
-        if (is.null(sf.spike)) {
-            warning("no spike-in size factors set, using cell-based factors")
-            sf.spike <- sf.cell
-        }
-
-    } else {
-        sf.spike <- sf.cell
-        is.spike <- NA
-    }
-    .technicalCV2(assayDataElement(x, assay), is.spike=is.spike, 
-                  sf.cell=sf.cell, sf.spike=sf.spike, ...)          
+    prep <- .prepare_cv2_data(x, spike.type=spike.type)
+    .technicalCV2(assayDataElement(x, assay), is.spike=prep$is.spike, 
+                  sf.cell=prep$sf.cell, sf.spike=prep$sf.spike, ...)          
 })
 
