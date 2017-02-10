@@ -48,10 +48,19 @@
         SUBFUN <- function(x) { 2^predict(loess.fit, data.frame(kept.means=x)) }
     }
 
-    # Estimating the df2, as well as scale shift from estimating mean of logs.
+    # Estimating the df2, as well as scale shift from estimating mean of logs (assuming shape of trend is correct).
+    # Note we don't just want the scaling factor, we want the scaled mean of the F-distribution.
     leftovers <- kept.vars/SUBFUN(kept.means)
-    f.fit <- fitFDistRobustly(leftovers, df=nrow(design) - QR$rank)
-    f.scale <- f.fit$scale
+    f.fit <- fitFDistRobustly(leftovers, df1=nrow(design) - QR$rank)
+    f.df2 <- f.fit$df2
+    if (is.infinite(f.df2)) { 
+        f.scale <- f.fit$scale
+    } else if (f.df2 > 2) {
+        f.scale <- f.fit$scale * f.df2/(f.df2 - 2) 
+    } else {
+        warning("undefined expectation for small df2, setting scale to unity")
+        f.scale <- 1
+    }
 
     # Creating a predictive function, with special behaviour at the ends.
     left.edge <- min(kept.means)
@@ -66,7 +75,7 @@
         out[x > right.edge] <- right.val
         return(out)
     }
-    return(list(mean=means, var=vars, trend=FUN, design=design, df=f.fit$df2, start=start))
+    return(list(mean=means, var=vars, trend=FUN, design=design, df=f.df2, start=start))
 }
 
 .get_nls_starts <- function(vars, means, grad.prop=0.5, grid.length=100, grid.max=10) {
