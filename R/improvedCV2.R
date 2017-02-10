@@ -18,8 +18,10 @@
     # Extracting statistics.
     if (is.null(log.prior)) {
         is.cell <- seq_len(nrow(x))[-is.spike]
-        if (is.null(sf.cell)) sf.cell <- rep(1, ncol(x))
-        if (is.null(sf.spike)) sf.spike <- rep(1, ncol(x))
+        if (is.null(sf.cell)) sf.cell <- 1
+        sf.cell <- rep(sf.cell, length.out=ncol(x))
+        if (is.null(sf.spike)) sf.spike <- 1
+        sf.spike <- rep(sf.spike, length.out=ncol(x))
 
         spike.stats <- .Call(cxx_compute_CV2, x, is.spike-1L, sf.spike, NULL)
         if (is.character(spike.stats)) stop(spike.stats)
@@ -44,19 +46,23 @@
     log.cv2 <- log(cv2)
 
     # Pulling out spike-in values.
-    to.use <- !is.na(log.means) & !is.na(log.cv2)
+    ok.means <- is.finite(log.means)
+    to.use <- ok.means & is.finite(log.cv2)
     to.use[-is.spike] <- FALSE
     use.log.means <- log.means[to.use]
     use.log.cv2 <- log.cv2[to.use]
 
-    # First need to fit a trend and distribution to the log-variances.
+    # Fit a spline to the log-variances, compute p-values.
     fit <- lm(use.log.cv2 ~ ns(use.log.means, df=df))
     tech.sd <- sqrt(mean(fit$effects[-seq_len(fit$rank)]^2))
-    tech.log.cv2 <- predict(fit, data.frame(use.log.means=log.means))
-    p <- pnorm(log.cv2, mean=tech.log.cv2, sd=tech.sd, lower.tail=FALSE)
+    tech.log.cv2 <- predict(fit, data.frame(use.log.means=log.means[ok.means]))
+
+    p <- rep(1, length(ok.means))
+    p[ok.means] <- pnorm(log.cv2[ok.means], mean=tech.log.cv2, sd=tech.sd, lower.tail=FALSE)
     if (!use.spikes) p[is.spike] <- NA
-    
-    tech.cv2 <- exp(tech.log.cv2 + tech.sd^2/2) # correcting for variance
+
+    tech.cv2 <- rep(NA_real_, length(ok.means))    
+    tech.cv2[ok.means] <- exp(tech.log.cv2 + tech.sd^2/2) # correcting for variance
     return(data.frame(mean=means, var=vars, cv2=cv2, trend=tech.cv2, 
                       p.value=p, FDR=p.adjust(p, method="BH"), row.names=rownames(x)))
 }
