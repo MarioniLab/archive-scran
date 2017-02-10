@@ -1,11 +1,12 @@
 # This tests the variance calculation functions in scran.
 
-require(scran); require(testthat);
+# require(scran); require(testthat); source("test-variance.R")
 
 set.seed(20000)
 ncells <- 200
 ngenes <- 1000
-dummy <- matrix(rnbinom(ngenes*ncells, mu=100, size=5), ncol=ncells, nrow=ngenes, byrow=TRUE)
+means <- 2^runif(ngenes, -1, 5)
+dummy <- matrix(rnbinom(ngenes*ncells, mu=means, size=5), ncol=ncells, nrow=ngenes)
 
 rownames(dummy) <- paste0("X", seq_len(ngenes))
 X <- newSCESet(countData=data.frame(dummy))
@@ -21,7 +22,7 @@ expect_is(out$trend, "function") # hard to test it without copying the code, so 
 m <- max(out$mean)
 expect_equal(out$trend(m), out$trend(m+1))
 m <- min(out$mean)
-expect_equal(out$trend(m), out$trend(m-1))
+expect_equal(out$trend(m-1), out$trend(m)/m * (m-1))
 
 expect_equal(out$design, as.matrix(rep(1, ncells)))
 
@@ -88,7 +89,7 @@ expect_is(out2$trend, "function")
 m <- max(out2$mean)
 expect_equal(out2$trend(m), out2$trend(m+1))
 m <- min(out2$mean)
-expect_equal(out2$trend(m), out2$trend(m-1))
+expect_equal(out2$trend(m-1), out2$trend(m)/m * (m-1))
 
 # Trying again with a design matrix.
 
@@ -103,7 +104,7 @@ expect_is(out$trend, "function")
 m <- max(out$mean)
 expect_equal(out$trend(m), out$trend(m+1))
 m <- min(out$mean)
-expect_equal(out$trend(m), out$trend(m-1))
+expect_equal(out$trend(m-1), out$trend(m)/m * (m-1))
 
 expect_equal(out$design, design)
 

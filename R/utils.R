@@ -108,14 +108,12 @@
         # Collecting the size factors for the requested spike-in sets.
         # Check that all spike-in factors are either NULL or identical.
         collected <- NULL
-        for (st in spike.type) {
-            cur.sf <- suppressWarnings(sizeFactors(x, type=st))
-            if (is.null(collected)) {
+        for (st in seq_along(spike.type)) {
+            cur.sf <- suppressWarnings(sizeFactors(x, type=spike.type[st]))
+            if (st==1L) {
                 collected <- cur.sf
-            } else if (!is.null(cur.sf)) {
-                if (!isTRUE(all.equal(collected, cur.sf))) {
-                    stop("size factors differ between spike-in sets")
-                }
+            } else if (!isTRUE(all.equal(collected, cur.sf))) {
+                stop("size factors differ between spike-in sets")
             }
         }
 
