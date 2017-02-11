@@ -49,10 +49,11 @@
     }
 
     # Estimating the df2, as well as scale shift from estimating mean of logs (assuming shape of trend is correct).
-    # Note we don't just want the scaling factor, we want the scaled mean of the F-distribution.
     leftovers <- kept.vars/SUBFUN(kept.means)
     f.fit <- fitFDistRobustly(leftovers, df1=nrow(design) - QR$rank)
     f.df2 <- f.fit$df2
+    
+    # We don't just want the scaling factor, we want the scaled mean of the F-distribution (see explanation below).
     if (is.infinite(f.df2)) { 
         f.scale <- f.fit$scale
     } else if (f.df2 > 2) {
@@ -136,3 +137,19 @@ setMethod("trendVar", "SCESet", function(x, subset.row=NULL, ..., assay="exprs",
     out <- .trend_var(assayDataElement(x, assay), ..., subset.row=subset.row)
     return(out)
 })
+
+# EXPLANATION OF TREND:
+# To wit, the technical variance is modelled as:
+#    var ~ s0*F(df1, df2)
+# When we log it, we get:
+#    log(var) ~ log(s0) + log(F(df1, df2))
+# When we fit a trend to the log-variances, we get E(log(var)) for any mu.
+# This can also be expressed as:
+#    E(log(var)) = log(s0) + E(log(F(df1, df2)))
+# So, dividing var by exp[E(log(var))] would give us:
+#    var/exp[E(log(var))] ~ F(df1, df2)/exp[E(log(F(df1, df2)))]
+# The estimated scale from fitFDistRobustly represents 1/exp[E(log(F(df1, df2)))].
+# Thus, if we want E(var), we should be getting:
+#    E(var) = s0 * df2/(df2 - 2)
+#           = exp[E(log(var))] * 1/exp[E(log(F(df1, df2)))] * df2/(df2 - 2)
+# ... the first term of which is 2^predict, and the product of the latter two terms is 'f.scale'.
