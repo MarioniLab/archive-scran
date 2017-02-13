@@ -212,8 +212,6 @@ design <- model.matrix(~factor(rep(c(1,2), each=11)))
 pvals <- testVar(observed, trended, design=design)
 expect_equal(pvals, true.p)
 
-expect_message(testVar(observed, trended, df=df, verbose=TRUE), "degrees of freedom")
-
 # Checking that the F-test works.
 
 nspikes <- ncells <- 100
@@ -223,15 +221,15 @@ spike.data <- matrix(rnbinom(nspikes*ncells, mu=spike.means, size=1/spike.disp),
 
 exprs <- log2(spike.data/(colSums(spike.data)/mean(colSums(spike.data)))+1)
 fit <- trendVar(exprs)
-pvals <- testVar(fit$var, fit$trend(fit$mean), df=ncells-1, fit=fit, test='f')
+pvals <- testVar(fit$var, fit$trend(fit$mean), df=ncells-1, second.df=fit$df, test='f')
 
 rat <- (fit$var/fit$trend(fit$mean))[fit$var > 0]
 df1 <- nrow(fit$design)-ncol(fit$design)
 ffit <- limma::fitFDistRobustly(rat, df=df1)
 expect_equal(pvals, pf(rat/ffit$scale, df1=df1, df2=ffit$df2, lower.tail=FALSE))
 
-expect_message(testVar(fit$var, fit$trend(fit$mean), df=ncells-1, fit=fit, test='f', verbose=TRUE),
-               "degrees of freedom")
+expect_error(testVar(fit$var, fit$trend(fit$mean), df=ncells-1, test='f'),
+             "second df from trendVar() must be specified for test='f'", fixed=TRUE)
 
 # Checking silly inputs
 
