@@ -32,6 +32,7 @@ importFrom("grDevices", grey.colors)
 importFrom("graphics", text)
 
 importFrom("splines", ns)
+importFrom("MASS", rlm)
 
 importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, plotOutput, renderPlot, shinyApp, stopApp, runApp, hr)
 
