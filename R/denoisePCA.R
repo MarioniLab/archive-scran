@@ -49,8 +49,14 @@
     # Performing PCA and discarding later PCs that add up to the technical sum.
     pcout <- prcomp(t(x)) # no scaling, otherwise technical sum isn't comparable.
     npcs <- ncol(pcout$x)
-    to.keep <- seq_len(npcs - min(which(cumsum(rev(pcout$sdev^2)) > technical)) + 1L)
-    return(pcout$x[,to.keep])
+    above.noise <- cumsum(rev(pcout$sdev^2)) > technical
+    if (any(above.noise)) { 
+        to.keep <- seq_len(npcs - min(which(above.noise)) + 1L)
+    } else {
+        to.keep <- 1L
+    }
+
+    return(pcout$x[,to.keep,drop=FALSE])
 } 
 
 setGeneric("denoisePCA", function(x, ...) standardGeneric("denoisePCA"))

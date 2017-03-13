@@ -66,6 +66,7 @@ Aaron Lun
 \examples{
 # Mocking up some data.
 ngenes <- 1000
+is.spike <- 1:100
 means <- 2^runif(ngenes, 6, 10)
 dispersions <- 10/means + 0.2
 nsamples <- 50
@@ -74,19 +75,23 @@ rownames(counts) <- paste0("Gene", seq_len(ngenes))
 
 # Fitting a trend.
 lcounts <- log2(counts + 1)
-fit <- trendVar(lcounts)
+fit <- trendVar(lcounts, subset.row=is.spike)
 dec <- decomposeVar(lcounts, fit)
 
-# Denoising.
-pcs <- denoisePCA(lcounts, technical=fit$trend)
+# Denoising (not including the spike-ins in the PCA;
+# spike-ins are automatically removed with the SCESet method). 
+pcs <- denoisePCA(lcounts, technical=fit$trend, subset.row=-is.spike)
 dim(pcs)
-pcs2 <- denoisePCA(lcounts, technical=setNames(dec$tech, rownames(dec))) # same result
+
+# Gets the same result as above, if you don't have the function.
+pcs2 <- denoisePCA(lcounts, technical=setNames(dec$tech, 
+    rownames(dec)), subset.row=-is.spike) # same result
 dim(pcs2)
 
 # With a design matrix.
 design <- model.matrix(~factor(rep(0:1, length.out=nsamples)))
-fit3 <- trendVar(lcounts, design=design)
-pcs3 <- denoisePCA(lcounts, technical=fit3$trend, design=design)
+fit3 <- trendVar(lcounts, design=design, subset.row=is.spike)
+pcs3 <- denoisePCA(lcounts, technical=fit3$trend, design=design, subset.row=-is.spike)
 dim(pcs3)
 }
 
