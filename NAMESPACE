@@ -28,14 +28,16 @@ importFrom("BiocGenerics", normalize)
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, featureData, phenoData, pData)
 
 importFrom("utils", combn)
-importFrom("stats", approx, as.dist, cor, fitted, hclust, loess, median, p.adjust, pchisq, pf, predict, quantile, coefficients, nls, nls.control, lm, pnorm, coef)
+importFrom("stats", approx, as.dist, cor, fitted, hclust, loess, median, p.adjust, pchisq, pf, 
+           predict, quantile, coefficients, nls, nls.control, lm, pnorm, coef, var, prcomp)
 importFrom("grDevices", grey.colors)
 importFrom("graphics", text)
 
 importFrom("splines", ns)
 importFrom("MASS", rlm)
 
-importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, plotOutput, renderPlot, shinyApp, stopApp, runApp, hr)
+importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, 
+           plotOutput, renderPlot, shinyApp, stopApp, runApp, hr)
 
 import(BiocParallel)
 import(scater)

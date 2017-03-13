@@ -1,5 +1,7 @@
-\alias{denoisePCA}
 \name{denoisePCA}
+\alias{denoisePCA}
+\alias{denoisePCA,matrix-method}
+\alias{denoisePCA,SCESet-method}
 
 \title{Denoise expression with PCA}
 \description{Denoise log-expression data by removing principal components corresponding to technical noise.}
