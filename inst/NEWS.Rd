@@ -2,7 +2,7 @@
 \title{scran News}
 \encoding{UTF-8}
 
-\section{Version 1.3.10}{\itemize{
+\section{Version 1.3.12}{\itemize{
 \item 
 Switched default BPPARAM to SerialParam() in all functions.
 
@@ -42,6 +42,9 @@ Added protection against all-zero rows in technicalCV2().
 
 \item
 Added the improvedCV2() function as a more stable alternative to technicalCV2().
+
+\item 
+Added the denoisePCA() function to remove technical noise via selection of early principal components.
 
 \item
 Removed warning requiring at least twice the max size in computeSumFactors().

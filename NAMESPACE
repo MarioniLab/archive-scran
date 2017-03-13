@@ -11,6 +11,7 @@ exportMethods(
     trendVar, decomposeVar, technicalCV2, improvedCV2,
     sandbag, cyclone,
     correlatePairs,
+    denoisePCA,
     "isSpike<-", 
     convertTo
 )
