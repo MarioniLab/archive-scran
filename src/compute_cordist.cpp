@@ -41,6 +41,10 @@ void average_ranks(const T* ptr, const matrix_info& MAT, const int* subset, cons
             }
         }
 
+        if (sum_squares==0) {
+            throw std::runtime_error("rank variances of zero detected for a cell");
+        }
+
         // Converting to cosine values.
         sum_squares = std::sqrt(sum_squares)*2;
         for (s=0; s<subset_len; ++s) {
@@ -59,6 +63,9 @@ SEXP cordist_internal(const T* ptr, const matrix_info& MAT, SEXP subset, SEXP re
     subset_values SS=check_subset_vector(subset, MAT.nrow);
     const int slen=SS.first;
     const int* sptr=SS.second;
+    if (slen<2) {
+        throw std::runtime_error("need at least 2 observations to compute correlations");
+    }
 
     // Determining if ranks should be returned.
     if (!isLogical(return_ranks) || LENGTH(return_ranks)!=1) {

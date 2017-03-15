@@ -54,7 +54,7 @@ expect_equal(alt.pc$x[,seq_len(ncol(pcs)),drop=FALSE], pcs)
 
 # Checking invalid specifications.
 
-expect_error(denoisePCA(lcounts, technical=c(Whee=1), "missing gene names in 'technical'"))
+expect_error(denoisePCA(lcounts, technical=c(Whee=1)), "missing gene names in 'technical'")
 unnamed.lcounts <- lcounts
 rownames(unnamed.lcounts) <- NULL
 expect_error(denoisePCA(unnamed.lcounts, technical=c(Whee=1)), "rows of 'x' should be named with gene names")
