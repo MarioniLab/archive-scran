@@ -50,6 +50,9 @@ Added the denoisePCA() function to remove technical noise via selection of early
 Removed warning requiring at least twice the max size in computeSumFactors().
 
 \item
+Allowed quickCluster() to return a matrix of ranks for use in other clustering methods.
+
+\item
 Streamlined examples when mocking up data sets.
 }}
 

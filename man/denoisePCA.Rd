@@ -1,4 +1,4 @@
-\name{denoisePCA}
+\name{Denoise with PCA}
 \alias{denoisePCA}
 \alias{denoisePCA,matrix-method}
 \alias{denoisePCA,SCESet-method}
