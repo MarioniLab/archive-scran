@@ -52,6 +52,9 @@ Removed warning requiring at least twice the max size in computeSumFactors().
 \item
 Allowed quickCluster() to return a matrix of ranks for use in other clustering methods.
 
+\item 
+Added findMarkers() function to automatically identify potential markers for cell clusters.
+
 \item
 Streamlined examples when mocking up data sets.
 }}

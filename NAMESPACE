@@ -12,6 +12,7 @@ exportMethods(
     sandbag, cyclone,
     correlatePairs,
     denoisePCA,
+    findMarkers,
     "isSpike<-", 
     convertTo
 )
@@ -21,7 +22,7 @@ importFrom("Matrix", sparseMatrix, qr, qr.coef, qr.qty)
 importFrom("zoo", zoo, rollapply, index)
 
 importFrom("edgeR", DGEList, "[.DGEList", designAsFactor, scaleOffset.DGEList)
-importFrom("limma", fitFDistRobustly)
+importFrom("limma", fitFDistRobustly, lmFit, eBayes, contrasts.fit, topTable)
 importFrom("statmod", glmgam.fit)
 
 importFrom("BiocGenerics", normalize)
