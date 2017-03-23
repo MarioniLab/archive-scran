@@ -30,7 +30,7 @@ importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, feat
 
 importFrom("utils", combn)
 importFrom("stats", approx, as.dist, cor, fitted, hclust, loess, median, p.adjust, pchisq, pf, 
-           predict, quantile, coefficients, nls, nls.control, lm, pnorm, coef, var, prcomp)
+           predict, quantile, coefficients, nls, nls.control, lm, pnorm, coef, var, prcomp, model.matrix)
 importFrom("grDevices", grey.colors)
 importFrom("graphics", text)
 

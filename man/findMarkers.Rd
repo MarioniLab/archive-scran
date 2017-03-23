@@ -17,7 +17,7 @@
     A numeric matrix of normalized log-expression values, where each column corresponds to a cell and each row corresponds to an endogenous gene.
     Alternatively, a SCESet object containing such a matrix.
 }
-\item{cluster}{
+\item{clusters}{
 A vector of cluster identities for all cells.
 }
 \item{block}{A numeric matrix describing the uninteresting factors driving expression across cells.}
@@ -34,17 +34,20 @@ A list of such tables is returned for all clusters to define a set of potential 
 
 The table for each table is sorted by the \code{Top} value, which specifies the size of the candidate marker set.
 Taking all rows with \code{Top} values below some value X will yield a set containing the top X genes (ranked by significance) from each pairwise comparison.
-This set allows the cluster to be distinguished from the others.
-
-The \code{FDR} value is calculated after adjusting p-values for multiple testing across all pairwise comparisons for a cluster.
-However, this is intended only as a rough measure of significance.
-Properly correcting for multiple testing is not generally possible when \code{clusters} is determined from \code{x} in the first place.
-
+This set allows the cluster to be distinguished from the others based on the expression of at least one gene.
 It should be stressed that markers are not explicitly chosen to be uniquely expressed in the cluster.
-This strategy is too stringent, especially in cases involving overclustering or cell types defined by combinatorial gene expression.
+Such a strategy is often too stringent, especially in cases involving overclustering or cell types defined by combinatorial gene expression.
+
+The \code{FDR} value is calculated by combining p-values across contrasts for each gene using Simes' method, and then applying the BH method across genes.
+The null hypothesis here is that the gene is not DE in any of the contrasts.
+However, this is intended only as a rough measure of significance.
+Properly correcting for multiple testing is not generally possible when \code{clusters} is determined from the same \code{x} used for DE testing.
 
 The application of \pkg{limma} uses the \dQuote{trend} approach on the normalized log-expression values, as described by Law et al. (2015).
 This is fast and avoids putting too much weight on outliers or cells with large library sizes.
+
+By default, spike-in transcripts are ignored in \code{findMarkers,SCESet-method} with \code{get.spikes=FALSE}.
+This is overridden by any non-\code{NULL} value of \code{subset.row}.
 }
 
 \value{
@@ -64,6 +67,10 @@ Aaron Lun
 Law CW, Chen Y, Shi W and Smyth, GK (2014). 
 voom: precision weights unlock linear model analysis tools for RNA-seq read counts. 
 \emph{Genome Biol.} 15:R29 
+
+Simes RJ (1986). 
+An improved Bonferroni procedure for multiple tests of significance. 
+\emph{Biometrika} 73:751-754.
 }
 
 \examples{

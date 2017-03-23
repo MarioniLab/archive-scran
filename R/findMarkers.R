@@ -3,7 +3,8 @@
 # given a log-expression matrix and some blocking factors.
 #
 # written by Aaron Lun
-# created 22 March 2017    
+# created 22 March 2017
+# last modified 23 March 2017    
 {
     # Creating a design matrix.
     clusters <- as.factor(clusters)
@@ -31,27 +32,40 @@
         all.p <- all.lfc <- vector("list", length(targets))
         names(all.p) <- names(all.lfc) <- targets
        
-        con <- -diag(length(clust.vals))
-        rownames(con) <- colnames(con) <- clust.vals
-        con[host,] <- 1
+        con <- matrix(0, ncol(design), length(clust.vals))
+        diag(con) <- -1
+        con[which(!not.host),] <- 1
         con <- con[,not.host,drop=FALSE]
+        colnames(con) <- targets
 
         fit2 <- contrasts.fit(lfit, con)
         fit2 <- eBayes(fit2, trend=TRUE, robust=TRUE)
         
         for (target in targets) { 
-            res <- topTable(fit2, n=Inf, sort.by="none", coef=target)
+            res <- topTable(fit2, number=Inf, sort.by="none", coef=target)
             all.p[[target]] <- res$P.Value
             all.lfc[[target]] <- res$logFC
         }
 
+        # Computing Simes' p-value in a fully vectorised manner.
+        com.p <- do.call(rbind, all.p)
+        ncon <- nrow(com.p)
+        ngenes <- ncol(com.p)
+        gene.id <- rep(seq_len(ngenes), each=ncon)
+        penalty <- rep(ncon/seq_len(ncon), ngenes) 
+        o <- order(gene.id, com.p)
+        com.p[] <- com.p[o]*penalty
+        com.p <- t(com.p)
+        smallest <- (max.col(-com.p) - 1) * ngenes + seq_len(ngenes)
+        adj.min.p <- com.p[smallest]
+
         collected.ranks <- lapply(all.p, rank, ties="first")
         min.rank <- do.call(pmin, collected.ranks)
-        adj.min.p <- p.adjust(do.call(pmin, all.p), n=sum(lengths(all.p)), method="BH")
-        marker.set <- data.frame(Top=min.rank, Gene=rownames(x)[subset.row], FDR=adj.min.p,
-                                 logFC=do.call(cbind, all.lfc), 
+        marker.set <- data.frame(Top=min.rank, Gene=rownames(x)[subset.row], 
+                                 FDR=p.adjust(adj.min.p, method="BH"), do.call(cbind, all.lfc), 
                                  stringsAsFactors=FALSE, check.names=FALSE)
         marker.set <- marker.set[order(marker.set$Top),]
+        rownames(marker.set) <- NULL
         output[[host]] <- marker.set
     }
 
@@ -60,7 +74,7 @@
 
 setGeneric("findMarkers", function(x, ...) standardGeneric("findMarkers"))
 
-setMethod("findMarkers", "matrix", function(x, ...) .findMarkers) 
+setMethod("findMarkers", "matrix", .findMarkers)
 
 setMethod("findMarkers", "SCESet", function(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) { subset.row <- .spikeSubset(x, get.spikes) }
