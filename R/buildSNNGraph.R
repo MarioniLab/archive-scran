@@ -35,7 +35,7 @@ setGeneric("buildSNNGraph", function(x, ...) standardGeneric("buildSNNGraph"))
 
 setMethod("buildSNNGraph", "matrix", .buildSNNGraph)
 
-setMethod("buildSNNGraph", "SCESet", function(x, ..., subset.row=NULL, assay="counts", get.spikes=FALSE) {
+setMethod("buildSNNGraph", "SCESet", function(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) { 
         subset.row <- .spikeSubset(x, get.spikes)
     }

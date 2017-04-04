@@ -9,7 +9,7 @@
 \usage{
 \S4method{buildSNNGraph}{matrix}(x, k=10, subset.row=NULL)
 
-\S4method{buildSNNGraph}{matrix}(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE)
+\S4method{buildSNNGraph}{SCESet}(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE)
 }
 
 \arguments{
@@ -36,6 +36,10 @@ Expression values should typically be on the log-scale, e.g., log-transformed co
 Ranks can also be used for greater robustness, e.g., from \code{\link{quickCluster}} with \code{get.ranks=TRUE}.
 
 Any setting of \code{subset.row} will override \code{get.spikes} in \code{buildSNNGraph,SCESet-method}.
+}
+
+\value{
+An igraph graph, where nodes are cells and weighted edges represent connections between nearest neighbors.
 }
 
 \author{
