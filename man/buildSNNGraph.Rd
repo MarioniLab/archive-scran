@@ -36,6 +36,10 @@ Expression values should typically be on the log-scale, e.g., log-transformed co
 Ranks can also be used for greater robustness, e.g., from \code{\link{quickCluster}} with \code{get.ranks=TRUE}.
 
 Any setting of \code{subset.row} will override \code{get.spikes} in \code{buildSNNGraph,SCESet-method}.
+
+Note that the setting of \code{k} here is slightly different from that used in SNN-Cliq.
+The original implementation considers each cell to be its first nearest neighbor that contributes to \code{k}.
+In \code{buildSNNGraph}, the \code{k} nearest neighbours refers to the number of \emph{other} cells.
 }
 
 \value{
