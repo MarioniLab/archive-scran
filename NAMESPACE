@@ -3,7 +3,8 @@ useDynLib(scran, .registration=TRUE, .fixes="cxx_")
 export(
     DM, testVar, combineVar,
     correlateNull,
-    selectorPlot
+    selectorPlot,
+    correctMNN
 )
 
 exportMethods(
