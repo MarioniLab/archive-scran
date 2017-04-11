@@ -3,7 +3,7 @@ useDynLib(scran, .registration=TRUE, .fixes="cxx_")
 export(
     DM, testVar, combineVar,
     correlateNull,
-    selectorPlot,
+    selectorPlot, exploreData,
     correctMNN
 )
 
@@ -43,7 +43,8 @@ importFrom("igraph", make_graph, simplify, E, "E<-", cluster_fast_greedy)
 importFrom("pracma", orth)
 
 importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, 
-           plotOutput, renderPlot, shinyApp, stopApp, runApp, hr)
+           plotOutput, renderPlot, shinyApp, stopApp, runApp, hr, titlePanel, sidebarLayout, sidebarPanel,
+           inputPanel, selectInput, mainPanel, tabsetPanel, splitLayout, tabPanel)
 
 import(BiocParallel)
 import(scater)
