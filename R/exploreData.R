@@ -49,7 +49,7 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
 		    mainPanel(
 		        tabsetPanel(tabPanel("Plots",
                     splitLayout(plotOutput("tSNE"), plotOutput("tSNE2")),
-                    DT::dataTableOutput("table"))
+                    dataTableOutput("table"))
                 )
             )
         )
@@ -57,14 +57,14 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
 
     server <- function(input, output) {
     	# Load the gene level data
-	    output$table <- DT::renderDataTable({
+	    output$table <- renderDataTable({
     	    out <- gene.data
-    	    DT::datatable(out, filter="top", selection=list(mode="single", selected=1))
+    	    datatable(out, filter="top", selection=list(mode="single", selected=1))
         })
 
     	# tSNE plot colored by covariates
 	    output$tSNE <- renderPlot({
-    	    tsnPlot <- ggplot2::ggplot(cell.data, aes_string(x="Dim1", y="Dim2", color=input$colorBy)) +
+    	    tsnPlot <- ggplot(cell.data, aes_string(x="Dim1", y="Dim2", color=input$colorBy)) +
                 geom_point(size=1.5) +
                 theme_void()
     	    tsnPlot
@@ -77,10 +77,10 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
                 gene <- rownames(gene.data)[s]
                 cell.data[,gene] <- x[gene,]
                 cell.data <- cell.data[base::order(cell.data[,gene]),]
-                tsnPlot <- ggplot2::ggplot(cell.data, aes_string(x="Dim1", y="Dim2", color=gene)) +
-                    ggplot2::geom_point(size=1.5) +
-                    viridis::scale_color_viridis() +
-                    ggplot2::theme_void()
+                tsnPlot <- ggplot(cell.data, aes_string(x="Dim1", y="Dim2", color=gene)) +
+                    geom_point(size=1.5) +
+                    scale_color_viridis() +
+                    theme_void()
                 tsnPlot
     		}
 	    })
@@ -92,12 +92,12 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
                 gene <- rownames(gene.data)[s]
                 pltDat <- cell.data
                 pltDat$value <- x[gene,]
-                plt <- ggplot2::ggplot(pltDat, aes_string(x=input$groupBy,y="value")) +
-                    ggplot2::geom_boxplot() +
-                    ggplot2::geom_point(position="jitter",alpha=0.2,shape=19) +
-                    ggplot2::ggtitle(gene) +
-                    ggplot2::ylab("Expression") +
-                    ggplot2::theme_bw()
+                plt <- ggplot(pltDat, aes_string(x=input$groupBy,y="value")) +
+                    geom_boxplot() +
+                    geom_point(position="jitter",alpha=0.2,shape=19) +
+                    ggtitle(gene) +
+                    ylab("Expression") +
+                    theme_bw()
                 plt
 	    	}
     	})

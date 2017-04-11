@@ -19,33 +19,37 @@ exportMethods(
     convertTo
 )
 
+importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, featureData, phenoData, pData)
+
 importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("Matrix", sparseMatrix, qr, qr.coef, qr.qty)
-importFrom("zoo", zoo, rollapply, index)
 
 importFrom("edgeR", DGEList, "[.DGEList", designAsFactor, scaleOffset.DGEList)
 importFrom("limma", fitFDistRobustly, lmFit, eBayes, contrasts.fit, topTable)
-importFrom("statmod", glmgam.fit)
-
-importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, featureData, phenoData, pData)
 
 importFrom("utils", combn)
-importFrom("stats", approx, as.dist, cor, fitted, hclust, loess, median, p.adjust, pchisq, pf, 
+importFrom("stats", approx, as.dist, cor, fitted, hclust, loess, median, p.adjust, pchisq, pf, dist,
            predict, quantile, coefficients, nls, nls.control, lm, pnorm, coef, var, prcomp, model.matrix)
-importFrom("grDevices", grey.colors)
-importFrom("graphics", text)
 
+importFrom("zoo", zoo, rollapply, index)
+importFrom("statmod", glmgam.fit)
 importFrom("splines", ns)
 
 importFrom("FNN", get.knn, get.knnx)
 importFrom("igraph", make_graph, simplify, E, "E<-", cluster_fast_greedy)
-
 importFrom("pracma", orth)
 
+# Graphical stuff:
 importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, 
            plotOutput, renderPlot, shinyApp, stopApp, runApp, hr, titlePanel, sidebarLayout, sidebarPanel,
            inputPanel, selectInput, mainPanel, tabsetPanel, splitLayout, tabPanel)
+import(ggplot2)
+importFrom("DT", datatable, renderDataTable, dataTableOutput) 
+importFrom("viridis", scale_color_viridis)
+importFrom("grDevices", grey.colors)
+importFrom("graphics", text)
 
+# packages in "Depends":
 import(BiocParallel)
 import(scater)
 import(methods)

@@ -44,7 +44,6 @@ If \code{run=TRUE}, a Shiny app object is created and run.
 
 \seealso{
 \code{\link{runApp}},
-\code{\link[DT]{DataTable}}
 }
 
 \author{
