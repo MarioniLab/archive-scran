@@ -1,4 +1,4 @@
-exploreData <- function(m, pD, fD, reDim, run=TRUE) 
+exploreData <- function(x, cellData, geneData, red.dim, run=TRUE) 
 # This function creates an interactive shiny app to explore expression data.
 #
 # created by Karsten Bach
@@ -6,16 +6,16 @@ exploreData <- function(m, pD, fD, reDim, run=TRUE)
 # last modified 11 April 2017
 {
     # Checks
-    if (!identical(rownames(m),rownames(fD))) {
-	stop("m and fD need to have identical rownames")
+    if (!identical(rownames(x),rownames(geneData))) {
+	stop("x and geneData need to have identical rownames")
     }
-    if (!identical(colnames(m),rownames(pD))) {
-	stop("rownames of pD need to correspond to colnames of m")
+    if (!identical(colnames(x),rownames(cellData))) {
+	stop("rownames of cellData need to correspond to colnames of x")
     }
     # Build data
-    covariates <- colnames(pD)
-    pD$Dim1 <- reDim[,1]
-    pD$Dim2 <- reDim[,2]
+    covariates <- colnames(cellData)
+    cellData$Dim1 <- red.dim[,1]
+    cellData$Dim2 <- red.dim[,2]
 
     # Set up shiny
     ui <- fluidPage(
@@ -42,14 +42,14 @@ exploreData <- function(m, pD, fD, reDim, run=TRUE)
     server <- function(input, output) {
 	# Load the gene level data
 	output$table <- renderDataTable({
-	    out <- fD
+	    out <- geneData
 	    datatable(out, filter="top", selection=list(mode="single",
 							    selected=1))
 	    })
 
 	# tSNE plot colored by covariates
 	output$tSNE <- renderPlot({
-	    tsnPlot <- ggplot(pD, aes_string(x="Dim1", y="Dim2", color=input$colorBy)) +
+	    tsnPlot <- ggplot2::ggplot(cellData, aes_string(x="Dim1", y="Dim2", color=input$colorBy)) +
 		geom_point(size=1.5) +
 		theme_void()
 	    tsnPlot
@@ -59,13 +59,12 @@ exploreData <- function(m, pD, fD, reDim, run=TRUE)
 	output$tSNE2 <- renderPlot({
 	    s <- input$table_rows_selected
 	    if (!is.null(s)) {
-		gene <- rownames(fD)[s]
-		expr <- log2(t(m)[,gene]+1)
-		pD[,gene] <- expr
-		pD <- pD[base::order(pD[,gene]),]
-		tsnPlot <- ggplot(pD, aes_string(x="Dim1", y="Dim2", color=gene)) +
+		gene <- rownames(geneData)[s]
+		cellData[,gene] <- x[gene,]
+		cellData <- cellData[base::order(cellData[,gene]),]
+		tsnPlot <- ggplot2::ggplot(cellData, aes_string(x="Dim1", y="Dim2", color=gene)) +
 		    geom_point(size=1.5) +
-		    scale_color_viridis() +
+		    viridis::scale_color_viridis() +
 		    theme_void()
 		tsnPlot
 		}
@@ -75,14 +74,14 @@ exploreData <- function(m, pD, fD, reDim, run=TRUE)
 	output$distPlot1 <- renderPlot({
 	    s <- input$table_rows_selected
 	    if (!is.null(s)) {
-		gene <- rownames(fD)[s]
-		exps <- log2(t(m)[,gene]+1)
-		pltDat <- pD
-		pltDat$value <- exps
-		plt <- ggplot(pltDat, aes_string(x=input$groupBy,y="value")) +
+		gene <- rownames(geneData)[s]
+		pltDat <- cellData
+		pltDat$value <- x[gene,]
+		plt <- ggplot2::ggplot(pltDat, aes_string(x=input$groupBy,y="value")) +
 		    geom_boxplot() +
 		    geom_point(position="jitter",alpha=0.2,shape=19) +
 		    ggtitle(gene) +
+		    ylab("Expression") +
 		    theme_bw()
 		plt
 		}
