@@ -9,7 +9,7 @@ export(
 
 exportMethods(
     quickCluster, buildSNNGraph,
-    computeSumFactors, computeSpikeFactors, normalize,
+    computeSumFactors, computeSpikeFactors, 
     trendVar, decomposeVar, technicalCV2, improvedCV2,
     sandbag, cyclone,
     correlatePairs,
@@ -27,7 +27,6 @@ importFrom("edgeR", DGEList, "[.DGEList", designAsFactor, scaleOffset.DGEList)
 importFrom("limma", fitFDistRobustly, lmFit, eBayes, contrasts.fit, topTable)
 importFrom("statmod", glmgam.fit)
 
-importFrom("BiocGenerics", normalize)
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, featureData, phenoData, pData)
 
 importFrom("utils", combn)
@@ -37,10 +36,11 @@ importFrom("grDevices", grey.colors)
 importFrom("graphics", text)
 
 importFrom("splines", ns)
-importFrom("MASS", rlm)
 
-importFrom("FNN", get.knn)
+importFrom("FNN", get.knn, get.knnx)
 importFrom("igraph", make_graph, simplify, E, "E<-", cluster_fast_greedy)
+
+importFrom("pracma", orth)
 
 importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, 
            plotOutput, renderPlot, shinyApp, stopApp, runApp, hr)

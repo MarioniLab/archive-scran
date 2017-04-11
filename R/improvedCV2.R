@@ -55,7 +55,7 @@
     # Fit a spline to the log-variances, compute p-values.
     form <- use.log.cv2 ~ ns(use.log.means, df=df)
     if (robust) {
-        fit <- rlm(form)
+        fit <- MASS::rlm(form)
         tech.sd <- fit$s
     } else {
         fit <- lm(form)
