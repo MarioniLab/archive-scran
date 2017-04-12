@@ -4,7 +4,7 @@ export(
     DM, testVar, combineVar,
     correlateNull,
     selectorPlot, exploreData,
-    correctMNN
+    mnnCorrect
 )
 
 exportMethods(
@@ -37,7 +37,6 @@ importFrom("splines", ns)
 
 importFrom("FNN", get.knn, get.knnx)
 importFrom("igraph", make_graph, simplify, E, "E<-", cluster_fast_greedy)
-importFrom("pracma", orth)
 
 # Graphical stuff:
 importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, 

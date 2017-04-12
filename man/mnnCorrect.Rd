@@ -1,11 +1,11 @@
-\name{correctMNN}
-\alias{correctMNN}
+\name{mnnCorrect}
+\alias{mnnCorrect}
 
 \title{Mutual nearest neighbors correction}
 \description{Correct for batch effects in single-cell expression data using the mutual nearest neighbors method.}
 
 \usage{
-correctMNN(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL) 
+mnnCorrect(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL) 
 }
 
 \arguments{
@@ -79,5 +79,5 @@ with modifications by Aaron Lun
 \examples{
 B1 <- matrix(rnorm(10000), ncol=50) # Batch 1 
 B2 <- matrix(rnorm(10000), ncol=50) # Batch 2
-out <- correctMNN(B1, B2) # corrected values
+out <- mnnCorrect(B1, B2) # corrected values
 }

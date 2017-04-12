@@ -1,14 +1,15 @@
-correctMNN <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL) 
+mnnCorrect <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL) 
 # Performs correction based on the batches specified in the ellipsis.
 #    
 # written by Laleh Haghverdi
 # with modifications by Aaron Lun
 # created 7 April 2017
-# last modified 9 April 2017
+# last modified 12 April 2017
 { 
     batches <- list(...) 
     nbatches <- length(batches) 
     if (nbatches < 2L) { stop("at least two batches must be specified") }
+    if (cos.norm) { batches <- lapply(batches, cosine.norm) } 
 
     # Setting up the order.
     if (is.null(order)) {
@@ -19,21 +20,19 @@ correctMNN <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL
             stop(sprintf("'order' should contain values in 1:%i", nbatches))
         }
     }
-
+   
     # Setting up the variables.
     ref <- order[1]
     ref.batch <- batches[[ref]]
-    if (cos.norm) { ref.batch <- cosine.norm(ref.batch) }
     num.mnn <- matrix(NA_integer_, nbatches, 2)
     output <- vector("list", nbatches)
     output[[ref]] <- ref.batch
 
     for (b in 2:nbatches) { 
         other.batch <- batches[[order[b]]]
-        if (cos.norm) { other.batch <- cosine.norm(other.batch) } 
 
         # Finding pairs of mutual nearest neighbours.
-        sets <- find.mutual.nn(t(ref.batch), t(other.batch), k1=k, k2=k, sigma=sigma, svd.dim=svd.dim)
+        sets <- find.mutual.nn(ref.batch, other.batch, k1=k, k2=k, sigma=sigma)
         s1 <- sets$set1
         s2 <- sets$set2
 
@@ -41,11 +40,13 @@ correctMNN <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL
         ndim <- min(c(svd.dim, dim(ref.batch), dim(other.batch)))
         span1 <- get.bio.span(ref.batch[,s1,drop=FALSE], min(ndim, length(s1)))
         span2 <- get.bio.span(other.batch[,s2,drop=FALSE], min(ndim, length(s2)))
-        bio.span <- cbind(span1, span2)
-  
+        nshared <- find.shared.subspace(span1, span2, assume.orthonormal=TRUE, get.angle=FALSE)$nshared
+        if (nshared==0L) { warning("batches not sufficiently related") }
+
         # Identifying the biological component of the batch correction vector 
         # (i.e., the part that is parallel to the biological subspace) and removing it.
-        bv <- sets$batchvect.all
+        bio.span <- cbind(span1, span2)
+        bv <- sets$vect
         bio.comp <- bv %*% bio.span %*% t(bio.span)
         correction <- t(bv) - t(bio.comp) 
 
@@ -63,11 +64,13 @@ correctMNN <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL
     list(corrected=output, num.mnn=num.mnn)
 }
 
-# Internal functions:
-find.mutual.nn <- function(data1, data2, k1, k2, sigma=1, svd.dim=20) 
+find.mutual.nn <- function(exprs1, exprs2, k1, k2, sigma=1)
 # Finds mutal neighbors between data1 and data2.
 # Computes the batch correction vector for each cell in data2.
 {
+    data1 <- t(exprs1)
+    data2 <- t(exprs2)
+
     n1 <- nrow(data1)
     n2 <- nrow(data2)
     n.total <- n1 + n2
@@ -85,7 +88,7 @@ find.mutual.nn <- function(data1, data2, k1, k2, sigma=1, svd.dim=20)
     indices2 <- cbind(as.vector(js2), as.vector(is2))
     W[indices2] <- 1
 
-    W <- W * t(W)  #elementwise multiplication to keep mutual nns only
+    W <- W * t(W) # elementwise multiplication to keep mutual nns only
     A <- which(W>0, arr.ind=TRUE) # row/col indices of mutual NNs
     set <- A
 
@@ -95,65 +98,54 @@ find.mutual.nn <- function(data1, data2, k1, k2, sigma=1, svd.dim=20)
     A2 <- A[,2] - n1
     A2 <- A2[A2 > 0]
     vect <- data1[A1,] - data2[A2,]    
-    #row.names(vect) <- as.character(A2)
-
-    # Checking if batches share any subspace.
-    exprs1 <- t(data1[unique(A1),])
-    exprs2 <- t(data2[unique(A2),])
-    ndim <- min(c(svd.dim, dim(exprs1), dim(exprs2)))
-    span1 <- get.bio.span(exprs1, ndim)
-    span2 <- get.bio.span(exprs2, ndim)
-    nshared <- find.shared.subspace(span1, span2)$nshared
-    if (nshared==0L) { warning("batches not sufficiently related") }
 
     # Gaussian smoothing of individual correction vectors for MNN pairs.
-    dd2 <- as.matrix(dist(data2))
     if (sigma==0) {
-        G <- matrix(1, nrow(data2), ncol(data2))
+        G <- matrix(1, n2, n2)
     } else {
+        dd2 <- as.matrix(dist(data2))
         G <- exp(-dd2^2/sigma)  
     }
-    nA2<-table(A2)
     
-    D <- colSums(G)
-    batchvect <- matrix(0, nrow(data2), ncol(data2))   
-    
-    F1 <- matrix(D[A2], nrow=nrow(data2), ncol=length(A2), byrow=TRUE)
-    F2<-matrix(rep(nA2[as.character(A2)],each=dim(data2)[1]),nrow=dim(data2)[1],ncol=length(A2))
-
-    batchvect<-batchvect+(G[,A2]/ (F1*F2)) %*% vect#[A2,] #[as.character(A2),]  #density normalized for cancelling strong effect from dense parts
-    partitionf<-rowSums(G[,A2]/(F1*F2))
-    
-    
+    D <- rowSums(G)
+    nA2 <- tabulate(A2, nbins=n2)
+    norm.dens <- t(G/(D*nA2))[,A2,drop=FALSE] # density normalized to avoid domination from dense parts
+    batchvect <- norm.dens %*% vect 
+    partitionf <- rowSums(norm.dens)
     batchvect <- batchvect/partitionf
 
     # Report cells that are MNNs, and the correction vector per cell in data2.
-    set1 <- set[set<(n1+1)]
-    set2 <- set[set>n1]-n1
-    list(set1=unique(set1), set2=unique(set2), batchvect.all=batchvect, nshared=nshared) 
+    list(set1=unique(A1), set2=unique(A2), vect=batchvect)
 }
 
 get.bio.span <- function(exprs, ndim) 
-# Computes the biological span within a data set for a given number of SVD dimensions.
+# Computes the basis matrix of the biological subspace of 'exprs'.
+# The first 'ndim' dimensions are assumed to capture the biological subspace.
 # Avoids extra dimensions dominated by technical noise, which will result in both 
 # trivially large and small angles when using find.shared.subspace().
-{ 
-    S <- svd(exprs)
-    used.dim <- seq_len(ndim)
-    S$u[,used.dim,drop=FALSE] %*% S$v[used.dim,used.dim,drop=FALSE]
+{
+    exprs <- exprs - rowMeans(exprs) 
+    S <- svd(exprs, nu=ndim, nv=0)
+    S$u
 }
 
-find.shared.subspace <- function(A, B, sin.threshold=0.85, cos.threshold=1/sqrt(2)) 
+find.shared.subspace <- function(A, B, sin.threshold=0.85, cos.threshold=1/sqrt(2), 
+                                 assume.orthonormal=FALSE, get.angle=TRUE) 
 # Computes the maximum angle between subspaces, to determine if spaces are orthogonal.
 # Also identifies if there are any shared subspaces. 
 {
-    A <- pracma::orth(A)
-    B <- pracma::orth(B)
+    if (!assume.orthonormal) { 
+        A <- pracma::orth(A)
+        B <- pracma::orth(B)
+    }
      
     # Singular values close to 1 indicate shared subspace A \invertsymbol{U} B
     # Otherwise A and B are completely orthogonal, i.e., all angles=90.
     S <- svd(t(A) %*% B)
     shared <- sum(S$d > sin.threshold)
+    if (!get.angle) {
+        return(list(nshared=shared))
+    }
 
     # Computing the angle from singular values; using cosine for large angles,
     # sine for small angles (due to differences in relative accuracy).
