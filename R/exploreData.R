@@ -10,7 +10,7 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
     gd <- rownames(gene.data)
     if (is.null(xr) && is.null(gd)) { 
         xr <- gd <- paste0("Gene", seq_len(nrow(x)))
-    } else if (!identical(rownames(x), rownames(gene.data))) {
+    } else if (!identical(xr, gd)) {
         stop("'x' and 'gene.data' should have identical rownames")
     } else if (is.null(xr)) { 
         xr <- gd        
@@ -21,8 +21,8 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
     xc <- colnames(x)
     cd <- rownames(cell.data)
     if (is.null(xc) && is.null(cd)) { 
-        xc <- cd <- paste0("Gene", seq_len(nrow(x)))
-    } else if (!identical(rownames(x), rownames(gene.data))) {
+        xc <- cd <- paste0("Cell", seq_len(ncol(x)))
+    } else if (!identical(xc, cd)) {
         stop("colnames of 'x' and rownames of 'cell.data' should be identical")
     } else if (is.null(xc)) { 
         xc <- cd        
@@ -30,10 +30,16 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
         cd <- xc
     }
 
+    # Set names 
+    rownames(x) <- xr
+    rownames(gene.data) <- gd
+    colnames(x) <- xc
+    rownames(cell.data) <- cd
+
     # Build data
     covariates <- colnames(cell.data)
-    cell.data$Dim1 <- red.dim[,1]
-    cell.data$Dim2 <- red.dim[,2]
+    plot.data <- data.frame("Dim1"=red.dim[,1],
+			    "Dim2"=red.dim[,2])
 
     # Set up shiny UI
     ui <- fluidPage(
@@ -58,16 +64,18 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
     server <- function(input, output) {
     	# Load the gene level data
 	    output$table <- renderDataTable({
-    	    out <- gene.data
-    	    datatable(out, filter="top", selection=list(mode="single", selected=1))
+		out <- gene.data
+		datatable(out, filter="top", selection=list(mode="single", selected=1))
         })
 
     	# tSNE plot colored by covariates
 	    output$tSNE <- renderPlot({
-    	    tsnPlot <- ggplot(cell.data, aes_string(x="Dim1", y="Dim2", color=input$colorBy)) +
-                geom_point(size=1.5) +
-                theme_void()
-    	    tsnPlot
+		plot.data$Covariate <- cell.data[,input$colorBy]
+		tsnPlot <- ggplot(plot.data, aes(x=Dim1, y=Dim2, color=Covariate)) +
+		    geom_point(size=1.5) +
+		    labs(color=input$colorBy) +
+		    theme_void()
+		tsnPlot
         })
 
     	# tSNE plot colored by gene expression
@@ -75,12 +83,13 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
     	    s <- input$table_rows_selected
     	    if (!is.null(s)) {
                 gene <- rownames(gene.data)[s]
-                cell.data[,gene] <- x[gene,]
-                cell.data <- cell.data[base::order(cell.data[,gene]),]
-                tsnPlot <- ggplot(cell.data, aes_string(x="Dim1", y="Dim2", color=gene)) +
+                plot.data$Expression <- x[gene,]
+                plot.data <- plot.data[base::order(plot.data$Expression),]
+                tsnPlot <- ggplot(plot.data, aes(x=Dim1, y=Dim2, color=Expression)) +
                     geom_point(size=1.5) +
                     scale_color_viridis() +
-                    theme_void()
+		    ggtitle(gene) +
+		    theme_void()
                 tsnPlot
     		}
 	    })
@@ -90,13 +99,13 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
             s <- input$table_rows_selected
             if (!is.null(s)) {
                 gene <- rownames(gene.data)[s]
-                pltDat <- cell.data
-                pltDat$value <- x[gene,]
-                plt <- ggplot(pltDat, aes_string(x=input$groupBy,y="value")) +
+		plot.data$Covariate <- cell.data[,input$groupBy]
+                plot.data$Expression <- x[gene,]
+                plt <- ggplot(plot.data, aes(x=Covariate,y=Expression)) +
                     geom_boxplot() +
                     geom_point(position="jitter",alpha=0.2,shape=19) +
                     ggtitle(gene) +
-                    ylab("Expression") +
+		    xlab(input$groupBy) +
                     theme_bw()
                 plt
 	    	}
