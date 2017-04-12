@@ -35,25 +35,22 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
     rownames(gene.data) <- gd
     colnames(x) <- xc
     rownames(cell.data) <- cd
-
-    # Build data
     covariates <- colnames(cell.data)
-    plot.data <- data.frame("Dim1"=red.dim[,1],
-			    "Dim2"=red.dim[,2])
+    plot.data <- data.frame(Dim1=red.dim[,1], Dim2=red.dim[,2])
 
     # Set up shiny UI
     ui <- fluidPage(
         titlePanel("Data exploration"),
         sidebarLayout(
-		    sidebarPanel(
-		        inputPanel(
+            sidebarPanel(
+                inputPanel(
                     selectInput("colorBy", label = "Color by", choices=covariates, selected=covariates[1]),
                     selectInput("groupBy", label = "Group by", choices=covariates, selected=covariates[1]) 
-		        ),
-		        plotOutput("distPlot1")
+                ),
+                plotOutput("distPlot1")
             ),
-		    mainPanel(
-		        tabsetPanel(tabPanel("Plots",
+            mainPanel(
+                tabsetPanel(tabPanel("Plots",
                     splitLayout(plotOutput("tSNE"), plotOutput("tSNE2")),
                     dataTableOutput("table"))
                 )
@@ -62,55 +59,53 @@ exploreData <- function(x, cell.data, gene.data, red.dim, run=TRUE)
     )
 
     server <- function(input, output) {
-    	# Load the gene level data
-	    output$table <- renderDataTable({
-		out <- gene.data
-		datatable(out, filter="top", selection=list(mode="single", selected=1))
+        # Load the gene level data
+        output$table <- renderDataTable({
+            datatable(gene.data, filter="top", selection=list(mode="single", selected=1))
         })
 
-    	# tSNE plot colored by covariates
-	    output$tSNE <- renderPlot({
-		plot.data$Covariate <- cell.data[,input$colorBy]
-		tsnPlot <- ggplot(plot.data, aes(x=Dim1, y=Dim2, color=Covariate)) +
-		    geom_point(size=1.5) +
-		    labs(color=input$colorBy) +
-		    theme_void()
-		tsnPlot
+        # tSNE plot colored by covariates
+        output$tSNE <- renderPlot({
+            plot.data.copy <- data.frame(plot.data, Covariate=cell.data[,input$colorBy])
+            tsnPlot <- ggplot(plot.data.copy, aes_string(x="Dim1", y="Dim2", color="Covariate")) +
+                geom_point(size=1.5) +
+                labs(color=input$colorBy) +
+                theme_void()
+            tsnPlot
         })
 
-    	# tSNE plot colored by gene expression
-    	output$tSNE2 <- renderPlot({
-    	    s <- input$table_rows_selected
-    	    if (!is.null(s)) {
-                gene <- rownames(gene.data)[s]
-                plot.data$Expression <- x[gene,]
-                plot.data <- plot.data[base::order(plot.data$Expression),]
-                tsnPlot <- ggplot(plot.data, aes(x=Dim1, y=Dim2, color=Expression)) +
-                    geom_point(size=1.5) +
-                    scale_color_viridis() +
-		    ggtitle(gene) +
-		    theme_void()
-                tsnPlot
-    		}
-	    })
-
-        # Distribution of gene expression by covariate
-    	output$distPlot1 <- renderPlot({
+        # tSNE plot colored by gene expression
+        output$tSNE2 <- renderPlot({
             s <- input$table_rows_selected
             if (!is.null(s)) {
                 gene <- rownames(gene.data)[s]
-		plot.data$Covariate <- cell.data[,input$groupBy]
-                plot.data$Expression <- x[gene,]
-                plt <- ggplot(plot.data, aes(x=Covariate,y=Expression)) +
-                    geom_boxplot() +
-                    geom_point(position="jitter",alpha=0.2,shape=19) +
+                plot.data.copy <- data.frame(plot.data, Expression=x[gene,])
+                plot.data.copy <- plot.data.copy[base::order(plot.data.copy$Expression),]
+                tsnPlot <- ggplot(plot.data.copy, aes_string(x="Dim1", y="Dim2", color="Expression")) +
+                    geom_point(size=1.5) +
+                    scale_color_viridis() +
                     ggtitle(gene) +
-		    xlab(input$groupBy) +
+                    theme_void()
+                tsnPlot
+            }
+        })
+
+        # Distribution of gene expression by covariate
+        output$distPlot1 <- renderPlot({
+            s <- input$table_rows_selected
+            if (!is.null(s)) {
+                gene <- rownames(gene.data)[s]
+                plot.data.copy <- data.frame(Covariate=cell.data[,input$groupBy], Expression=x[gene,])
+                plt <- ggplot(plot.data.copy, aes_string(x="Covariate", y="Expression")) +
+                    geom_boxplot() +
+                    geom_point(position="jitter", alpha=0.2, shape=19) +
+                    ggtitle(gene) +
+                    xlab(input$groupBy) +
                     theme_bw()
                 plt
-	    	}
-    	})
-	}
+            }
+        })
+    }
 
     app <- shinyApp(ui, server)
     if (run) {

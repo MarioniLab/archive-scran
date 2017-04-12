@@ -65,12 +65,10 @@ red.dim <- tsn$Y[,1:2]
 
 # Creating the app object.
 app <- exploreData(x, cell.data, gene.data, red.dim, run=FALSE)
+if (interactive()) { shiny::runApp(app) }
 
-\dontrun{# Running the app object.
-saved <- shiny::runApp(app) 
-
-# Running the app directly from the function.
+\dontrun{# Running directly from the function.
 saved <- exploreData(x, cell.data, gene.data, red.dim)
 }
-
 }
+

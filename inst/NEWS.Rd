@@ -11,6 +11,9 @@ Added run argument to selectorPlot().
 Bug fix to avoid adding an empty list.
 
 \item
+Added exploreData() function for visualization of scRNA-seq data.
+
+\item
 Minor bug fix to DM() when extrapolation is required.
 
 \item
