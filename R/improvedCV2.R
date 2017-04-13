@@ -4,7 +4,7 @@
 #
 # written by Aaron Lun
 # created 9 February 2017
-# last modified 10 February 2017
+# last modified 13 April 2017
 {
     # Figuring out what rows to fit to.
     all.genes <- seq_len(nrow(x))
@@ -49,6 +49,10 @@
     ok.means <- is.finite(log.means)
     to.use <- ok.means & is.finite(log.cv2)
     to.use[-is.spike] <- FALSE
+
+    # Ignoring maxed CV2 values due to an outlier (caps at the number of cells).
+    ignored <- cv2 >= ncol(x) - 1e-8
+    to.use[ignored] <- FALSE
     use.log.means <- log.means[to.use]
     use.log.cv2 <- log.cv2[to.use]
 
