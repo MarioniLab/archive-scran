@@ -1,4 +1,4 @@
-.overlapExprs <- function(x, groups, design=NULL, subset.row=NULL, residuals=FALSE, tol=1e-8)
+.overlapExprs <- function(x, groups, design=NULL, residuals=FALSE, tol=1e-8, subset.row=NULL)
 # Computes the gene-specific overlap in expression profiles between two groups of cells.
 # This aims to determine whether two distributions of expression values are well-separated.    
 # 
