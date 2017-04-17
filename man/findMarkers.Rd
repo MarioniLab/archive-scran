@@ -46,6 +46,7 @@ Properly correcting for multiple testing is not generally possible when \code{cl
 The application of \pkg{limma} uses the \dQuote{trend} approach on the normalized log-expression values, as described by Law et al. (2015).
 This is fast and avoids putting too much weight on outliers or cells with large library sizes.
 Uninteresting factors of variation (e.g., preparation time, sequencing batch) will be blocked if they are stored in \code{design}.
+Note that the presence of factors that are confounded with \code{clusters} will raise a warning about unestimable coefficients.
 
 By default, spike-in transcripts are ignored in \code{findMarkers,SCESet-method} with \code{get.spikes=FALSE}.
 This is overridden by any non-\code{NULL} value of \code{subset.row}.
