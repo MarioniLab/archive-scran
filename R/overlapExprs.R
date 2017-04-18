@@ -3,7 +3,8 @@
 # This aims to determine whether two distributions of expression values are well-separated.    
 # 
 # written by Aaron Lun
-# created 17 April 2017    
+# created 17 April 2017
+# last modified 18 April 2017
 {
     compute.residuals <- FALSE
     if (!is.null(design)) { 
@@ -33,13 +34,14 @@
         if (is.character(use.x)) { stop(use.x) }
         use.subset.row <- seq_len(nrow(use.x)) - 1L
     } else {
-        use.x <- x[subset.row,,drop=FALSE]
+        use.x <- x
         use.subset.row <- subset.row - 1L
     }
 
     # Setting up the output matrices.
-    unique.groups <- sort(unique(groups))
-    ngroups <- length(unique(groups))
+    groups <- as.factor(groups)
+    unique.groups <- levels(groups)
+    ngroups <- nlevels(groups)
     output <- used.cells <- vector("list", ngroups)
     ngenes <- length(subset.row)
     for (g in seq_len(ngroups)) { 
@@ -47,7 +49,7 @@
         colnames(temp) <- unique.groups[-g]
         rownames(temp) <- rownames(x)[subset.row]
         output[[g]] <- temp
-        temp.n <- integer(ngroups-1)
+        temp.n <- integer(ngroups-1L)
         names(temp.n) <- colnames(temp)
         used.cells[[g]] <- temp.n
     }
@@ -56,35 +58,13 @@
     # Running through each blocking level and computing the proportions.
     for (subset.col in groupings) { 
         cur.groups <- groups[subset.col]
-        by.group <- split(subset.col, cur.groups)
+        by.group <- split(subset.col, cur.groups, drop=FALSE)
         if (length(by.group)==1L) { next }
 
-        for (b1 in seq_along(by.group)) {
-            g1 <- by.group[[b1]] 
-            for (b2 in seq_len(b1-1)) {  
-                g2 <- by.group[[b2]]
-                cur.output <- numeric(ngenes)
-
-                for (i in seq_len(ngenes)) {
-                    e1 <- use.x[i,g1]
-                    e2 <- use.x[i,g2]
-                    de <- outer(e1, e2, `-`)
-                    neq <- sum(abs(de) <= tol)
-                    ngr <- sum(de > tol)
-                    cur.output[i] <- neq*0.5 + ngr
-                }
-                cur.output <- cur.output / (length(g1) * length(g2))
-
-                # Storing in output.
-                cur.used <- length(g1) + length(g2)
-                name1 <- names(by.group)[b1] 
-                name2 <- names(by.group)[b2] 
-                output[[name1]][,name2] <- output[[name1]][,name2] + cur.output * cur.used
-                output[[name2]][,name1] <- output[[name2]][,name1] + (1 - cur.output) * cur.used
-                used.cells[[name1]][[name2]] <- used.cells[[name1]][[name2]] + cur.used
-                used.cells[[name2]][[name1]] <- used.cells[[name2]][[name1]] + cur.used
-            }
-        }
+        out <- .Call(cxx_overlap_exprs, use.x, use.subset.row, by.group, as.double(tol))
+        if (is.character(out)) { stop(out) }
+        output <- mapply("+", output, out[[1]], SIMPLIFY=FALSE)
+        used.cells <- mapply("+", used.cells, out[[2]], SIMPLIFY=FALSE)
     }
 
     # Normalizing the output matrices.
