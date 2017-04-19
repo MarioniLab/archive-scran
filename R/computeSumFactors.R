@@ -11,7 +11,7 @@
 
 setGeneric("computeSumFactors", function(x, ...) standardGeneric("computeSumFactors"))
 
-setMethod("computeSumFactors", "matrix", function(x, sizes=c(20, 40, 60, 80, 100), clusters=NULL, ref.clust=NULL, positive=FALSE, errors=FALSE, subset.row=NULL) 
+setMethod("computeSumFactors", "matrix", function(x, sizes=seq(20, 100, 10), clusters=NULL, ref.clust=NULL, positive=FALSE, errors=FALSE, subset.row=NULL) 
 # This contains the function that performs normalization on the summed counts.
 # It also provides support for normalization within clusters, and then between
 # clusters to make things comparable. It can also switch to linear inverse models
@@ -81,7 +81,7 @@ setMethod("computeSumFactors", "matrix", function(x, sizes=c(20, 40, 60, 80, 100
             QR <- qr(design)
             final.nf <- qr.coef(QR, output)
             if (any(final.nf < 0)) { 
-                if (!warned.neg) { warning("negative factor estimates, re-run with 'positive=TRUE'") }
+                if (!warned.neg) { warning("encountered negative factor estimates") }
                 warned.neg <- TRUE
             }
 
