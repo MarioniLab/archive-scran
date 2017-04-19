@@ -7,7 +7,7 @@
 \description{Methods to normalize single-cell RNA-seq data by deconvolving size factors from cell pools.}
 
 \usage{
-\S4method{computeSumFactors}{matrix}(x, sizes=seq(20, 100, 10), clusters=NULL, 
+\S4method{computeSumFactors}{matrix}(x, sizes=seq(20, 100, 5), clusters=NULL, 
     ref.clust=NULL, positive=FALSE, errors=FALSE, subset.row=NULL)
 \S4method{computeSumFactors}{SCESet}(x, subset.row=NULL, ..., assay="counts", 
     get.spikes=FALSE, sf.out=FALSE)
