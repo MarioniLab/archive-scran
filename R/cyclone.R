@@ -45,7 +45,7 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
     }
   
     # Run the allocation algorithm
-    workass <- .workerAssign(ncol(x), BPPARAM)
+    workass <- .worker_assign(ncol(x), BPPARAM)
     common.args <- list(exprs=x, iter=iter, min.iter=min.iter, min.pairs=min.pairs)
     all.scores <- vector('list', length(pairs))
     names(all.scores) <- names(pairs)
@@ -75,7 +75,7 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
 
 setMethod("cyclone", "SCESet", function(x, pairs, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) {
     if (is.null(subset.row)) {
-        subset.row <- .spikeSubset(x, get.spikes)
+        subset.row <- .spike_subset(x, get.spikes)
     }
     cyclone(assayDataElement(x, assay), pairs=pairs, subset.row=subset.row, ...)          
 })

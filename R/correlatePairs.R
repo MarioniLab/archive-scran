@@ -11,7 +11,7 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
     compute.residuals <- FALSE
     if (!is.null(design)) { 
         QR <- qr(design, LAPACK=TRUE)
-        blocks <- .isOneWay(design)
+        blocks <- .is_one_way(design)
         if (is.null(blocks) || residuals) { 
             compute.residuals <- TRUE
             blocks <- list(seq_len(ncol(x)))
@@ -71,7 +71,7 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
         }
 
         # Running through each set of jobs 
-        workass <- .workerAssign(length(gene1), BPPARAM)
+        workass <- .worker_assign(length(gene1), BPPARAM)
         out <- bpmapply(FUN=.get_correlation, wstart=workass$start, wend=workass$end, BPPARAM=BPPARAM,
                         MoreArgs=list(gene1=gene1 - 1L, gene2=gene2 - 1L, ranked.exprs=ranked.exprs), SIMPLIFY=FALSE)
         current.rho <- unlist(out)
@@ -205,7 +205,7 @@ setMethod("correlatePairs", "matrix", .correlate_pairs)
 setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, use.names=TRUE, per.gene=FALSE, ..., assay="exprs", get.spikes=FALSE) {
     by.spikes <- FALSE
     if (is.null(subset.row)) {
-        subset.row <- .spikeSubset(x, get.spikes)
+        subset.row <- .spike_subset(x, get.spikes)
         by.spikes <- TRUE
     }
     out <- .correlate_pairs(assayDataElement(x, assay), subset.row=subset.row, per.gene=per.gene, use.names=use.names, ...)

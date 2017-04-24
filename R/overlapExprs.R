@@ -9,7 +9,7 @@
     compute.residuals <- FALSE
     if (!is.null(design)) { 
         QR <- qr(design, LAPACK=TRUE)
-        groupings <- .isOneWay(design)
+        groupings <- .is_one_way(design)
         if (is.null(groupings) || residuals) { 
             compute.residuals <- TRUE
             groupings <- list(seq_len(ncol(x)))
@@ -79,7 +79,7 @@ setGeneric("overlapExprs", function(x, ...) standardGeneric("overlapExprs"))
 setMethod("overlapExprs", "matrix", .overlapExprs)
 
 setMethod("overlapExprs", "SCESet", function(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) {
-    if (is.null(subset.row)) { subset.row <- .spikeSubset(x, get.spikes) }
+    if (is.null(subset.row)) { subset.row <- .spike_subset(x, get.spikes) }
     .overlapExprs(assayDataElement(x, assay), ..., subset.row=subset.row)
 })                                 
 

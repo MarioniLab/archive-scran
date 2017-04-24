@@ -1,4 +1,4 @@
-.spikeSubset <- function(x, get.spikes) {
+.spike_subset <- function(x, get.spikes) {
     if (!get.spikes) {
         nokeep <- isSpike(x, warning=FALSE)
         if (!is.null(nokeep) && any(nokeep)) {
@@ -27,7 +27,7 @@
     return(out)
 }
 
-.makeVarDefaults <- function(x, fit, design) 
+.make_var_defaults <- function(x, fit, design) 
 # Makes defaults for the trendVar and decomposeVar functions.
 {
     if (is.null(design)) { 
@@ -50,17 +50,17 @@
     return(NULL)
 }
 
-.workerAssign <- function(njobs, BPPARAM) 
+.worker_assign <- function(njobs, BPPARAM) 
 # Assigns jobs to workers.
 {
     ncores <- bpworkers(BPPARAM)
     starting <- as.integer(seq(from=1, to=njobs+1, length.out=ncores+1))
-    starting <- unique(starting[seq_len(ncores)])
+    starting <- unique(head(starting, -1))
     ending <- c((starting - 1L)[-1], njobs)
     return(list(start=starting, end=ending))
 }
 
-.isOneWay <- function(design) 
+.is_one_way <- function(design) 
 # Checks if design matrix is a one-way layout.
 {
     if (nrow(design) <= ncol(design)) {

@@ -41,7 +41,7 @@
         nn.out <- get.knn(incoming, k=k, ...)
     } else {
         # Splitting up the query cells across multiple cores.
-        assigned <- .workerAssign(nrow(incoming), BPPARAM)
+        assigned <- .worker_assign(nrow(incoming), BPPARAM)
         by.group <- x.by.group <- vector("list", nworkers)
         for (j in seq_along(by.group)) {
             by.group[[j]] <- assigned$start[j]:assigned$end[j]
@@ -80,7 +80,7 @@ setMethod("buildSNNGraph", "matrix", .buildSNNGraph)
 
 setMethod("buildSNNGraph", "SCESet", function(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) { 
-        subset.row <- .spikeSubset(x, get.spikes)
+        subset.row <- .spike_subset(x, get.spikes)
     }
     .buildSNNGraph(assayDataElement(x, assay), ..., subset.row=subset.row)
 })

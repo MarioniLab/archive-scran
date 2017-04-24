@@ -11,7 +11,7 @@
     all.means <- rowMeans(x)
 
     if (!is.null(design)) { 
-        checked <- .makeVarDefaults(x, fit=NULL, design=design)
+        checked <- .make_var_defaults(x, fit=NULL, design=design)
         design <- checked$design
         QR <- qr(design, LAPACK=TRUE)
 
@@ -65,7 +65,7 @@ setMethod("denoisePCA", "matrix", .denoisePCA)
 
 setMethod("denoisePCA", "SCESet", function(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) {
-        subset.row <- .spikeSubset(x, get.spikes)
+        subset.row <- .spike_subset(x, get.spikes)
     }
     out <- .denoisePCA(assayDataElement(x, assay), ..., subset.row=subset.row)
     reducedDimension(x) <- out
