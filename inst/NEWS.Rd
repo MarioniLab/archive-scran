@@ -2,6 +2,10 @@
 \title{scran News}
 \encoding{UTF-8}
 
+\section{Version 1.5.1}{\itemize{
+\item Parallelized buildSNNGraph with BPPARAM options.
+}}
+
 \section{Version 1.4.0}{\itemize{
 \item 
 Switched default BPPARAM to SerialParam() in all functions.
