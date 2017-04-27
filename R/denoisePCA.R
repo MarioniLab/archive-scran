@@ -4,6 +4,7 @@
 #
 # written by Aaron Lun
 # created 13 March 2017    
+# last modified 27 April 2017
 {
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
     x <- x[subset.row,] # Might as well, need to do PCA on the subsetted matrix anyway.
@@ -14,10 +15,9 @@
         checked <- .make_var_defaults(x, fit=NULL, design=design)
         design <- checked$design
         QR <- qr(design, LAPACK=TRUE)
-
-        # Computing residuals.
-        rx <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L)
-        if (is.character(rx)) { stop(rx) }
+        
+        # Computing residuals; don't set a lower bound, see below.
+        rx <- .calc_residuals_wt_zeroes(x, QR=QR, subset.row=subset.row, lower.bound=NA) 
 
         # Rescaling residuals so that the variance is unbiased.
         # This is necessary because variance of residuals is underestimated.
@@ -71,3 +71,22 @@ setMethod("denoisePCA", "SCESet", function(x, ..., subset.row=NULL, assay="exprs
     reducedDimension(x) <- out
     return(x)
 })
+
+# EXPLANATION OF LOWER BOUNDS:
+# The setting of lower bounds distorts the variance explained by each PC, so we won't do it.
+# I don't think we need to do it, because tie-breaking is only a problem for ranks.
+# When considering cell-cell distances or variances, it should only have a small effect.
+# Consider the following example:
+#
+# a <- matrix(0, 100, 100)
+# a[sample(length(a), 100)] <- 1
+# groupings <- rep(LETTERS[1:2], each=50)
+# fit <- lm.fit(y=t(a), x=model.matrix(~groupings))
+# resid <- t(fit$residuals)
+# out <- prcomp(t(resid))
+# plot(out$x[,1], out$x[,2], col=c(A="blue", B="red")[groupings])
+#
+# We see a small partition between batches due to the breaking of ties.
+# The hope would be that this is negligible compared to structure within batches.
+# It also provides another case for filtering out low-abundance genes with lots of zeroes.
+
