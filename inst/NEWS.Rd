@@ -3,7 +3,9 @@
 \encoding{UTF-8}
 
 \section{Version 1.5.1}{\itemize{
-\item Parallelized buildSNNGraph with BPPARAM options.
+\item Parallelized buildSNNGraph() with BPPARAM options.
+
+\item Forced zero-derived residuals to a constant value in correlatePairs(), overlapExprs().
 }}
 
 \section{Version 1.4.0}{\itemize{

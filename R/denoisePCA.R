@@ -73,11 +73,13 @@ setMethod("denoisePCA", "SCESet", function(x, ..., subset.row=NULL, assay="exprs
 })
 
 # EXPLANATION OF LOWER BOUNDS:
-# The setting of lower bounds distorts the variance explained by each PC, so we won't do it.
-# I don't think we need to do it, because tie-breaking is only a problem for ranks.
+# The setting of zero-derived residuals to a constant distorts the variance explained by each PC.
+# The actual value of the constant also matters here - I'm not sure how to choose it.
+# In any case, I don't think we need to do it, because tie-breaking is only a problem for ranks.
 # When considering cell-cell distances or variances, it should only have a small effect.
 # Consider the following example:
 #
+# set.seed(2000)
 # a <- matrix(0, 100, 100)
 # a[sample(length(a), 100)] <- 1
 # groupings <- rep(LETTERS[1:2], each=50)
