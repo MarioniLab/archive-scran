@@ -5,15 +5,16 @@
  * a subset of integer indices, and returns a matrix of residuals.
  */
 
-SEXP get_residuals(SEXP exprs, SEXP qr, SEXP qraux, SEXP subset) try {
+SEXP get_residuals(SEXP exprs, SEXP qr, SEXP qraux, SEXP subset, SEXP lower_bound) try {
     const matrix_info emat=check_matrix(exprs);
     if (emat.is_integer) {
         throw std::runtime_error("expression matrix must be double-precision"); 
     }
-    const double** eptrs=(const double**)R_alloc(emat.ncol, sizeof(const double*));
-    if (emat.ncol) {
+    const size_t& ncells=emat.ncol;
+    std::vector<const double*> eptrs(ncells);
+    if (ncells) {
         eptrs[0]=emat.dptr;
-        for (size_t c=1; c<emat.ncol; ++c) {
+        for (size_t c=1; c<ncells; ++c) {
             eptrs[c]=eptrs[c-1]+emat.nrow;
         }
     }
@@ -34,31 +35,59 @@ SEXP get_residuals(SEXP exprs, SEXP qr, SEXP qraux, SEXP subset) try {
     const double* qrxptr=REAL(qraux);
     run_dormqr multQ1(QR.nrow, QR.ncol, QR.dptr, qrxptr, 'T');
     run_dormqr multQ2(QR.nrow, QR.ncol, QR.dptr, qrxptr, 'N');
+
+    // Checking the lower bound.
+    if (!isReal(lower_bound) || LENGTH(lower_bound)!=1) {
+        throw std::runtime_error("lower bound should be a numeric scalar");
+    }
+    const double lbound=asReal(lower_bound);
+    const bool check_lower=R_FINITE(lbound);
     
-    SEXP output=PROTECT(allocMatrix(REALSXP, slen, emat.ncol));
+    SEXP output=PROTECT(allocMatrix(REALSXP, slen, ncells));
     try {
-        double** optrs=(double**)R_alloc(emat.ncol, sizeof(double*));
-        if (emat.ncol) {
+        std::vector<double*> optrs(ncells);
+        if (ncells) {
             optrs[0]=REAL(output);
-            for (size_t c=1; c<emat.ncol; ++c) {
+            for (size_t c=1; c<ncells; ++c) {
                 optrs[c]=optrs[c-1]+slen;
             }
         }
 
         size_t c;
-        double* temporary=(double*)R_alloc(emat.ncol, sizeof(double));
+        double* temporary=(double*)R_alloc(ncells, sizeof(double));
+        std::deque<int> below_bound;
+        double lowest;
+
         for (int s=0; s<slen; ++s) {
-            for (c=0; c<emat.ncol; ++c) {
+            for (c=0; c<ncells; ++c) {
                 temporary[c]=eptrs[c][sptr[s]];
+            }
+            
+            // Identifying elements below the lower bound.
+            if (check_lower) { 
+                for (c=0; c<ncells; ++c) {
+                    if (temporary[c] <= lbound) {
+                        below_bound.push_back(c);                        
+                    }
+                }
             }
 
             multQ1.run(temporary); // Getting main+residual effects.
             for (c=0; c<QR.ncol; ++c) {
                 temporary[c]=0; // setting main effects to zero.
             }
-
             multQ2.run(temporary); // Getting residuals.
-            for (c=0; c<emat.ncol; ++c) {
+
+            // Forcing the values below the boundary to a value below the smallest residual.
+            if (check_lower && !below_bound.empty()) {
+                lowest=(*std::min_element(temporary, temporary+ncells)) - 1;
+                for (c=0; c<below_bound.size(); ++c) {
+                    temporary[below_bound[c]]=lowest;
+                }
+                below_bound.clear();
+            }
+
+            for (c=0; c<ncells; ++c) {
                 optrs[c][s]=temporary[c];
             }
         }

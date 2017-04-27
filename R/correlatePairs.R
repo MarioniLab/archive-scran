@@ -1,16 +1,15 @@
 setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
-.correlate_pairs <- function(x, null.dist=NULL, design=NULL, BPPARAM=SerialParam(), use.names=TRUE, tol=1e-8, 
-                             iters=1e6, residuals=FALSE, subset.row=NULL, per.gene=FALSE)
+.correlate_pairs <- function(x, null.dist=NULL, design=NULL, BPPARAM=SerialParam(), tol=1e-8, iters=1e6, residuals=FALSE, 
+                             use.names=TRUE, subset.row=NULL, per.gene=FALSE, lower.bound=NULL)
 # This calculates a (modified) Spearman's rho for each pair of genes.
 #
 # written by Aaron Lun
 # created 10 February 2016
-# last modified 2 February 2017
+# last modified 27 April 2017
 {
     compute.residuals <- FALSE
     if (!is.null(design)) { 
-        QR <- qr(design, LAPACK=TRUE)
         blocks <- .is_one_way(design)
         if (is.null(blocks) || residuals) { 
             compute.residuals <- TRUE
@@ -51,8 +50,7 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
     # Computing residuals; also replacing the subset vector, as it'll already be subsetted.
     if (compute.residuals) { 
-        use.x <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L)
-        if (is.character(use.x)) { stop(use.x) }
+        use.x <- .calc_residuals_wt_zeroes(x, design, subset.row=subset.row, lower.bound=lower.bound) 
         use.subset.row <- seq_len(nrow(use.x)) - 1L
     } else {
         use.x <- x
@@ -202,13 +200,17 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
 setMethod("correlatePairs", "matrix", .correlate_pairs)
 
-setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, use.names=TRUE, per.gene=FALSE, ..., assay="exprs", get.spikes=FALSE) {
+setMethod("correlatePairs", "SCESet", function(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE, lower.bound=NULL, 
+                                               assay="exprs", get.spikes=FALSE) {
     by.spikes <- FALSE
     if (is.null(subset.row)) {
         subset.row <- .spike_subset(x, get.spikes)
         by.spikes <- TRUE
     }
-    out <- .correlate_pairs(assayDataElement(x, assay), subset.row=subset.row, per.gene=per.gene, use.names=use.names, ...)
+    lower.bound <- .guess_lower_bound(x, assay, lower.bound)
+
+    out <- .correlate_pairs(assayDataElement(x, assay), subset.row=subset.row, per.gene=per.gene, 
+                            use.names=use.names, lower.bound=lower.bound, ...)
 
     # Returning a row for all elements, even if it is NA.
     if (per.gene && by.spikes) {

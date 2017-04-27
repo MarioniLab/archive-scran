@@ -27,6 +27,8 @@
     return(out)
 }
 
+#################################################
+
 .make_var_defaults <- function(x, fit, design) 
 # Makes defaults for the trendVar and decomposeVar functions.
 {
@@ -47,32 +49,6 @@
         !areSizeFactorsCentred(x)) {
         warning("size factors not centred, run 'normalize()' first")
     }
-    return(NULL)
-}
-
-.worker_assign <- function(njobs, BPPARAM) 
-# Assigns jobs to workers.
-{
-    ncores <- bpworkers(BPPARAM)
-    starting <- as.integer(seq(from=1, to=njobs+1, length.out=ncores+1))
-    starting <- unique(head(starting, -1))
-    ending <- c((starting - 1L)[-1], njobs)
-    return(list(start=starting, end=ending))
-}
-
-.is_one_way <- function(design) 
-# Checks if design matrix is a one-way layout.
-{
-    if (nrow(design) <= ncol(design)) {
-        stop("design matrix has no residual degrees of freedom")
-    }
-    group <- designAsFactor(design)
-    if (nlevels(group) == ncol(design)) {
-        # Stripping out groups with only one level.
-        groupings <- split(seq_len(nrow(design)), group)
-        groupings[lengths(groupings)==1L] <- NULL
-        return(groupings)
-    } 
     return(NULL)
 }
 
@@ -119,3 +95,62 @@
     return(list(is.spike=is.spike, sf.cell=sf.cell, sf.spike=sf.spike))
 } 
 
+#################################################
+
+.worker_assign <- function(njobs, BPPARAM) 
+# Assigns jobs to workers.
+{
+    ncores <- bpworkers(BPPARAM)
+    starting <- as.integer(seq(from=1, to=njobs+1, length.out=ncores+1))
+    starting <- unique(head(starting, -1))
+    ending <- c((starting - 1L)[-1], njobs)
+    return(list(start=starting, end=ending))
+}
+
+.is_one_way <- function(design) 
+# Checks if design matrix is a one-way layout.
+{
+    if (nrow(design) <= ncol(design)) {
+        stop("design matrix has no residual degrees of freedom")
+    }
+    group <- designAsFactor(design)
+    if (nlevels(group) == ncol(design)) {
+        # Stripping out groups with only one level.
+        groupings <- split(seq_len(nrow(design)), group)
+        groupings[lengths(groupings)==1L] <- NULL
+        return(groupings)
+    } 
+    return(NULL)
+}
+
+#################################################
+
+.calc_residuals_wt_zeroes <- function(x, design, QR, subset.row, lower.bound) 
+# Computes residuals, but ensures that residuals for observations that 
+# were below the lower bound are set to a constant value that is smaller 
+# than all other residuals. Avoids spurious patterns when
+# 
+{
+    if (!is.null(design)) {
+        QR <- qr(design, LAPACK=TRUE)
+    }
+    if (is.null(lower.bound)) { 
+        stop("lower bound must be supplied or NA when computing residuals")
+    }
+    use.x <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L, as.double(lower.bound))
+    if (is.character(use.x)) { 
+        stop(use.x) 
+    }
+    return(use.x)
+}
+
+.guess_lower_bound <- function(x, assay, lower.bound) { 
+    if (is.null(lower.bound)) { 
+        if (assay=="exprs") {
+            lower.bound <- log2(x@logExprsOffset) + 1e-8
+        } else if (assay=="counts") {
+            lower.bound <- 1e-8
+        }
+    }
+    return(lower.bound)
+}
