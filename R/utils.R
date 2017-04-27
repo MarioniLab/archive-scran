@@ -131,7 +131,7 @@
 # than all other residuals. Avoids spurious patterns when
 # 
 {
-    if (!is.null(design)) {
+    if (!missing(design)) {
         QR <- qr(design, LAPACK=TRUE)
     }
     if (is.null(lower.bound)) { 

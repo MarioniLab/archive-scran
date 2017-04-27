@@ -1,14 +1,13 @@
-.overlapExprs <- function(x, groups, design=NULL, residuals=FALSE, tol=1e-8, subset.row=NULL)
+.overlapExprs <- function(x, groups, design=NULL, residuals=FALSE, tol=1e-8, subset.row=NULL, lower.bound=NULL)
 # Computes the gene-specific overlap in expression profiles between two groups of cells.
 # This aims to determine whether two distributions of expression values are well-separated.    
 # 
 # written by Aaron Lun
 # created 17 April 2017
-# last modified 18 April 2017
+# last modified 27 April 2017
 {
     compute.residuals <- FALSE
     if (!is.null(design)) { 
-        QR <- qr(design, LAPACK=TRUE)
         groupings <- .is_one_way(design)
         if (is.null(groupings) || residuals) { 
             compute.residuals <- TRUE
@@ -30,8 +29,7 @@
 
     # Computing residuals; also replacing the subset vector, as it'll already be subsetted.
     if (compute.residuals) { 
-        use.x <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L)
-        if (is.character(use.x)) { stop(use.x) }
+        use.x <- .calc_residuals_wt_zeroes(x, design, subset.row=subset.row, lower.bound=lower.bound)
         use.subset.row <- seq_len(nrow(use.x)) - 1L
     } else {
         use.x <- x
@@ -78,8 +76,9 @@ setGeneric("overlapExprs", function(x, ...) standardGeneric("overlapExprs"))
 
 setMethod("overlapExprs", "matrix", .overlapExprs)
 
-setMethod("overlapExprs", "SCESet", function(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) {
+setMethod("overlapExprs", "SCESet", function(x, ..., subset.row=NULL, lower.bound=NULL, assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) { subset.row <- .spike_subset(x, get.spikes) }
-    .overlapExprs(assayDataElement(x, assay), ..., subset.row=subset.row)
+    lower.bound <- .guess_lower_bound(x, assay, lower.bound)
+    .overlapExprs(assayDataElement(x, assay), ..., lower.bound=lower.bound, subset.row=subset.row)
 })                                 
 
