@@ -1,4 +1,4 @@
-library(FNN)
+
 
 mnnCorrect <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL) 
 # Performs correction based on the batches specified in the ellipsis.
