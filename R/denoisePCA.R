@@ -16,7 +16,7 @@
         design <- checked$design
         QR <- qr(design, LAPACK=TRUE)
         
-        # Computing residuals; don't set a lower bound, see below.
+        # Computing residuals; don't set a lower bound.
         rx <- .calc_residuals_wt_zeroes(x, QR=QR, subset.row=subset.row, lower.bound=NA) 
 
         # Rescaling residuals so that the variance is unbiased.
@@ -71,24 +71,4 @@ setMethod("denoisePCA", "SCESet", function(x, ..., subset.row=NULL, assay="exprs
     reducedDimension(x) <- out
     return(x)
 })
-
-# EXPLANATION OF LOWER BOUNDS:
-# The setting of zero-derived residuals to a constant distorts the variance explained by each PC.
-# The actual value of the constant also matters here - I'm not sure how to choose it.
-# In any case, I don't think we need to do it, because tie-breaking is only a problem for ranks.
-# When considering cell-cell distances or variances, it should only have a small effect.
-# Consider the following example:
-#
-# set.seed(2000)
-# a <- matrix(0, 100, 100)
-# a[sample(length(a), 100)] <- 1
-# groupings <- rep(LETTERS[1:2], each=50)
-# fit <- lm.fit(y=t(a), x=model.matrix(~groupings))
-# resid <- t(fit$residuals)
-# out <- prcomp(t(resid))
-# plot(out$x[,1], out$x[,2], col=c(A="blue", B="red")[groupings])
-#
-# We see a small partition between batches due to the breaking of ties.
-# The hope would be that this is negligible compared to structure within batches.
-# It also provides another case for filtering out low-abundance genes with lots of zeroes.
 
