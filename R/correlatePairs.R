@@ -1,26 +1,25 @@
 setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
-.correlate_pairs <- function(x, null.dist=NULL, design=NULL, BPPARAM=SerialParam(), use.names=TRUE, tol=1e-8, 
-                             iters=1e6, residuals=FALSE, subset.row=NULL, per.gene=FALSE)
+.correlate_pairs <- function(x, null.dist=NULL, design=NULL, BPPARAM=SerialParam(), tol=1e-8, iters=1e6, residuals=FALSE, 
+                             use.names=TRUE, subset.row=NULL, per.gene=FALSE, lower.bound=NULL)
 # This calculates a (modified) Spearman's rho for each pair of genes.
 #
 # written by Aaron Lun
 # created 10 February 2016
-# last modified 2 February 2017
+# last modified 27 April 2017
 {
     compute.residuals <- FALSE
     if (!is.null(design)) { 
-        QR <- qr(design, LAPACK=TRUE)
-        groupings <- .isOneWay(design)
-        if (is.null(groupings) || residuals) { 
+        blocks <- .is_one_way(design)
+        if (is.null(blocks) || residuals) { 
             compute.residuals <- TRUE
-            groupings <- list(seq_len(ncol(x)))
+            blocks <- list(seq_len(ncol(x)))
         } 
         if (is.null(null.dist)) { 
             null.dist <- correlateNull(design=design, residuals=residuals, iters=iters)
         }
     } else {
-        groupings <- list(seq_len(ncol(x)))
+        blocks <- list(seq_len(ncol(x)))
         if (is.null(null.dist)) { 
             null.dist <- correlateNull(ncol(x), iters=iters)
         } 
@@ -49,27 +48,28 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
     reorder <- pairings$reorder
     final.names <- .choose_gene_names(subset.row=subset.row, x=x, use.names=use.names)
 
-    # Iterating through all subgroups (for one-way layouts; otherwise, this is a loop of length 1).
-    all.rho <- 0L
-    for (subset.col in groupings) { 
+    # Computing residuals; also replacing the subset vector, as it'll already be subsetted.
+    if (compute.residuals) { 
+        use.x <- .calc_residuals_wt_zeroes(x, design, subset.row=subset.row, lower.bound=lower.bound) 
+        use.subset.row <- seq_len(nrow(use.x)) - 1L
+    } else {
+        use.x <- x
+        use.subset.row <- subset.row - 1L
+    }
 
-        if (!compute.residuals) {
-            # Ranking genes, in an error-tolerant way. This avoids getting untied rankings for zeroes
-            # (which should have the same value +/- precision, as the prior count scaling cancels out).
-            ranked.exprs <- .Call(cxx_rank_subset, x, subset.row - 1L, subset.col - 1L, tol)
-        } else {
-            # If we're computing residuals, we intervene here and replace values with the residuals.
-            # Also need to replace the subset vector, as it'll already be subsetted.
-            rx <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L)
-            if (is.character(rx)) { stop(rx) }
-            ranked.exprs <- .Call(cxx_rank_subset, rx, seq_len(nrow(rx)) - 1L, subset.col - 1L, tol)
-        }
+    # Iterating through all blocking levels (for one-way layouts; otherwise, this is a loop of length 1).
+    all.rho <- 0L
+    for (subset.col in blocks) { 
+
+        # Ranking genes in an error-tolerant way. This avoids getting untied rankings for zeroes
+        # (which should have the same value +/- precision, as the prior count scaling cancels out).
+        ranked.exprs <- .Call(cxx_rank_subset, use.x, use.subset.row, subset.col - 1L, tol)
         if (is.character(ranked.exprs)) {
             stop(ranked.exprs)
         }
 
         # Running through each set of jobs 
-        workass <- .workerAssign(length(gene1), BPPARAM)
+        workass <- .worker_assign(length(gene1), BPPARAM)
         out <- bpmapply(FUN=.get_correlation, wstart=workass$start, wend=workass$end, BPPARAM=BPPARAM,
                         MoreArgs=list(gene1=gene1 - 1L, gene2=gene2 - 1L, ranked.exprs=ranked.exprs), SIMPLIFY=FALSE)
         current.rho <- unlist(out)
@@ -200,13 +200,17 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
 setMethod("correlatePairs", "matrix", .correlate_pairs)
 
-setMethod("correlatePairs", "SCESet", function(x, subset.row=NULL, use.names=TRUE, per.gene=FALSE, ..., assay="exprs", get.spikes=FALSE) {
+setMethod("correlatePairs", "SCESet", function(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE, lower.bound=NULL, 
+                                               assay="exprs", get.spikes=FALSE) {
     by.spikes <- FALSE
     if (is.null(subset.row)) {
-        subset.row <- .spikeSubset(x, get.spikes)
+        subset.row <- .spike_subset(x, get.spikes)
         by.spikes <- TRUE
     }
-    out <- .correlate_pairs(assayDataElement(x, assay), subset.row=subset.row, per.gene=per.gene, use.names=use.names, ...)
+    lower.bound <- .guess_lower_bound(x, assay, lower.bound)
+
+    out <- .correlate_pairs(assayDataElement(x, assay), subset.row=subset.row, per.gene=per.gene, 
+                            use.names=use.names, lower.bound=lower.bound, ...)
 
     # Returning a row for all elements, even if it is NA.
     if (per.gene && by.spikes) {

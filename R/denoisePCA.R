@@ -4,6 +4,7 @@
 #
 # written by Aaron Lun
 # created 13 March 2017    
+# last modified 27 April 2017
 {
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
     x <- x[subset.row,] # Might as well, need to do PCA on the subsetted matrix anyway.
@@ -11,13 +12,12 @@
     all.means <- rowMeans(x)
 
     if (!is.null(design)) { 
-        checked <- .makeVarDefaults(x, fit=NULL, design=design)
+        checked <- .make_var_defaults(x, fit=NULL, design=design)
         design <- checked$design
         QR <- qr(design, LAPACK=TRUE)
-
-        # Computing residuals.
-        rx <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L)
-        if (is.character(rx)) { stop(rx) }
+        
+        # Computing residuals; don't set a lower bound, see below.
+        rx <- .calc_residuals_wt_zeroes(x, QR=QR, subset.row=subset.row, lower.bound=NA) 
 
         # Rescaling residuals so that the variance is unbiased.
         # This is necessary because variance of residuals is underestimated.
@@ -65,9 +65,30 @@ setMethod("denoisePCA", "matrix", .denoisePCA)
 
 setMethod("denoisePCA", "SCESet", function(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) {
-        subset.row <- .spikeSubset(x, get.spikes)
+        subset.row <- .spike_subset(x, get.spikes)
     }
     out <- .denoisePCA(assayDataElement(x, assay), ..., subset.row=subset.row)
     reducedDimension(x) <- out
     return(x)
 })
+
+# EXPLANATION OF LOWER BOUNDS:
+# The setting of zero-derived residuals to a constant distorts the variance explained by each PC.
+# The actual value of the constant also matters here - I'm not sure how to choose it.
+# In any case, I don't think we need to do it, because tie-breaking is only a problem for ranks.
+# When considering cell-cell distances or variances, it should only have a small effect.
+# Consider the following example:
+#
+# set.seed(2000)
+# a <- matrix(0, 100, 100)
+# a[sample(length(a), 100)] <- 1
+# groupings <- rep(LETTERS[1:2], each=50)
+# fit <- lm.fit(y=t(a), x=model.matrix(~groupings))
+# resid <- t(fit$residuals)
+# out <- prcomp(t(resid))
+# plot(out$x[,1], out$x[,2], col=c(A="blue", B="red")[groupings])
+#
+# We see a small partition between batches due to the breaking of ties.
+# The hope would be that this is negligible compared to structure within batches.
+# It also provides another case for filtering out low-abundance genes with lots of zeroes.
+

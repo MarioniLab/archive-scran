@@ -2,6 +2,12 @@
 \title{scran News}
 \encoding{UTF-8}
 
+\section{Version 1.5.1}{\itemize{
+\item Parallelized buildSNNGraph() with BPPARAM options.
+
+\item Forced zero-derived residuals to a constant value in correlatePairs(), overlapExprs().
+}}
+
 \section{Version 1.4.0}{\itemize{
 \item 
 Switched default BPPARAM to SerialParam() in all functions.
@@ -9,6 +15,9 @@ Switched default BPPARAM to SerialParam() in all functions.
 \item
 Added run argument to selectorPlot().
 Bug fix to avoid adding an empty list.
+
+\item
+Added exploreData() function for visualization of scRNA-seq data.
 
 \item
 Minor bug fix to DM() when extrapolation is required.
@@ -48,6 +57,9 @@ Added the denoisePCA() function to remove technical noise via selection of early
 
 \item
 Removed warning requiring at least twice the max size in computeSumFactors().
+Elaborated on the circumstances surrounding negative size factors.
+Increased the default number of window sizes to be examined.
+Refactored C++ code for increased speed.
 
 \item
 Allowed quickCluster() to return a matrix of ranks for use in other clustering methods.
@@ -55,6 +67,9 @@ Added method="igraph" option to perform graph-based clustering for large numbers
 
 \item 
 Added the findMarkers() function to automatically identify potential markers for cell clusters.
+
+\item
+Added the overlapExprs() function to compute the overlap in expression distributions between groups.
 
 \item
 Added the buildSNNGraph() function to build a SNN graph for cells from their expression profiles.
