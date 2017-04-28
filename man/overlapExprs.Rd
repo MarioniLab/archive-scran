@@ -8,7 +8,7 @@
 
 \usage{
 \S4method{overlapExprs}{matrix}(x, groups, design=NULL, residuals=FALSE, tol=1e-8, 
-    subset.row=NULL, lower.bound=NULL)
+    BPPARAM=SerialParam(), subset.row=NULL, lower.bound=NULL)
 
 \S4method{overlapExprs}{SCESet}(x, ..., subset.row=NULL, lower.bound=NULL, assay="exprs", get.spikes=FALSE) 
 }
@@ -24,6 +24,7 @@ A vector of group assignments for all cells.
 \item{design}{A numeric matrix containing blocking terms, i.e., uninteresting factors driving expression across cells.}
 \item{residuals}{A logical scalar indicating whether overlaps should be computed between residuals of a linear model.} 
 \item{tol}{A numeric scalar specifying the tolerance with which ties are considered.}
+\item{BPPARAM}{A BiocParallelParam object to use in \code{bplapply} for parallel processing.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{lower.bound}{A numeric scalar specifying the theoretical lower bound of values in \code{x}, only used when \code{residuals=TRUE}.}
 \item{...}{Additional arguments to pass to the matrix method.}

@@ -1,4 +1,5 @@
-.overlapExprs <- function(x, groups, design=NULL, residuals=FALSE, tol=1e-8, subset.row=NULL, lower.bound=NULL)
+.overlapExprs <- function(x, groups, design=NULL, residuals=FALSE, tol=1e-8, 
+                          BPPARAM=SerialParam(), subset.row=NULL, lower.bound=NULL)
 # Computes the gene-specific overlap in expression profiles between two groups of cells.
 # This aims to determine whether two distributions of expression values are well-separated.    
 # 
@@ -53,16 +54,26 @@
     }
     names(output) <- names(used.cells) <- unique.groups
 
-    # Running through each blocking level and computing the proportions.
+    # Split up the jobs by genes for multicore execution
+    wout <- .worker_assign(length(use.subset.row), BPPARAM)
+    for (i in seq_along(wout)) {
+        wout[[i]] <- use.subset.row[wout[[i]]]
+    }
+    tol <- as.double(tol)
+
+    # Running through each blocking level, splitting cells into groups and computing the proportions.
     for (subset.col in groupings) { 
         cur.groups <- groups[subset.col]
         by.group <- split(subset.col, cur.groups, drop=FALSE)
         if (length(by.group)==1L) { next }
 
-        out <- .Call(cxx_overlap_exprs, use.x, use.subset.row, by.group, as.double(tol))
-        if (is.character(out)) { stop(out) }
-        output <- mapply("+", output, out[[1]], SIMPLIFY=FALSE)
-        used.cells <- mapply("+", used.cells, out[[2]], SIMPLIFY=FALSE)
+        bout <- bplapply(wout, FUN=.find_overlap_exprs, x=use.x, by.group=by.group, tol=tol, BPPARAM=BPPARAM)
+
+        # Adding the proportions to what we already have. 
+        props <- do.call(rbind, lapply(bout, "[[", i=1)) 
+        numsc <- bout[[1]][[2]]
+        output <- mapply("+", output, props, SIMPLIFY=FALSE)
+        used.cells <- mapply("+", used.cells, numsc, SIMPLIFY=FALSE)
     }
 
     # Normalizing the output matrices.
@@ -70,6 +81,15 @@
         output[[g]] <- t(t(output[[g]])/used.cells[[g]])
     }
     return(output)
+}
+
+.find_overlap_exprs <- function(x, subset.row, by.group, tol) 
+# Pass all arguments explicitly rather than via function environment
+# (avoid duplication of memory in bplapply).
+{
+    out <- .Call(cxx_overlap_exprs, x, subset.row, by.group, tol)
+    if (is.character(out)) { stop(out) }
+    return(out)
 }
 
 setGeneric("overlapExprs", function(x, ...) standardGeneric("overlapExprs"))
