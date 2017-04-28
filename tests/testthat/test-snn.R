@@ -106,7 +106,7 @@ are_graphs_same(ref, alt)
 
 # Silly inputs.
 
-dummy <- matrix(rnorm(ngenes*ncells), ncol=ncells, nrow=ngenes)
+dummy <- matrix(rnorm(ngenes*20), ncol=20, nrow=ngenes)
 suppressWarnings(expect_error(buildSNNGraph(dummy[,0], d=NA), "cannot create empty graph with negative number of vertices"))
 suppressWarnings(expect_error(buildSNNGraph(dummy[0,], d=NA), "cannot create empty graph with negative number of vertices"))
 expect_warning(out <- buildSNNGraph(dummy, k=50, d=NA), "'k' set to the number of cells minus 1")
