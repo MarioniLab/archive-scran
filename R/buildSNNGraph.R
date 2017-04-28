@@ -41,16 +41,12 @@
         nn.out <- get.knn(incoming, k=k, ...)
     } else {
         # Splitting up the query cells across multiple cores.
-        assigned <- .worker_assign(nrow(incoming), BPPARAM)
-        by.group <- x.by.group <- vector("list", nworkers)
+        by.group <- .worker_assign(nrow(incoming), BPPARAM)
+        x.by.group <- vector("list", nworkers)
         for (j in seq_along(by.group)) {
-            by.group[[j]] <- assigned$start[j]:assigned$end[j]
             x.by.group[[j]] <- incoming[by.group[[j]],,drop=FALSE]
         } 
-
-        all.out <- bplapply(x.by.group, FUN=function(Q) {
-            get.knnx(data=incoming, query=Q, k=k+1, ...)
-        }, BPPARAM=BPPARAM)
+        all.out <- bplapply(x.by.group, FUN=get.knnx, data=incoming, k=k+1, ..., BPPARAM=BPPARAM)
         
         # Some work to get rid of self as a nearest neighbour.
         for (j in seq_along(all.out)) {

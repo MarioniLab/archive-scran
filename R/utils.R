@@ -97,14 +97,14 @@
 
 #################################################
 
-.worker_assign <- function(njobs, BPPARAM) 
+.worker_assign <- function(njobs, BPPARAM)
 # Assigns jobs to workers.
 {
     ncores <- bpworkers(BPPARAM)
     starting <- as.integer(seq(from=1, to=njobs+1, length.out=ncores+1))
-    starting <- unique(head(starting, -1))
-    ending <- c((starting - 1L)[-1], njobs)
-    return(list(start=starting, end=ending))
+    jobsize <- diff(starting)
+    starting <- head(starting, -1) - 1L
+    return(mapply("+", starting, lapply(jobsize, seq_len), SIMPLIFY=FALSE))
 }
 
 .is_one_way <- function(design) 
