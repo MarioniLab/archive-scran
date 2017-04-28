@@ -35,13 +35,23 @@
 }
 
 .find_knn <- function(incoming, k, BPPARAM, ..., force=FALSE) {
+    # Some checks to avoid segfauls in get.knn(x).
+    ncells <- nrow(incoming)
+    if (ncol(incoming)==0L || ncells==0L) { 
+        return(list(nn.index=matrix(0L, ncells, 0), nn.dist=matrix(0, ncells, 0)))
+    }
+    if (k >= nrow(incoming)) {
+        warning("'k' set to the number of cells minus 1")
+        k <- nrow(incoming) - 1L
+    }
+
     nworkers <- bpworkers(BPPARAM)
     if (!force && nworkers==1L) {
         # Simple call with one core.
         nn.out <- get.knn(incoming, k=k, ...)
     } else {
         # Splitting up the query cells across multiple cores.
-        by.group <- .worker_assign(nrow(incoming), BPPARAM)
+        by.group <- .worker_assign(ncells, BPPARAM)
         x.by.group <- vector("list", nworkers)
         for (j in seq_along(by.group)) {
             x.by.group[[j]] <- incoming[by.group[[j]],,drop=FALSE]
