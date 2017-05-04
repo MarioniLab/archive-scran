@@ -7,7 +7,7 @@
 \description{Find candidate marker genes for clusters of cells, by testing for differential expression between clusters.}
 
 \usage{
-\S4method{findMarkers}{matrix}(x, clusters, design=NULL, subset.row=NULL)
+\S4method{findMarkers}{matrix}(x, clusters, design=NULL, pval.type=c("any", "all"), subset.row=NULL)
 
 \S4method{findMarkers}{SCESet}(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) 
 }
@@ -21,6 +21,7 @@
 A vector of cluster identities for all cells.
 }
 \item{design}{A numeric matrix containing blocking terms, i.e., uninteresting factors driving expression across cells.}
+\item{pval.type}{A string specifying the type of combined p-value to be computed, i.e., Simes' or IUT.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to the matrix method.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
@@ -38,8 +39,9 @@ This set allows the cluster to be distinguished from the others based on the exp
 It should be stressed that markers are not explicitly chosen to be uniquely expressed in the cluster.
 Such a strategy is often too stringent, especially in cases involving overclustering or cell types defined by combinatorial gene expression.
 
-The \code{FDR} value is calculated by combining p-values across contrasts for each gene using Simes' method, and then applying the BH method across genes.
-The null hypothesis here is that the gene is not DE in any of the contrasts.
+The \code{FDR} value is calculated by consolidating p-values across contrasts for each gene, and then applying the BH method across genes.
+If \code{pval.type="any"}, the null hypothesis is that the gene is not DE in any of the contrasts, and Simes' method is used to combine p-values for each gene.
+If \code{pval.type="all"}, the null hypothesis is that the gene is not DE in all contrasts, and the IUT p-value is computed for each gene.
 However, this is intended only as a rough measure of significance.
 Properly correcting for multiple testing is not generally possible when \code{clusters} is determined from the same \code{x} used for DE testing.
 
@@ -54,7 +56,7 @@ This is overridden by any non-\code{NULL} value of \code{subset.row}.
 
 \value{
 A named list of data frames, where each data frame corresponds to a cluster and contains a ranked set of potential marker genes.
-In each data frame, the log-fold change of the cluster against every other cluster Y is also reported, under the column named Y.
+In each data frame, the log-fold change of the cluster against every other cluster Y is also reported, under the column named \code{logFC.Y}.
 } 
 
 \author{
@@ -73,6 +75,10 @@ voom: precision weights unlock linear model analysis tools for RNA-seq read coun
 Simes RJ (1986). 
 An improved Bonferroni procedure for multiple tests of significance. 
 \emph{Biometrika} 73:751-754.
+
+Berger RL and Hsu JC (1996). 
+Bioequivalence trials, intersection-union tests and equivalence confidence sets.
+\emph{Statist. Sci.} 11, 283-319.
 }
 
 \examples{

@@ -6,6 +6,8 @@
 \item Parallelized buildSNNGraph(), overlapExprs() with BPPARAM options.
 
 \item Forced zero-derived residuals to a constant value in correlatePairs(), overlapExprs().
+
+\item Allowed findMarkers() to return IUT p-values, to identify uniquely expressed genes in each cluster.
 }}
 
 \section{Version 1.4.0}{\itemize{
