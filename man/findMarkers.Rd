@@ -33,17 +33,20 @@ This function uses \pkg{limma} to test for differentially expressed genes (DEGs)
 For each cluster, the log-fold changes and other statistics from all relevant pairwise comparisons are combined into a single table.
 A list of such tables is returned for all clusters to define a set of potential marker genes.
 
-The table for each table is sorted by the \code{Top} value, which specifies the size of the candidate marker set.
-Taking all rows with \code{Top} values below some value X will yield a set containing the top X genes (ranked by significance) from each pairwise comparison.
-This set allows the cluster to be distinguished from the others based on the expression of at least one gene.
-It should be stressed that markers are not explicitly chosen to be uniquely expressed in the cluster.
-Such a strategy is often too stringent, especially in cases involving overclustering or cell types defined by combinatorial gene expression.
+Each table is sorted by the \code{Top} value, which specifies the size of the candidate marker set.
+Taking all rows with \code{Top} values no greater than some integer X will yield a set containing the top X genes (ranked by significance) from each pairwise comparison.
+For example, if X is 5, the set will consist of the \emph{union} of the top 5 genes from each pairwise comparison.
+The marker set for each cluster allows it to be distinguished from the other clusters based on the expression of at least one gene.
 
 The \code{FDR} value is calculated by consolidating p-values across contrasts for each gene, and then applying the BH method across genes.
-If \code{pval.type="any"}, the null hypothesis is that the gene is not DE in any of the contrasts, and Simes' method is used to combine p-values for each gene.
-If \code{pval.type="all"}, the null hypothesis is that the gene is not DE in all contrasts, and the IUT p-value is computed for each gene.
-However, this is intended only as a rough measure of significance.
+By default, the null hypothesis is that the gene is not DE in any of the contrasts, and Simes' method is used to combine p-values for each gene.
+In both cases, the reported value is intended only as a rough measure of significance.
 Properly correcting for multiple testing is not generally possible when \code{clusters} is determined from the same \code{x} used for DE testing.
+
+Genes that are uniquely expressed in a cluster are not explicitly favoured by default.
+Such a strategy is often too stringent, especially in cases involving overclustering or cell types defined by combinatorial gene expression.
+However, if \code{pval.type="all"}, the null hypothesis is that the gene is not DE in all contrasts, and the IUT p-value is computed for each gene.
+This can be used to re-rank the genes based on the resulting FDR values.
 
 The application of \pkg{limma} uses the \dQuote{trend} approach on the normalized log-expression values, as described by Law et al. (2015).
 This is fast and avoids putting too much weight on outliers or cells with large library sizes.
