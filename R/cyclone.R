@@ -69,9 +69,7 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
 # Pass all arguments explicitly rather than via function environment
 # (avoid duplication of memory in bplapply).
 {
-    out <- .Call(cxx_shuffle_scores, to.use, exprs, pairings$first, pairings$second, pairings$index, iter, min.iter, min.pairs) 
-    if (is.character(out)) { stop(out) }
-    return(out)
+    .Call(cxx_shuffle_scores, to.use, exprs, pairings$first, pairings$second, pairings$index, iter, min.iter, min.pairs) 
 }
 
 setMethod("cyclone", "SCESet", function(x, pairs, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) {

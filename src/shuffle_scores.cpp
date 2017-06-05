@@ -62,12 +62,12 @@ SEXP shuffle_scores_internal (M mat_ptr,
     for (auto cIt=mycells.begin(); cIt!=mycells.end(); ++cIt, ++oIt) { 
 
         // Extracting only the expression values that are used in at least one pair.
-        mat_ptr->get_row(*cIt, all_exprs.begin());
+        mat_ptr->get_col(*cIt - 1, all_exprs.begin());
         auto curIt=current_exprs.begin();
         for (auto uIt=used.begin(); uIt!=used.end(); ++uIt, ++curIt) {
             (*curIt)=all_exprs[*uIt];
         }
-            
+        
         const double curscore=get_proportion(current_exprs, minp, marker1, marker2);
         if (ISNA(curscore)) { 
             continue;
@@ -83,7 +83,7 @@ SEXP shuffle_scores_internal (M mat_ptr,
                 ++total;
             }
         }
-        
+       
         if (total >= minit) { 
             (*oIt)=double(below)/total;
         }
@@ -123,10 +123,13 @@ SEXP auto_shuffle(SEXP incoming, SEXP nits) {
     Rcpp::NumericMatrix outmat(N, niters);
     Rcpp::RNGScope rng; // Place after initialization of all Rcpp objects.
 
+    Rcpp::NumericVector::const_iterator source=invec.begin();
     Rcpp::NumericVector::iterator oIt=outmat.begin();
+    
     for (int i=0; i<niters; ++i) {
-        std::copy(invec.begin(), invec.end(), oIt);
+        std::copy(source, source+N, oIt);
         Rx_shuffle(oIt, oIt+N);
+        source=oIt;
         oIt+=N;
     }
 
