@@ -55,13 +55,18 @@ SEXP shuffle_scores_internal (M mat_ptr,
     }
 
     Rcpp::NumericVector output(ncells, NA_REAL);
-    V current_exprs(ngenes);
+    V all_exprs(ngenes), current_exprs(nused);
     Rcpp::RNGScope rng; // Place after initialization of all Rcpp objects.
 
     auto oIt=output.begin();
     for (auto cIt=mycells.begin(); cIt!=mycells.end(); ++cIt, ++oIt) { 
-        const int& curcell=(*cIt);
-        mat_ptr->get_row(curcell, current_exprs.begin());
+
+        // Extracting only the expression values that are used in at least one pair.
+        mat_ptr->get_row(*cIt, all_exprs.begin());
+        auto curIt=current_exprs.begin();
+        for (auto uIt=used.begin(); uIt!=used.end(); ++uIt, ++curIt) {
+            (*curIt)=all_exprs[*uIt];
+        }
             
         const double curscore=get_proportion(current_exprs, minp, marker1, marker2);
         if (ISNA(curscore)) { 
@@ -71,7 +76,7 @@ SEXP shuffle_scores_internal (M mat_ptr,
         // Iterations of shuffling to obtain a null distribution for the score.
         int below=0, total=0;
         for (int it=0; it < nit; ++it) {
-            Rx_shuffle(current_exprs.begin(), current_exprs.begin()+nused);
+            Rx_shuffle(current_exprs.begin(), current_exprs.end());
             const double newscore=get_proportion(current_exprs, minp, marker1, marker2);
             if (!ISNA(newscore)) { 
                 if (newscore < curscore) { ++below; }
@@ -113,7 +118,7 @@ SEXP auto_shuffle(SEXP incoming, SEXP nits) {
     BEGIN_RCPP
 
     const int niters=Rcpp::IntegerVector(nits)[0];
-    Rcpp::NumericVector invec(incoming);
+    const Rcpp::NumericVector invec(incoming);
     const size_t N=invec.size();
     Rcpp::NumericMatrix outmat(N, niters);
     Rcpp::RNGScope rng; // Place after initialization of all Rcpp objects.

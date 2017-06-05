@@ -40,7 +40,7 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
 
     if (verbose) { 
         for (cl in names(pairs)) { 
-            cat(sprintf("Number of %s pairs: %d\n", cl, length(pairs[[cl]][[1]])))
+            message(sprintf("Number of %s pairs: %d", cl, length(pairs[[cl]][[1]])))
         }
     }
   
