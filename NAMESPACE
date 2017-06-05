@@ -19,6 +19,8 @@ exportMethods(
     convertTo
 )
 
+importFrom("Rcpp", sourceCpp)
+
 importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, featureData, phenoData, pData)
 
 importFrom("dynamicTreeCut", cutreeDynamic)

@@ -23,5 +23,7 @@ Description: Implements a variety of low-level analyses of single-cell
 License: GPL-3
 NeedsCompilation: yes
 VignetteBuilder: knitr
+SystemRequirements: C++11
+LinkingTo: beachmat, Rcpp, Rhdf5lib
 Author: Aaron Lun [aut, cre], Karsten Bach [aut], Jong Kyoung Kim [ctb],
         Antonio Scialdone [ctb], Laleh Haghverdi [ctb]
