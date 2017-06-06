@@ -4,7 +4,7 @@
 #
 # written by Aaron Lun
 # created 13 March 2017    
-# last modified 27 April 2017
+# last modified 6 June 2017
 {
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
     x <- x[subset.row,] # Might as well, need to do PCA on the subsetted matrix anyway.
@@ -22,7 +22,6 @@
         # Rescaling residuals so that the variance is unbiased.
         # This is necessary because variance of residuals is underestimated.
         xout <- .Call(cxx_estimate_variance, QR$qr, QR$qraux, x, subset.row - 1L)
-        if (is.character(xout)) { stop(xout) }
         xvar <- xout[[2]]
         rvar <- apply(rx, 1, var)
        

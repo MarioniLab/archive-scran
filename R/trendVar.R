@@ -6,7 +6,7 @@
 # 
 # written by Aaron Lun
 # created 21 January 2016
-# last modified 10 February 2017
+# last modified 6 June 2017
 {
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
     checked <- .make_var_defaults(x, fit=NULL, design=design)
@@ -14,7 +14,6 @@
     QR <- qr(design, LAPACK=TRUE)
 
     lout <- .Call(cxx_estimate_variance, QR$qr, QR$qraux, x, subset.row - 1L)
-    if (is.character(lout)) { stop(lout) }
     means <- lout[[1]]
     vars <- lout[[2]]
     names(means) <- names(vars) <- rownames(x)[subset.row]

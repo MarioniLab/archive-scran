@@ -6,7 +6,7 @@ setMethod("decomposeVar", c("matrix", "list"), function(x, fit, design=NA, subse
 #
 # written by Aaron Lun
 # created 21 January 2016 
-# last modified 19 January 2017
+# last modified 6 June 2017
 {
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
     checked <- .make_var_defaults(x, fit=fit, design=design)
@@ -14,7 +14,6 @@ setMethod("decomposeVar", c("matrix", "list"), function(x, fit, design=NA, subse
     QR <- qr(design, LAPACK=TRUE)
 
     lout <- .Call(cxx_estimate_variance, QR$qr, QR$qraux, x, subset.row-1L)
-    if (is.character(lout)) { stop(lout) }
     lmeans <- lout[[1]]
     lvar <- lout[[2]]
     
