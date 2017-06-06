@@ -6,7 +6,7 @@
 #
 # written by Aaron Lun
 # created 23 November 2015
-# last modified 22 March 2017
+# last modified 6 June 2017 
 {
     ncells <- ncol(x)
     if (!is.null(clusters)) {

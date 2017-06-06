@@ -1,6 +1,6 @@
 # This tests out the normalization methods in scran - specifically, compute*Factors and normalize().
 
-require(scran); require(testthat)
+# require(scran); require(testthat); source("test-normalize.R")
 
 set.seed(20000)
 ncells <- 200

@@ -7,7 +7,7 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
 # written by Antonio Scialdone
 # with modifications by Aaron Lun
 # created 22 January 2016    
-# last modified 16 December 2016
+# last modified 6 June 2017
 { 
     if (length(gene.names)!=nrow(x)) {
         stop("length of 'gene.names' must be equal to 'x' nrows")
