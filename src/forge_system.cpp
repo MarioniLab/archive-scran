@@ -1,163 +1,170 @@
+#include "beachmat/integer_matrix.h"
+#include "beachmat/numeric_matrix.h"
+#include "Rcpp.h"
+
 #include "scran.h"
 
 /*** A function to (a) subset by row, (b) subset by column, and (c) divide through by the library sizes. 
  *** The output is equivalent to t(t(MAT[row_subset,col_subset])/lib.sizes) where lib.sizes itself is
  *** computed as colSums(MAT[row_subset,col_subset]).
  ***/
-template <typename T>
-SEXP subset_and_divide_internal(const T* ptr, const matrix_info& MAT, SEXP row_subset, SEXP col_subset) {
+
+template <class V, class INMAT>
+SEXP subset_and_divide_internal(const INMAT in, SEXP inmat, SEXP row_subset, SEXP col_subset) {
     // Checking row subset vector
-    subset_values rsubout=check_subset_vector(row_subset, int(MAT.nrow));
+    subset_values rsubout=check_subset_vector(row_subset, in->get_nrow());
     const int rslen=rsubout.first;
     const int* rsptr=rsubout.second;
 
     // Checking column subset vector
-    subset_values csubout=check_subset_vector(col_subset, int(MAT.ncol));
+    subset_values csubout=check_subset_vector(col_subset, in->get_ncol());
     const int cslen=csubout.first;
     const int* csptr=csubout.second;
 
-    SEXP output=PROTECT(allocVector(VECSXP, 2));
-    try {
-        SET_VECTOR_ELT(output, 0, allocVector(REALSXP, cslen));
-        double* olptr=REAL(VECTOR_ELT(output, 0));
+    // Setting up the output structures.
+    auto out=beachmat::create_numeric_output(rslen, cslen, inmat, false, true);
+    Rcpp::NumericVector libsizes(cslen);
+    V incoming(in->get_nrow());
+    Rcpp::NumericVector outgoing(rslen);
 
-        SET_VECTOR_ELT(output, 1, allocMatrix(REALSXP, rslen, cslen));
-        double* onptr=REAL(VECTOR_ELT(output, 1));
-        const T* curptr;
+    auto lIt=libsizes.begin();
+    for (int cs=0; cs<cslen; ++cs, ++lIt) {
 
-        for (int cs=0; cs<cslen; ++cs) {
-            curptr=ptr + MAT.nrow*csptr[cs];
-
-            double& curlib=(olptr[cs]=0);
-            for (int rs=0; rs<rslen; ++rs) { 
-                curlib+=curptr[rsptr[rs]];
-            }
-            if (curlib < 0.00000001) {
-                throw std::runtime_error("cells should have non-zero library sizes");
-            }
-
-            for (int rs=0; rs<rslen; ++rs) { 
-                onptr[rs] = curptr[rsptr[rs]]/curlib;
-            }
-            onptr+=rslen;
+        in->get_col(csptr[cs], incoming.begin());
+        auto oIt=outgoing.begin();
+        for (int rs=0; rs<rslen; ++rs, ++oIt) {
+            (*oIt)=*(incoming.begin() + rsptr[rs]);
+        }
+            
+        const double& curlib=(*lIt=std::accumulate(outgoing.begin(), outgoing.end(), 0.0));
+        if (curlib < 0.00000001) {
+            throw std::runtime_error("cells should have non-zero library sizes");
         }
 
-    } catch (std::exception& e) {
-        UNPROTECT(1);
-        throw;
+        for (auto oIt=outgoing.begin(); oIt!=outgoing.end(); ++oIt) { 
+            (*oIt)/=curlib;
+        }
+
+        out->fill_col(cs, outgoing.begin());
     }
 
-    UNPROTECT(1);
-    return output;
+    Rcpp::List output(2);
+    output[0] = libsizes;
+    output[1] = out->yield();
+    return SEXP(output);
 }
 
-SEXP subset_and_divide(SEXP matrix, SEXP row_subset, SEXP col_subset) try {
-    matrix_info MAT=check_matrix(matrix);
-    if (MAT.is_integer){
-        return subset_and_divide_internal<int>(MAT.iptr, MAT, row_subset, col_subset);
+SEXP subset_and_divide(SEXP matrix, SEXP row_subset, SEXP col_subset) {
+    BEGIN_RCPP
+    int rtype=beachmat::find_sexp_type(matrix);
+    if (rtype==INTSXP) {
+        auto input=beachmat::create_integer_matrix(matrix);
+        return subset_and_divide_internal<Rcpp::IntegerVector>(input.get(), matrix, row_subset, col_subset);
     } else {
-        return subset_and_divide_internal<double>(MAT.dptr, MAT, row_subset, col_subset);
+        auto input=beachmat::create_numeric_matrix(matrix);
+        return subset_and_divide_internal<Rcpp::NumericVector>(input.get(), matrix, row_subset, col_subset);
     }
-} catch (std::exception& e) {
-    return mkString(e.what());
+    END_RCPP
 }
 
 /*** A function to estimate the pooled size factors and construct the linear equations. ***/
-SEXP forge_system (SEXP exprs, SEXP ordering, SEXP sizes, SEXP ref) try {
+
+SEXP forge_system (SEXP exprs, SEXP ordering, SEXP sizes, SEXP ref) {
+    BEGIN_RCPP
+
     // Checking input matrix.
-    const matrix_info emat=check_matrix(exprs);
-    const int ncells=emat.ncol;
-    const int ngenes=emat.nrow;
+    auto emat=beachmat::create_numeric_matrix(exprs);
+    const size_t ncells=emat->get_ncol();
+    const size_t ngenes=emat->get_nrow();
     if (ncells==0) { throw std::runtime_error("at least one cell required for normalization"); }
 
-    std::vector<const double*> eptrs(ncells);
-    eptrs[0]=emat.dptr;
-    for (int cell=1; cell<ncells; ++cell) { eptrs[cell]=eptrs[cell-1]+ngenes; }
-
     // Checking the input sizes.
-    if (!isInteger(sizes) || LENGTH(sizes)==0) { throw std::runtime_error("sizes should be a non-empty integer vector"); }
-    const int nsizes=LENGTH(sizes);
-    const int * szptr=INTEGER(sizes);
-    int s, total_SIZE=0;
-    for (s=0; s<nsizes; ++s) { 
-        const int& SIZE=szptr[s];
+    Rcpp::IntegerVector pool_sizes(sizes);
+    const size_t nsizes=pool_sizes.size();
+    if (!nsizes) {
+        throw std::runtime_error("sizes should be a non-empty integer vector"); 
+    }
+    int last_size=-1;
+    size_t total_SIZE=0;
+    for (auto psIt=pool_sizes.begin(); psIt!=pool_sizes.end(); ++psIt) { 
+        const int& SIZE=*psIt;
         if (SIZE < 1 || SIZE > ncells) { throw std::runtime_error("each element of sizes should be within [1, number of cells]"); }
-        if (s!=0 && SIZE < szptr[s-1]) { throw std::runtime_error("sizes should be sorted"); }
+        if (SIZE < last_size) { throw std::runtime_error("sizes should be sorted"); }
         total_SIZE+=SIZE;
+        last_size=SIZE;
     }
 
     // Checking reference and ordering.
-    if (!isNumeric(ref)) { throw std::runtime_error("reference expression vector should be double-precision"); }
-    const double* rptr=REAL(ref);
-    if (ngenes!=LENGTH(ref)) { throw std::runtime_error("length of reference vector is inconsistent with number of cells"); }
-
-    if (!isInteger(ordering)) { throw std::runtime_error("ordering vector should be integer"); }
-    if (LENGTH(ordering)<ncells*2-1)  { throw std::runtime_error("ordering vector is too short for number of cells"); }
-    const int* orptr=INTEGER(ordering);
+    Rcpp::NumericVector pseudo_cell(ref);
+    if (ngenes!=pseudo_cell.size()) { throw std::runtime_error("length of reference vector is inconsistent with number of cells"); }
+    Rcpp::IntegerVector order(ordering);
+    if (order.size() < ncells*2-1)  { throw std::runtime_error("ordering vector is too short for number of cells"); }
 
     // Setting up the output matrix.
-    SEXP output=PROTECT(allocVector(VECSXP, 3));
-try { 
-    SET_VECTOR_ELT(output, 0, allocVector(INTSXP, total_SIZE * ncells));
-    int * row_optr=INTEGER(VECTOR_ELT(output, 0));
+    Rcpp::IntegerVector row_num(total_SIZE*ncells), col_num(total_SIZE*ncells);
+    Rcpp::NumericVector pool_factor(nsizes*ncells);
 
-    SET_VECTOR_ELT(output, 1, allocVector(INTSXP, total_SIZE * ncells));
-    int * col_optr=INTEGER(VECTOR_ELT(output, 1));
-
-    SET_VECTOR_ELT(output, 2, allocVector(REALSXP, nsizes * ncells));
-    double* ofptr=REAL(VECTOR_ELT(output, 2));
-
-    int index=0, gene=0;
+    // Various bits and pieces.
     std::vector<double> combined(ngenes), ratios(ngenes);
-    const double* cur_eptr;
-    const int* cur_window;
-    int rownum;
-
     const bool is_even=bool(ngenes%2==0);
     const int halfway=int(ngenes/2);
-    double medtmp;
-    
+    auto rowIt=row_num.begin(), colIt=col_num.begin();
+    auto orIt=order.begin();
+   
+    // Filling up the cell vector.
+    Rcpp::NumericVector all_collected(last_size*ngenes);
+    std::deque<Rcpp::NumericVector::iterator> collected;
+    auto acIt=all_collected.begin();
+    collected.push_back(acIt);
+    acIt+=ngenes;
+
+    auto orIt_tail=order.begin();
+    for (int s=0; s<last_size-1; ++s, ++orIt_tail, acIt+=ngenes) {
+        emat->get_col(*orIt_tail, acIt);
+        collected.push_back(acIt);
+    }
+
     // Running through the sliding windows.
-    for (int win=0; win<ncells; ++win) {
+    for (size_t win=0; win<ncells; ++win, ++orIt) {
         std::fill(combined.begin(), combined.end(), 0);
-        cur_window=orptr+win;
+        
+        // Dropping the first element, adding the last element.
+        auto tmp=collected.front();
+        collected.pop_front();
+        emat->get_col(*orIt_tail, tmp);
+        collected.push_back(tmp);
+        ++orIt_tail;
 
-        index=0;
-        for (s=0; s<nsizes; ++s) {
-            const int& SIZE=szptr[s];
-            rownum=ncells*s + win; // Setting the row so that all rows with the same SIZE are consecutive.
-            std::fill(row_optr, row_optr+SIZE, rownum);
-            row_optr+=SIZE;
+        int index=0;
+        int rownum=win; // Setting the row so that all rows with the same SIZE are consecutive.
+        for (auto psIt=pool_sizes.begin(); psIt!=pool_sizes.end(); ++psIt, rownum+=ncells) { 
+            const int& SIZE=(*psIt);
+            std::fill(rowIt, rowIt+SIZE, rownum);
+            rowIt+=SIZE;
+            std::copy(orIt, orIt+SIZE, colIt);
+            colIt+=SIZE;
 
-            while (index<SIZE) {
-                const int& curcell=cur_window[index];
-                col_optr[index] = curcell;
-                cur_eptr=eptrs[curcell];
-                for (gene=0; gene<ngenes; ++gene) { 
-                    combined[gene]+=cur_eptr[gene];
+            for (; index<SIZE; ++index) {
+                auto ceIt=collected[index];
+                for (auto cIt=combined.begin(); cIt!=combined.end(); ++cIt, ++ceIt) {
+                    (*cIt)+=(*ceIt);
                 }
-                ++index;
             }
-            
-            col_optr+=SIZE;
-            if (s+1!=nsizes) {
-                // Copying over to the next set of column assignments.
-                std::copy(col_optr-SIZE, col_optr, col_optr);
-            }
-
+           
             // Computing the ratio against the reference.
-            for (gene=0; gene<ngenes; ++gene) { 
-                ratios[gene]=combined[gene]/rptr[gene];
+            auto rIt=ratios.begin(), cIt=combined.begin();
+            for (auto pcIt=pseudo_cell.begin(); pcIt!=pseudo_cell.end(); ++pcIt, ++rIt, ++cIt) {
+                (*rIt)=(*cIt)/(*pcIt);
             }
 
             // Computing the median (faster than partial sort).
             std::nth_element(ratios.begin(), ratios.begin()+halfway, ratios.end());
             if (is_even) {
-                medtmp=ratios[halfway];
+                double medtmp=ratios[halfway];
                 std::nth_element(ratios.begin(), ratios.begin()+halfway-1, ratios.end());
-                ofptr[rownum]=(medtmp+ratios[halfway-1])/2;
+                pool_factor[rownum]=(medtmp+ratios[halfway-1])/2;
             } else {
-                ofptr[rownum]=ratios[halfway];
+                pool_factor[rownum]=ratios[halfway];
             }       
         }
 
@@ -170,13 +177,13 @@ try {
         } 
 */
     }    
-} catch (std::exception& e) {
-    UNPROTECT(1);
-    return mkString(e.what());
-}
-    UNPROTECT(1);
-    return output;
-} catch (std::exception& e) {
-    return mkString(e.what());
+
+    Rcpp::List output(3);
+    output[0]=row_num;
+    output[1]=col_num;
+    output[2]=pool_factor;
+    return SEXP(output);
+
+    END_RCPP
 }
 

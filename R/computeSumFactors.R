@@ -37,7 +37,6 @@
     for (clust in seq_len(nclusters)) { 
         curdex <- indices[[clust]]
         cur.out <- .Call(cxx_subset_and_divide, x, subset.row-1L, curdex-1L) 
-        if (is.character(cur.out)) { stop(cur.out) }
         cur.libs <- cur.out[[1]]
         cur.exprs <- cur.out[[2]]       
         cur.cells <- length(curdex)
@@ -142,14 +141,12 @@ LOWWEIGHT <- 0.000001
     cur.cells <- ncol(cur.exprs)
 
     out <- .Call(cxx_forge_system, cur.exprs, sphere, sizes, use.ave.cell)
-    if (is.character(out)) { stop(out) }
     row.dex[[1]] <- out[[1]] 
     col.dex[[1]] <- out[[2]]
     output[[1]]<- out[[3]]
     
     # Adding extra equations to guarantee solvability (downweighted).
     out <- .Call(cxx_forge_system, cur.exprs, sphere, 1L, use.ave.cell)
-    if (is.character(out)) { stop(out) }
     row.dex[[2]] <- out[[1]] + cur.cells * nsizes
     col.dex[[2]] <- out[[2]]
     output[[2]] <- out[[3]] * sqrt(LOWWEIGHT)
