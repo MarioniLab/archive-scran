@@ -4,7 +4,7 @@
 extern "C" {
 
 static const R_CallMethodDef all_call_entries[] = {
-    REGISTER(forge_system, 4),
+    REGISTER(forge_system, 7),
     REGISTER(shuffle_scores, 8),
     REGISTER(get_null_rho, 2),
     REGISTER(get_null_rho_design, 3),

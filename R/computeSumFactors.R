@@ -30,7 +30,7 @@
 
     # Setting some other values.
     nclusters <- length(indices)
-    clust.nf <- clust.profile <- clust.libsizes <- clust.meanlib <- vector("list", nclusters)
+    clust.nf <- clust.profile <- clust.libsizes <- clust.meanlib <- clust.se <- vector("list", nclusters)
     warned.neg <- FALSE
 
     # Computing normalization factors within each cluster first.
@@ -38,23 +38,22 @@
         curdex <- indices[[clust]]
         cur.out <- .Call(cxx_subset_and_divide, x, subset.row-1L, curdex-1L) 
         cur.libs <- cur.out[[1]]
-        cur.exprs <- cur.out[[2]]       
-        cur.cells <- length(curdex)
+        ave.cell <- cur.out[[2]]       
 
         # Checking cluster sizes
+        cur.cells <- length(curdex)
         if (any(sizes > cur.cells)) { 
             stop("not enough cells in each cluster for specified 'sizes'") 
         } 
 
         # Getting rid of zeros.
-        ave.cell <- rowMeans(cur.exprs)
         keep <- ave.cell > .Machine$double.xmin
         use.ave.cell <- ave.cell[keep]
-        cur.exprs <- cur.exprs[keep,,drop=FALSE]
+        cur.subset.row <- subset.row[keep]
 
         # Using our summation approach.
-        sphere <- .generateSphere(cur.libs) 
-        new.sys <- .create_linear_system(cur.exprs, sphere, sizes, use.ave.cell) 
+        sphere <- .generateSphere(cur.libs)
+        new.sys <- .create_linear_system(x, cur.subset.row, curdex, use.ave.cell, cur.libs, sphere, sizes) 
         design <- new.sys$design
         output <- new.sys$output
 
@@ -76,6 +75,7 @@
                 # Don't compute the standard error of the coefficients, as that isn't the relevant value here.
                 sigma2 <- mean(qr.qty(QR, output)[-seq_len(ncol(design))]^2)
                 se.est <- sqrt(sigma2)
+                clust.se[[clust]] <- rep(se.est, cur.cells)
             }
         }
 
@@ -113,10 +113,14 @@
     final.sf <- final.sf/mean(final.sf[is.pos])
 
     if (errors) {
-        # Calculating all the changes to get to this point, and scaling the standard error by them.
+        # The standard error currently refers to that of the normalization factors.
+        # We rescale to get to errors w.r.t. the size factors (this is possible as
+        # only scaling operations were used to get from norm -> size factors).
         clust.nf <- unlist(clust.nf)
         clust.nf[indices] <- clust.nf
-        attr(final.sf, "standard.error") <- se.est * final.sf/clust.nf
+        clust.se <- unlist(clust.se)
+        clust.se[indices] <- clust.se
+        attr(final.sf, "standard.error") <- clust.se * final.sf/clust.nf
     }
     return(final.sf)
 }
@@ -134,19 +138,24 @@
 
 LOWWEIGHT <- 0.000001
 
-.create_linear_system <- function(cur.exprs, sphere, sizes, use.ave.cell) {
+.create_linear_system <- function(cur.exprs, subset.row, subset.col, use.ave.cell, use.lib.sizes, sphere, pool.sizes) {
     sphere <- sphere - 1L # zero-indexing in C++.
-    nsizes <- length(sizes)
-    row.dex <- col.dex <- output <- vector("list", 2L)
-    cur.cells <- ncol(cur.exprs)
+    subset.row <- subset.row - 1L
+    subset.col <- subset.col - 1L
 
-    out <- .Call(cxx_forge_system, cur.exprs, sphere, sizes, use.ave.cell)
+    nsizes <- length(pool.sizes)
+    row.dex <- col.dex <- output <- vector("list", 2L)
+    cur.cells <- length(subset.col)
+
+    out <- .Call(cxx_forge_system, cur.exprs, subset.row, subset.col,
+                 use.ave.cell, use.lib.sizes, sphere, pool.sizes)
     row.dex[[1]] <- out[[1]] 
     col.dex[[1]] <- out[[2]]
     output[[1]]<- out[[3]]
     
     # Adding extra equations to guarantee solvability (downweighted).
-    out <- .Call(cxx_forge_system, cur.exprs, sphere, 1L, use.ave.cell)
+    out <- .Call(cxx_forge_system, cur.exprs, subset.row, subset.col,
+                 use.ave.cell, use.lib.sizes, sphere, 1L)
     row.dex[[2]] <- out[[1]] + cur.cells * nsizes
     col.dex[[2]] <- out[[2]]
     output[[2]] <- out[[3]] * sqrt(LOWWEIGHT)
