@@ -244,7 +244,8 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings, SEXP block_size) {
 
         // Figuring out whether we need to update the blocks stored in the cache, starting with the first block.
         const int block1=int(g1x/BLOCK);
-        if (block1!=current_block1) {
+        const bool updated1=(block1!=current_block1);
+        if (updated1) {
             if (block1 < current_block1) { 
                 throw std::runtime_error("pairs should be arranged in increasing block order");
             }
@@ -279,7 +280,7 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings, SEXP block_size) {
             start2_copy=restart1;
         } else {
             if (block2!=current_block2) {
-                if (block1==current_block1 && block2 < current_block2) { 
+                if (!updated1 && block2 < current_block2) { 
                     throw std::runtime_error("pairs should be arranged in increasing block order");
                 }
                 auto old_start=locations2.begin()+current_block2*BLOCK;
