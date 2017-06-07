@@ -7,17 +7,18 @@ setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, g
 #
 # written by Karsten Bach, with modifications by Aaron Lun
 # created 1 December 2015
-# last modified 4 April 2017
+# last modified 6 June 2017
 {   
     if (ncol(x) < min.size){
         stop('fewer cells than the minimum cluster size')
     }
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
-    get.ranks <- as.logical(get.ranks)
 
+    # Obtaining scaled/centred ranks to compute cosine distances.
+    # Using this instead of colRanks to support dgCMatrix, HDF5Array objects.
+    get.ranks <- as.logical(get.ranks)
     method <- match.arg(method)
-    rkout <- .Call(cxx_compute_cordist, x, subset.row - 1L, get.ranks | method=="igraph") # taken into C++ to improve memory efficiency.
-    if (is.character(rkout)) { stop(rkout) }
+    rkout <- .Call(cxx_get_scaled_ranks, x, subset.row-1L, !get.ranks && method!="igraph")
     if (get.ranks) {
         return(rkout)
     }
@@ -28,9 +29,9 @@ setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, g
         clusters <- out$membership
 
     } else {
-        distM <- as.dist(rkout)
+        distM <- dist(as.matrix(rkout)) # Coercing to matrix, if it isn't already.
         htree <- hclust(distM, method='ward.D2')
-        clusters <- unname(cutreeDynamic(htree, minClusterSize=min.size, distM=rkout, verbose=0, ...))
+        clusters <- unname(cutreeDynamic(htree, minClusterSize=min.size, distM=as.matrix(distM), verbose=0, ...))
         
         unassigned <- clusters==0L
         if (any(unassigned)) { 

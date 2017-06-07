@@ -1,5 +1,4 @@
 # This tests out the normalization methods in scran - specifically, compute*Factors and normalize().
-
 # require(scran); require(testthat); source("test-normalize.R")
 
 set.seed(20000)
@@ -181,7 +180,6 @@ expect_error(computeSumFactors(dummy, clusters=integer(0)), "'x' ncols is not eq
 
 # Checking out what happens with clustering.
 
-require(scran);require(testthat)
 set.seed(20001)
 ncells <- 700
 ngenes <- 1000
@@ -217,27 +215,40 @@ ref <- apply(dummy, 2, FUN=function(y) {
 })
 expect_equal(emp.ranks, ref)
 
-# Checking out deeper internals.
+# Checking out that clustering is consistent with that based on correlations.
 
 set.seed(200011)
 mat <- matrix(rpois(10000, lambda=5), nrow=20)
+obs <- quickCluster(mat)
 
-subset.row <- seq_len(nrow(mat))
-distM <- .Call(scran:::cxx_compute_cordist, mat, subset.row - 1L, FALSE)
 refM <- sqrt(0.5*(1 - cor(mat, method="spearman")))
-expect_equal(distM, refM)
+distM <- as.dist(refM) 
+htree <- hclust(distM, method='ward.D2')
+clusters <- unname(dynamicTreeCut::cutreeDynamic(htree, minClusterSize=200, distM=refM, verbose=0))
+expect_identical(clusters, as.integer(obs))
 
+obs <- quickCluster(mat, min.size=50)
+clusters <- unname(dynamicTreeCut::cutreeDynamic(htree, minClusterSize=50, distM=refM, verbose=0))
+expect_identical(clusters, as.integer(obs))
+
+mat <- matrix(rpois(10000, lambda=5), nrow=20)
 subset.row <- 15:1 # With subsetting
-distM <- .Call(scran:::cxx_compute_cordist, mat, subset.row - 1L, FALSE)
 refM <- sqrt(0.5*(1 - cor(mat[subset.row,], method="spearman")))
-expect_equal(distM, refM)
+distM <- as.dist(refM) 
+htree <- hclust(distM, method='ward.D2')
+obs <- quickCluster(mat, min.size=50, subset.row=subset.row)
+clusters <- unname(dynamicTreeCut::cutreeDynamic(htree, minClusterSize=50, distM=refM, verbose=0))
+expect_identical(clusters, as.integer(obs))
 
+# Other checks
+
+expect_identical(length(quickCluster(mat, method="igraph", d=NA)), ncol(mat)) # Checking that the dimensions are correct for igraph.
 suppressWarnings(expect_false(identical(quickCluster(mat), quickCluster(mat[subset.row,])))) # Checking that subsetting gets different results.
 suppressWarnings(expect_identical(quickCluster(mat, subset.row=subset.row), quickCluster(mat[subset.row,]))) # Checking that subset.row works.
 
 # Checking out what happens with silly inputs.
 
-expect_error(quickCluster(dummy[0,]), "need at least 2 observations to compute correlations")
+expect_error(quickCluster(dummy[0,]), "rank variances of zero detected for a cell")
 expect_error(quickCluster(dummy[,0]), "fewer cells than the minimum cluster size")
 
 leftovers <- 100
