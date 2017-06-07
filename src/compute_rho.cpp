@@ -206,9 +206,10 @@ SEXP rank_subset(SEXP exprs, SEXP subset_row, SEXP subset_col, SEXP tol) {
 
 /*** Estimating correlations (without expanding into a matrix to do so via 'cor'). ***/
 
-SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings) {
+SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings, SEXP block_size) {
     BEGIN_RCPP
 
+    // Checking inputs.
     auto rmat=beachmat::create_integer_matrix(rankings);
     const size_t& Ncells=rmat->get_nrow();
     if (Ncells <= 1) { throw std::runtime_error("number of cells should be greater than 2"); }
@@ -219,10 +220,21 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings) {
     if (Npairs!=second.size()) { 
         throw std::runtime_error("gene index vectors must be of the same length"); 
     }
+    
+    Rcpp::IntegerVector bsize(block_size);
+    if (bsize.size()!=1) { 
+        throw std::runtime_error("block size should be an integer scalar");
+    }
+    const int BLOCK=bsize[0];
+    
+    // Setting up the cache, to avoid repeatedly copying/reading from file with rmat->get_col().
+    Rcpp::IntegerVector cache1(BLOCK*Ncells), cache2(BLOCK*Ncells);
+    std::vector<Rcpp::IntegerVector::iterator> locations1(Ngenes, cache1.end()), locations2(Ngenes, cache2.end());
+    Rcpp::IntegerVector::iterator b1It=cache1.begin(), b2It=cache2.begin();
+    int current_block1=0, current_block2=0;
 
     const double mult=rho_mult(Ncells); 
     Rcpp::NumericVector output(Npairs);
-    Rcpp::IntegerVector in1(Ncells), in2(Ncells);
 
     auto fIt=first.begin(), sIt=second.begin();
     for (auto oIt=output.begin(); oIt!=output.end(); ++oIt, ++fIt, ++sIt) { 
@@ -235,14 +247,68 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings) {
             throw std::runtime_error("second gene index is out of range");
         }
 
-        rmat->get_col(g1x, in1.begin());
-        rmat->get_col(g2x, in2.begin());
+        // Figuring out whether we need to update the blocks stored in the cache, starting with the first block.
+        const int block1=int(g1x/BLOCK);
+        if (block1!=current_block1) {
+            if (block1 < current_block1) { 
+                throw std::runtime_error("pairs should be arranged in increasing block order");
+            }
+            auto old_start=locations1.begin()+current_block1*BLOCK;
+            std::fill(old_start, old_start+BLOCK, cache1.end()); // Deleting references to the old block.
+            current_block1=block1;
+            b1It=cache1.begin();          
+        }
+        auto& start1=locations1[g1x]; 
+        if (start1==cache1.end()) { 
+            if (b1It==cache1.end()) { 
+                throw std::runtime_error("first block cache exceeded");
+            }
+            start1=b1It;
+            rmat->get_col(g1x, start1);
+            b1It+=Ncells;
+        }
+
+        // Repeating for the second block. If this is the same as the first block, we just update that instead.
+        const int block2=int(g2x/BLOCK);
+        Rcpp::IntegerVector::iterator start2_copy;
+        if (block2==block1) { // No need to try and discard, this would have already been done above.
+            auto& restart1=locations1[g2x]; 
+            if (restart1==cache1.end()) { 
+                if (b1It==cache1.end()) { 
+                    throw std::runtime_error("first block cache exceeded");
+                }
+                restart1=b1It;
+                rmat->get_col(g2x, restart1);
+                b1It+=Ncells;
+            }
+            start2_copy=restart1;
+        } else {
+            if (block2!=current_block2) {
+                if (block1==current_block1 && block2 < current_block2) { 
+                    throw std::runtime_error("pairs should be arranged in increasing block order");
+                }
+                auto old_start=locations2.begin()+current_block2*BLOCK;
+                std::fill(old_start, old_start+BLOCK, cache2.end());
+                current_block2=block2;
+                b2It=cache2.begin();          
+            } 
+            auto& start2=locations2[g2x]; 
+            if (start2==cache2.end()) { 
+                if (b2It==cache2.end()) { 
+                    throw std::runtime_error("second block cache exceeded");
+                }
+                start2=b2It;
+                rmat->get_col(g2x, start2);
+                b2It+=Ncells;
+            }
+            start2_copy=start2;
+        }
 
         // Computing the correlation.
         double working=0;
-        auto i2It=in2.begin();
-        for (auto i1It=in1.begin(); i1It!=in1.end(); ++i1It, ++i2It) { 
-            const double tmp=(*i1It) - (*i2It);
+        auto start1_copy=start1;
+        for (size_t c=0; c<Ncells; ++c, ++start1_copy, ++start2_copy) { 
+            const double tmp=(*start1_copy) - (*start2_copy);
             working+=tmp*tmp;
         }
         (*oIt)=1 - working*mult;

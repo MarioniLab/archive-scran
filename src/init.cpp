@@ -9,7 +9,7 @@ static const R_CallMethodDef all_call_entries[] = {
     REGISTER(get_null_rho, 2),
     REGISTER(get_null_rho_design, 3),
     REGISTER(rank_subset, 4),
-    REGISTER(compute_rho, 3),
+    REGISTER(compute_rho, 4),
     REGISTER(combine_corP, 7),
     REGISTER(auto_shuffle, 2),
     REGISTER(subset_and_divide, 3),

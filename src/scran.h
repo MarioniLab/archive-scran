@@ -25,7 +25,7 @@ SEXP get_null_rho (SEXP, SEXP);
 
 SEXP get_null_rho_design (SEXP, SEXP, SEXP);
 
-SEXP compute_rho(SEXP, SEXP, SEXP);
+SEXP compute_rho(SEXP, SEXP, SEXP, SEXP);
 
 SEXP combine_corP(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 

@@ -1,5 +1,4 @@
 # This checks the correlateNull function.
-
 # require(scran); require(testthat); source("test-correlate.R")
 
 refnull <- function(niters, ncells, resort=TRUE) {
