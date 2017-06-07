@@ -1,6 +1,7 @@
 #include "beachmat/integer_matrix.h"
 #include "beachmat/numeric_matrix.h"
 #include "Rcpp.h"
+#include "run_dormqr.h"
 
 #include "scran.h"
 
@@ -8,21 +9,9 @@ SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) {
     BEGIN_RCPP
 
     // Setting up for Q-based multiplication.
-    Rcpp::NumericMatrix QR(qr);
-    Rcpp::NumericVector QRaux(qraux);
-    if (QRaux.size()!=QR.ncol()) {
-        throw std::runtime_error("QR auxiliary vector should be of length 'ncol(Q)'");
-    }
-    const double * qrptr=NULL, * qrxptr=NULL;
-    if (QR.size()) { 
-        qrptr=&(QR[0]);
-    }
-    if (QRaux.size()) { 
-       qrxptr=&(QRaux[0]);
-    }
-    const int ncoefs=QR.ncol();
-    const int ncells=QR.nrow();
-    run_dormqr multQ(ncells, ncoefs, qrptr, qrxptr, 'T');
+    run_dormqr multQ(qr, qraux, 'T');
+    const int ncoefs=multQ.get_ncoefs();
+    const int ncells=multQ.get_nobs();
 
     // Setting up expression data.
     auto emat=beachmat::create_numeric_matrix(exprs);
@@ -43,7 +32,7 @@ SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) {
         emat->get_row(sptr[s], tmp.begin());
         (*mIt)=std::accumulate(tmp.begin(), tmp.end(), 0.0)/ncells;
 
-        std::copy(tmp.begin(), tmp.end(), multQ.rhs);
+        std::copy(tmp.begin(), tmp.end(), multQ.rhs.begin());
         multQ.run();
 
         double& curvar=(*vIt);

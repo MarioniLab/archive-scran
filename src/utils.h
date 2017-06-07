@@ -41,18 +41,4 @@ subset_values check_subset_vector(SEXP, int);
 bool isNA(int);
 bool isNA(double);
 
-// Class to run Qy or QtY multiplications.
-
-struct run_dormqr {
-    run_dormqr(const int, const int, const double*, const double*, const char);
-    void run();
-    void run(double*);
-    const double* qr, *qrx;
-    const int nobs, ncoef, ncol;
-    const char side, trans;           
-    int info, lwork;
-    double* work;
-    double* rhs;
-};
-
 #endif

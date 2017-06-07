@@ -137,11 +137,7 @@
     if (is.null(lower.bound)) { 
         stop("lower bound must be supplied or NA when computing residuals")
     }
-    use.x <- .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L, as.double(lower.bound))
-    if (is.character(use.x)) { 
-        stop(use.x) 
-    }
-    return(use.x)
+    .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L, as.double(lower.bound))
 }
 
 .guess_lower_bound <- function(x, assay, lower.bound) { 

@@ -1,3 +1,8 @@
+#include "beachmat/integer_matrix.h"
+#include "beachmat/numeric_matrix.h"
+#include "Rcpp.h"
+#include "run_dormqr.h"
+
 #include "scran.h"
 
 /* This function computes residuals in a nice and quick manner.
@@ -5,100 +10,64 @@
  * a subset of integer indices, and returns a matrix of residuals.
  */
 
-SEXP get_residuals(SEXP exprs, SEXP qr, SEXP qraux, SEXP subset, SEXP lower_bound) try {
-    const matrix_info emat=check_matrix(exprs);
-    if (emat.is_integer) {
-        throw std::runtime_error("expression matrix must be double-precision"); 
-    }
-    const size_t& ncells=emat.ncol;
-    std::vector<const double*> eptrs(ncells);
-    if (ncells) {
-        eptrs[0]=emat.dptr;
-        for (size_t c=1; c<ncells; ++c) {
-            eptrs[c]=eptrs[c-1]+emat.nrow;
-        }
-    }
+SEXP get_residuals(SEXP exprs, SEXP qr, SEXP qraux, SEXP subset, SEXP lower_bound) {
+    BEGIN_RCPP
+    auto emat=beachmat::create_numeric_matrix(exprs);
+    const size_t& ncells=emat->get_ncol();
 
     // Checking the subset vector.
-    subset_values subout=check_subset_vector(subset, emat.nrow);
+    subset_values subout=check_subset_vector(subset, emat->get_nrow());
     const int slen=subout.first;
     const int* sptr=subout.second;
     
     // Checking the QR matrix.
-    const matrix_info QR=check_matrix(qr);
-    if (QR.is_integer){ 
-        throw std::runtime_error("QR matrix must be double-precision");
-    }
-    if (!isReal(qraux) || size_t(LENGTH(qraux))!=QR.ncol) {
-        throw std::runtime_error("QR auxiliary vector should be double-precision and of length 'ncol(Q)'");
-    }
-    const double* qrxptr=REAL(qraux);
-    run_dormqr multQ1(QR.nrow, QR.ncol, QR.dptr, qrxptr, 'T');
-    run_dormqr multQ2(QR.nrow, QR.ncol, QR.dptr, qrxptr, 'N');
+    run_dormqr multQ1(qr, qraux, 'T');
+    run_dormqr multQ2(qr, qraux, 'N');
+    const int ncoefs=multQ1.get_ncoefs();
 
     // Checking the lower bound.
-    if (!isReal(lower_bound) || LENGTH(lower_bound)!=1) {
+    Rcpp::NumericVector lb(lower_bound);
+    if (lb.size()!=1) {
         throw std::runtime_error("lower bound should be a numeric scalar");
     }
-    const double lbound=asReal(lower_bound);
+    const double lbound=lb[0];
     const bool check_lower=R_FINITE(lbound);
     
-    SEXP output=PROTECT(allocMatrix(REALSXP, slen, ncells));
-    try {
-        std::vector<double*> optrs(ncells);
-        if (ncells) {
-            optrs[0]=REAL(output);
-            for (size_t c=1; c<ncells; ++c) {
-                optrs[c]=optrs[c-1]+slen;
-            }
-        }
+    auto omat=beachmat::create_numeric_output(slen, ncells, exprs, true, false);
+    Rcpp::NumericVector tmp(ncells);
+    double* tptr=(ncells ? &(tmp[0]) : NULL);
+    std::deque<int> below_bound;
 
-        size_t c;
-        double* temporary=(double*)R_alloc(ncells, sizeof(double));
-        std::deque<int> below_bound;
-        double lowest;
-
-        for (int s=0; s<slen; ++s) {
-            for (c=0; c<ncells; ++c) {
-                temporary[c]=eptrs[c][sptr[s]];
-            }
+    for (int s=0; s<slen; ++s) {
+        emat->get_row(sptr[s], tmp.begin());
             
-            // Identifying elements below the lower bound.
-            if (check_lower) { 
-                for (c=0; c<ncells; ++c) {
-                    if (temporary[c] <= lbound) {
-                        below_bound.push_back(c);                        
-                    }
+        // Identifying elements below the lower bound.
+        if (check_lower) { 
+            auto tIt=tmp.begin();
+            for (int c=0; c<ncells; ++c, ++tIt) {
+                if (*tIt <= lbound) {
+                    below_bound.push_back(c);                        
                 }
-            }
-
-            multQ1.run(temporary); // Getting main+residual effects.
-            for (c=0; c<QR.ncol; ++c) {
-                temporary[c]=0; // setting main effects to zero.
-            }
-            multQ2.run(temporary); // Getting residuals.
-
-            // Forcing the values below the boundary to a value below the smallest residual.
-            if (check_lower && !below_bound.empty()) {
-                lowest=(*std::min_element(temporary, temporary+ncells)) - 1;
-                for (c=0; c<below_bound.size(); ++c) {
-                    temporary[below_bound[c]]=lowest;
-                }
-                below_bound.clear();
-            }
-
-            for (c=0; c<ncells; ++c) {
-                optrs[c][s]=temporary[c];
             }
         }
-    } catch (std::exception& e) {
-        UNPROTECT(1);
-        throw;
+
+        multQ1.run(tptr); // Getting main+residual effects.
+        std::fill(tmp.begin(), tmp.begin()+ncoefs, 0); // setting main effects to zero.
+        multQ2.run(tptr); // Getting residuals.
+
+        // Forcing the values below the boundary to a value below the smallest residual.
+        if (check_lower && !below_bound.empty()) {
+            const double lowest=*std::min_element(tmp.begin(), tmp.end()) - 1;
+            for (auto bbIt=below_bound.begin(); bbIt!=below_bound.end(); ++bbIt) { 
+                tmp[*bbIt]=lowest;
+            }
+            below_bound.clear();
+        }
+
+        omat->fill_row(s, tmp.begin());
     }
 
-    UNPROTECT(1);
-    return output;
-} catch (std::exception& e) {
-    return mkString(e.what());
+    return omat->yield();
+    END_RCPP
 }
 
