@@ -12,7 +12,7 @@ correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE)
 
 \S4method{correlatePairs}{matrix}(x, null.dist=NULL, design=NULL, BPPARAM=SerialParam(), 
     tol=1e-8, iters=1e6, residuals=FALSE, use.names=TRUE, 
-    subset.row=NULL, per.gene=FALSE, lower.bound=NULL)
+    subset.row=NULL, per.gene=FALSE, lower.bound=NULL, block.size=100L)
 
 \S4method{correlatePairs}{SCESet}(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE,
     lower.bound=NULL, assay="exprs", get.spikes=FALSE)
@@ -38,6 +38,7 @@ correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE)
 Alternatively, a list of 2 such vectors, or a integer/character matrix with 2 columns - see below for details.}
 \item{per.gene}{A logical scalar specifying whether statistics should be summarized per gene.}
 \item{lower.bound}{A numeric scalar specifying the theoretical lower bound of values in \code{x}, only used when \code{residuals=TRUE}.}
+\item{block.size}{An integer scalar specifying the number of cells for which ranked expression values are stored in memory, for efficiency purposes only.}
 \item{...}{Additional arguments to pass to \code{correlatePairs,matrix-method}.}
 \item{assay}{A string specifying which assay values to use.}
 \item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
