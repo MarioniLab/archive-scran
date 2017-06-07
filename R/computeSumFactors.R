@@ -71,11 +71,7 @@
             }
 
             if (errors) {
-                # Our "observations" here _are_ our size factors, so variance refers to that of the size factors.
-                # Don't compute the standard error of the coefficients, as that isn't the relevant value here.
-                sigma2 <- mean(qr.qty(QR, output)[-seq_len(ncol(design))]^2)
-                se.est <- sqrt(sigma2)
-                clust.se[[clust]] <- rep(se.est, cur.cells)
+                warning("errors=TRUE is no longer supported")
             }
         }
 
@@ -111,17 +107,6 @@
     
     is.pos <- final.sf > 0 & !is.na(final.sf)
     final.sf <- final.sf/mean(final.sf[is.pos])
-
-    if (errors) {
-        # The standard error currently refers to that of the normalization factors.
-        # We rescale to get to errors w.r.t. the size factors (this is possible as
-        # only scaling operations were used to get from norm -> size factors).
-        clust.nf <- unlist(clust.nf)
-        clust.nf[indices] <- clust.nf
-        clust.se <- unlist(clust.se)
-        clust.se[indices] <- clust.se
-        attr(final.sf, "standard.error") <- clust.se * final.sf/clust.nf
-    }
     return(final.sf)
 }
 

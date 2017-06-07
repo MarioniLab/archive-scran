@@ -116,30 +116,8 @@ if (.Platform$OS.type!="windows") { # Because limSolve doesn't build on Windows,
 outx <- computeSumFactors(dummy, positive=TRUE)
 expect_true(all(abs(outx -  out) < 1e-3)) # need to be a bit generous here, the solution code is different.
 }
-outx <- computeSumFactors(dummy, errors=TRUE)
+expect_warning(outx <- computeSumFactors(dummy, errors=TRUE), "errors=TRUE is no longer supported")
 expect_equal(as.numeric(outx), out)
-
-# Checking that the standard errors are correctly calculated.
-
-collected <- scran:::.create_linear_system(dummy, seq_len(nrow(dummy)), seq_len(ncol(dummy)), # Constructing the linear system.
-    rowMeans(t(t(dummy)/colSums(dummy))), colSums(dummy), scran:::.generateSphere(colSums(dummy)),
-    as.integer(eval(formals(scran:::.computeSumFactors)$sizes)))
-sqw <- rep(c(1, sqrt(scran:::LOWWEIGHT)), c(ncells*length(sizes), ncells))
-
-QR <- qr(as.matrix(collected[[1]])) # Solving using base QR methods.
-resid.effects <- qr.qty(QR, collected[[2]])
-soln <- solve(QR, collected[[2]])
-se.est <- sqrt(mean(resid.effects[-seq_len(ncol(collected[[1]]))]^2)) * as.numeric(out)/soln # rescaling to SE for size factors, not norm factors.
-
-expect_identical(names(attributes(outx)), "standard.error") 
-expect_equal(unname(attributes(outx)$standard.error), se.est)
-
-## obs.sf <- rnorm(200, mean=5) # True size factors for all cells (not quite realistic, as we shouldn't get negative values)..
-## pooled <- as.matrix(collected[[1]]) %*% obs.sf
-## pooled <- pooled + rnorm(length(pooled), sd=0.5) # estimation error in each pool (not quite realistic, as error scales with the mean; but oh well).
-## fit <- limma::lmFit(design=as.matrix(collected[[1]]), object=t(pooled))
-## fit$sigma # Should be the estimation error, equal to 0.5.
-## head(as.numeric(fit$sigma  * fit$stdev.unscaled)) # NOT the estimation error as it is huge.
 
 # Checking the the clustering works as expected.
 
