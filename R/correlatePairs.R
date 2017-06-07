@@ -71,9 +71,6 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
         # Ranking the expressions across cells for each gene.
         ranked.exprs <- .Call(cxx_rank_subset, use.x, use.subset.row, subset.col - 1L, tol)
-        if (is.character(ranked.exprs)) {
-            stop(ranked.exprs)
-        }
 
         # Computing correlations between gene pairs.
         out <- bpmapply(FUN=.get_correlation, gene1=sgene1, gene2=sgene2, 
@@ -176,9 +173,7 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 # Pass all arguments explicitly rather than through the function environments
 # (avoid duplicating memory in bplapply).
 {
-    out <- .Call(cxx_compute_rho, gene1, gene2, ranked.exprs)
-    if (is.character(out)) { stop(out) }
-    return(out)         
+    .Call(cxx_compute_rho, gene1, gene2, ranked.exprs)
 }
 
 .choose_gene_names <- function(subset.row, x, use.names) {
