@@ -1,9 +1,5 @@
-#include "beachmat/integer_matrix.h"
-#include "beachmat/numeric_matrix.h"
-#include "Rcpp.h"
-#include "run_dormqr.h"
-
 #include "scran.h"
+#include "run_dormqr.h"
 
 SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) {
     BEGIN_RCPP
@@ -18,9 +14,8 @@ SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) {
     if (ncells!=int(emat->get_ncol())) {
         throw std::runtime_error("number of rows of QR matrix not equal to number of cells");
     }
-    subset_values subout=check_subset_vector(subset, emat->get_nrow());
-    const size_t slen=subout.first;
-    const int* sptr=subout.second;
+    auto subout=check_subset_vector(subset, emat->get_nrow());
+    const size_t slen=subout.size();
 
     // Setting up output objects.
     Rcpp::NumericVector means(slen), vars(slen);
@@ -28,8 +23,8 @@ SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) {
     Rcpp::NumericVector tmp(ncells);
 
     // Running through each gene and reporting its variance and mean.
-    for (int s=0; s<slen; ++s, ++mIt, ++vIt) {
-        emat->get_row(sptr[s], tmp.begin());
+    for (auto sIt=subout.begin(); sIt!=subout.end(); ++sIt, ++mIt, ++vIt) {
+        emat->get_row(*sIt, tmp.begin());
         (*mIt)=std::accumulate(tmp.begin(), tmp.end(), 0.0)/ncells;
 
         std::copy(tmp.begin(), tmp.end(), multQ.rhs.begin());
@@ -42,9 +37,6 @@ SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) {
         curvar /= ncells - ncoefs;
     }
 
-    Rcpp::List output(2);
-    output[0]=means;
-    output[1]=vars;
-    return output;
+    return Rcpp::List::create(means, vars);
     END_RCPP
 }

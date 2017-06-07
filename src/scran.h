@@ -1,13 +1,9 @@
 #ifndef SCRAN_H
 #define SCRAN_H
 
-#include "R.h"
-#include "Rinternals.h"
-#include "R_ext/Rdynload.h"
-#include "R_ext/Visibility.h"
-#include "R_ext/BLAS.h"
-#include "R_ext/Lapack.h"
-#include "R_ext/Boolean.h"
+#include "beachmat/integer_matrix.h"
+#include "beachmat/numeric_matrix.h"
+#include "Rcpp.h"
 
 #include <stdexcept>
 #include <algorithm>

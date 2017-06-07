@@ -1,7 +1,3 @@
-#include "beachmat/integer_matrix.h"
-#include "beachmat/numeric_matrix.h"
-#include "Rcpp.h"
-
 #include "scran.h"
 
 /* This computes the mean and CV2 for every gene, while also dividing through by the size factors. 
@@ -11,10 +7,8 @@
 template <class M>
 SEXP compute_CV2_internal(const M mat, SEXP subset_row, SEXP size_factors, SEXP log_prior) {
 
-    subset_values rsubout=check_subset_vector(subset_row, mat->get_nrow());
-    const int rslen=rsubout.first;
-    const int* rsptr=rsubout.second;
-
+    auto rsubout=check_subset_vector(subset_row, mat->get_nrow());
+    const size_t rslen=rsubout.size();
     const size_t& ncells=mat->get_ncol();
     if (ncells < 2) {
         throw std::runtime_error("need two or more cells to compute variances");
@@ -44,8 +38,8 @@ SEXP compute_CV2_internal(const M mat, SEXP subset_row, SEXP size_factors, SEXP 
     Rcpp::NumericVector tmp(ncells);
     auto mIt=means.begin(), vIt=vars.begin();
     
-    for (int ri=0; ri<rslen; ++ri, ++mIt, ++vIt) {
-        mat->get_row(rsptr[ri], tmp.begin());
+    for (auto rsIt=rsubout.begin(); rsIt!=rsubout.end(); ++rsIt, ++mIt, ++vIt) {
+        mat->get_row(*rsIt, tmp.begin());
 
         if (!to_unlog) { 
             auto szIt=sizefacs.begin();

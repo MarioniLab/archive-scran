@@ -1,9 +1,5 @@
-#include "beachmat/integer_matrix.h"
-#include "beachmat/numeric_matrix.h"
-#include "Rcpp.h"
-#include "run_dormqr.h"
-
 #include "scran.h"
+#include "run_dormqr.h"
 
 /* This function computes residuals in a nice and quick manner.
  * It takes a pre-computed QR matrix from qr(), and optionally
@@ -16,9 +12,8 @@ SEXP get_residuals(SEXP exprs, SEXP qr, SEXP qraux, SEXP subset, SEXP lower_boun
     const size_t& ncells=emat->get_ncol();
 
     // Checking the subset vector.
-    subset_values subout=check_subset_vector(subset, emat->get_nrow());
-    const int slen=subout.first;
-    const int* sptr=subout.second;
+    auto subout=check_subset_vector(subset, emat->get_nrow());
+    const size_t slen=subout.size();
     
     // Checking the QR matrix.
     run_dormqr multQ1(qr, qraux, 'T');
@@ -38,8 +33,9 @@ SEXP get_residuals(SEXP exprs, SEXP qr, SEXP qraux, SEXP subset, SEXP lower_boun
     double* tptr=(ncells ? &(tmp[0]) : NULL);
     std::deque<int> below_bound;
 
-    for (int s=0; s<slen; ++s) {
-        emat->get_row(sptr[s], tmp.begin());
+    auto sIt=subout.begin();
+    for (size_t s=0; s<slen; ++s, ++sIt) {
+        emat->get_row(*sIt, tmp.begin());
             
         // Identifying elements below the lower bound.
         if (check_lower) { 

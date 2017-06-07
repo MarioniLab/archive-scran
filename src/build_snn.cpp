@@ -1,7 +1,3 @@
-#include "beachmat/integer_matrix.h"
-#include "beachmat/numeric_matrix.h"
-#include "Rcpp.h"
-
 #include "scran.h"
 
 SEXP build_snn(SEXP neighbors) {

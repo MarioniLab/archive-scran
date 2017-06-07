@@ -1,17 +1,11 @@
-#include "beachmat/integer_matrix.h"
-#include "beachmat/numeric_matrix.h"
-#include "Rcpp.h"
-
 #include "scran.h"
 
 template <typename T, class V, class M>
 SEXP overlap_exprs_internal(const M mat, const Rcpp::List& groups, SEXP subset, const T tol) {
     /// Checking the subset values.
-    subset_values SS=check_subset_vector(subset, mat->get_nrow());
-    const int slen=SS.first;
-    const int* sptr=SS.second;
+    auto SS=check_subset_vector(subset, mat->get_nrow());
+    const size_t slen=SS.size();
     const size_t& ncells=mat->get_ncol();
-    V tmp(ncells);
    
     // Constructing groups. 
     const size_t ngroups=groups.size();
@@ -77,9 +71,10 @@ SEXP overlap_exprs_internal(const M mat, const Rcpp::List& groups, SEXP subset, 
         }
     }
 
-    // Running through all genes and computing pairwise overlaps.
-    for (int s=0; s<slen; ++s) {
-        mat->get_row(sptr[s], tmp.begin());
+    // Running through all genes and computing pairwise overlaps. 
+    V tmp(ncells);
+    for (auto sIt=SS.begin(); sIt!=SS.end(); ++sIt) { 
+        mat->get_row(*sIt, tmp.begin());
 
         // Sorting expression values within each group.
         for (size_t i=0; i<ngroups; ++i) {

@@ -1,7 +1,3 @@
-#include "beachmat/integer_matrix.h"
-#include "beachmat/numeric_matrix.h"
-#include "Rcpp.h"
-
 #include "scran.h"
 
 template <typename T, class V, class M> 
@@ -9,9 +5,8 @@ SEXP average_ranks_internal(const M mat, SEXP intype, SEXP subset, SEXP transpos
     /// Checking the subset values.
     const size_t ncells=mat->get_ncol();
     const size_t ngenes=mat->get_nrow();
-    subset_values SS=check_subset_vector(subset, ngenes);
-    const int slen=SS.first;
-    const int* sptr=SS.second;
+    auto SS=check_subset_vector(subset, ngenes);
+    const size_t slen=SS.size();
 
     // Checking if we should transpose or not.
     Rcpp::LogicalVector tr(transpose);
@@ -33,8 +28,9 @@ SEXP average_ranks_internal(const M mat, SEXP intype, SEXP subset, SEXP transpos
         mat->get_col(c, incoming.begin());
 
         // Sorting all subsetted values.
-        for (int s=0; s<slen; ++s) {
-            const T& curval=incoming[sptr[s]];
+        auto sIt=SS.begin();
+        for (size_t s=0; s<slen; ++s, ++sIt) {
+            const T& curval=incoming[*sIt];
             if (isNA(curval)) { 
                 throw std::runtime_error("missing values not supported in quickCluster");
             }
@@ -46,7 +42,7 @@ SEXP average_ranks_internal(const M mat, SEXP intype, SEXP subset, SEXP transpos
         // Need a bit more effort to deal with tied ranks.
         double accumulated_rank=0, sum_squares=0;
         int n_same_rank=0;
-        for (int s=0; s<slen; ++s) {
+        for (size_t s=0; s<slen; ++s) {
             ++n_same_rank;
             accumulated_rank+=s;
 

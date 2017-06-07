@@ -1,9 +1,5 @@
-#include "beachmat/integer_matrix.h"
-#include "beachmat/numeric_matrix.h"
-#include "Rcpp.h"
-#include "run_dormqr.h"
-
 #include "scran.h"
+#include "run_dormqr.h"
 
 double rho_mult (double Ncells) {
     return 6/(Ncells*(Ncells*Ncells-1));
@@ -122,12 +118,10 @@ SEXP get_null_rho_design(SEXP qr, SEXP qraux, SEXP iters) {
 template <typename T, class V, class M>
 SEXP rank_subset_internal(const M mat, SEXP intype, SEXP subset_row, SEXP subset_col, const T tol) {
     // Checking subset vectors.
-    subset_values rsubout=check_subset_vector(subset_row, mat->get_nrow());
-    const int rslen=rsubout.first;
-    const int* rsptr=rsubout.second;
-    subset_values csubout=check_subset_vector(subset_col, mat->get_ncol());
-    const int cslen=csubout.first;
-    const int* csptr=csubout.second;
+    auto rsubout=check_subset_vector(subset_row, mat->get_nrow());
+    const size_t rslen=rsubout.size();
+    auto csubout=check_subset_vector(subset_col, mat->get_ncol());
+    const size_t cslen=csubout.size();
     
     // Setting up the output matrix.
     const size_t ngenes=mat->get_nrow();
@@ -143,12 +137,13 @@ SEXP rank_subset_internal(const M mat, SEXP intype, SEXP subset_row, SEXP subset
     Rcpp::IntegerVector ranks(cslen);
     Rcpp::RNGScope rng;
 
-    for (int rs=0; rs<rslen; ++rs) {
-        mat->get_row(rsptr[rs], incoming.begin());
+    auto rsIt=rsubout.begin();
+    for (size_t rs=0; rs<rslen; ++rs, ++rsIt) {
+        mat->get_row(*rsIt, incoming.begin());
         std::iota(indices.begin(), indices.end(), 0);
         auto sIt=subsetted.begin();
-        for (int cs=0; cs<cslen; ++cs, ++sIt) {
-            (*sIt)=incoming[csptr[cs]];
+        for (auto csIt=csubout.begin(); csIt!=csubout.end(); ++csIt, ++sIt) {
+            (*sIt)=incoming[*csIt];
         }
 
         // First stage sorting and equalization of effective ties.

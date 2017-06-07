@@ -1,7 +1,3 @@
-#include "beachmat/integer_matrix.h"
-#include "beachmat/numeric_matrix.h"
-#include "Rcpp.h"
-
 #include "scran.h"
 
 template <class V>
@@ -89,7 +85,7 @@ SEXP shuffle_scores_internal (M mat_ptr,
         }
     }
 
-    return SEXP(output);
+    return output;
 }
 
 SEXP shuffle_scores(SEXP mycells, SEXP exprs, SEXP marker1, SEXP marker2, SEXP indices, SEXP iter, SEXP miniter, SEXP minpair) {
@@ -133,6 +129,6 @@ SEXP auto_shuffle(SEXP incoming, SEXP nits) {
         oIt+=N;
     }
 
-    return SEXP(outmat);
+    return outmat;
     END_RCPP
 }

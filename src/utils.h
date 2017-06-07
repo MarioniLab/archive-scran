@@ -1,14 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-struct Rx_random_seed {
-    Rx_random_seed() {
-        GetRNGstate();
-    }
-    ~Rx_random_seed() {
-        PutRNGstate();
-    }
-};
+// Shuffle that mimics C++ shuffle, but using the R random number generator.
 
 template <typename Pt>
 void Rx_shuffle (Pt start, Pt end) {
@@ -19,26 +12,13 @@ void Rx_shuffle (Pt start, Pt end) {
     return;
 }
 
-// Check matrix inputs.
-
-struct matrix_info {
-    matrix_info(int, int, bool);
-    const size_t nrow, ncol;
-    const bool is_integer;
-    const int* iptr;
-    const double* dptr;
-};
-
-matrix_info check_matrix(SEXP matrix);
-
 // Check subset vector.
 
-typedef std::pair<const int, const int*> subset_values;
-subset_values check_subset_vector(SEXP, int);
+Rcpp::IntegerVector check_subset_vector(SEXP, size_t);
 
-// Special function to check for NA'ness.
+// Overloaded functions to check for NA'ness.
 
-bool isNA(int);
-bool isNA(double);
+bool isNA(int x);
+bool isNA(double x);
 
 #endif

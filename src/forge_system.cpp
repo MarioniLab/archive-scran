@@ -1,25 +1,17 @@
-#include "beachmat/integer_matrix.h"
-#include "beachmat/numeric_matrix.h"
-#include "Rcpp.h"
-
 #include "scran.h"
 
-/*** A function to (a) subset by row, (b) subset by column, and (c) divide through by the library sizes. 
- *** The output is equivalent to t(t(MAT[row_subset,col_subset])/lib.sizes) where lib.sizes itself is
- *** computed as colSums(MAT[row_subset,col_subset]).
- ***/
+/* A function to (a) subset by row, (b) subset by column, and (c) divide through by the library sizes. 
+ * The output is equivalent to t(t(MAT[row_subset,col_subset])/lib.sizes) where lib.sizes itself is
+ * computed as colSums(MAT[row_subset,col_subset]).
+ */
 
 template <class V, class M>
 SEXP subset_and_divide_internal(const M in, SEXP row_subset, SEXP col_subset) {
-    // Checking row subset vector
-    subset_values rsubout=check_subset_vector(row_subset, in->get_nrow());
-    const int rslen=rsubout.first;
-    const int* rsptr=rsubout.second;
-
-    // Checking column subset vector
-    subset_values csubout=check_subset_vector(col_subset, in->get_ncol());
-    const int cslen=csubout.first;
-    const int* csptr=csubout.second;
+    // Checking subset vectors
+    auto rsubout=check_subset_vector(row_subset, in->get_nrow());
+    const size_t rslen=rsubout.size();
+    auto csubout=check_subset_vector(col_subset, in->get_ncol());
+    const size_t cslen=csubout.size();
 
     // Setting up the output structures.
     Rcpp::NumericVector libsizes(cslen);
@@ -27,15 +19,16 @@ SEXP subset_and_divide_internal(const M in, SEXP row_subset, SEXP col_subset) {
     Rcpp::NumericVector outgoing(rslen);
     Rcpp::NumericVector pseudocell(rslen);
 
-    for (int cs=0; cs<cslen; ++cs) {
+    auto lbIt=libsizes.begin();
+    for (auto csIt=csubout.begin(); csIt!=csubout.end(); ++csIt, ++lbIt) {
 
-        in->get_col(csptr[cs], incoming.begin());
+        in->get_col(*csIt, incoming.begin());
         auto oIt=outgoing.begin();
-        for (int rs=0; rs<rslen; ++rs, ++oIt) {
-            (*oIt)=*(incoming.begin() + rsptr[rs]);
+        for (auto rsIt=rsubout.begin(); rsIt!=rsubout.end(); ++rsIt, ++oIt) {
+            (*oIt)=incoming[*rsIt];
         }
             
-        const double& curlib=(libsizes[cs]=std::accumulate(outgoing.begin(), outgoing.end(), 0.0));
+        const double& curlib=((*lbIt)=std::accumulate(outgoing.begin(), outgoing.end(), 0.0));
         if (curlib < 0.00000001) {
             throw std::runtime_error("cells should have non-zero library sizes");
         }
@@ -51,10 +44,7 @@ SEXP subset_and_divide_internal(const M in, SEXP row_subset, SEXP col_subset) {
         (*pcIt)/=cslen;
     }
 
-    Rcpp::List output(2);
-    output[0] = libsizes;
-    output[1] = pseudocell;
-    return SEXP(output);
+    return Rcpp::List::create(libsizes, pseudocell);
 }
 
 SEXP subset_and_divide(SEXP matrix, SEXP row_subset, SEXP col_subset) {
@@ -74,14 +64,11 @@ SEXP subset_and_divide(SEXP matrix, SEXP row_subset, SEXP col_subset) {
 
 template<class M>
 SEXP forge_system_internal (const M emat, SEXP subset_row, SEXP subset_col, SEXP ref, SEXP libsizes, SEXP ordering, SEXP poolsizes) {
-    // Checking row subset vector
-    subset_values rsubout=check_subset_vector(subset_row, emat->get_nrow());
-    const size_t ngenes=rsubout.first;
-    const int* rsptr=rsubout.second;
-
-    subset_values csubout=check_subset_vector(subset_col, emat->get_ncol());
-    const size_t ncells=csubout.first;
-    const int* csptr=csubout.second;
+    // Checking subset vectors
+    auto rsubout=check_subset_vector(subset_row, emat->get_nrow());
+    const size_t ngenes=rsubout.size();
+    auto csubout=check_subset_vector(subset_col, emat->get_ncol());
+    const size_t ncells=csubout.size();
     if (ncells==0) { throw std::runtime_error("at least one cell required for normalization"); }
    
     // Checking the input sizes.
@@ -124,11 +111,11 @@ SEXP forge_system_internal (const M emat, SEXP subset_row, SEXP subset_col, SEXP
     auto orIt_tail=order.begin();
     Rcpp::NumericVector tmp(emat->get_nrow());
     for (int s=0; s<last_size-1; ++s, ++orIt_tail) {
-        emat->get_col(csptr[*orIt_tail], tmp.begin());
+        emat->get_col(csubout[*orIt_tail], tmp.begin());
         collected.push_back(acIt); 
         const double& curlibsize=lib_sizes[*orIt_tail];
-        for (size_t g=0; g<ngenes; ++g, ++acIt) {
-            (*acIt)=tmp[rsptr[g]]/curlibsize;
+        for (auto rsIt=rsubout.begin(); rsIt!=rsubout.end(); ++rsIt, ++acIt) {
+            (*acIt)=tmp[*rsIt]/curlibsize;
         }
     }
 
@@ -151,10 +138,10 @@ SEXP forge_system_internal (const M emat, SEXP subset_row, SEXP subset_col, SEXP
         auto acIt=collected.front();
         collected.pop_front();
         collected.push_back(acIt);
-        emat->get_col(csptr[*orIt_tail], tmp.begin());
+        emat->get_col(csubout[*orIt_tail], tmp.begin());
         const double& curlibsize=lib_sizes[*orIt_tail];
-        for (size_t g=0; g<ngenes; ++g, ++acIt) {
-            (*acIt)=tmp[rsptr[g]]/curlibsize;
+        for (auto rsIt=rsubout.begin(); rsIt!=rsubout.end(); ++rsIt, ++acIt) {
+            (*acIt)=tmp[*rsIt]/curlibsize;
         }
         ++orIt_tail;
 
@@ -201,11 +188,7 @@ SEXP forge_system_internal (const M emat, SEXP subset_row, SEXP subset_col, SEXP
 */
     }    
 
-    Rcpp::List output(3);
-    output[0]=row_num;
-    output[1]=col_num;
-    output[2]=pool_factor;
-    return SEXP(output);
+    return Rcpp::List::create(row_num, col_num, pool_factor);
 }
 
 SEXP forge_system(SEXP exprs, SEXP subset_row, SEXP subset_col, SEXP ref, SEXP libsizes, SEXP ordering, SEXP poolsizes) {
