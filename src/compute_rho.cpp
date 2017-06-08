@@ -222,9 +222,13 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings, SEXP block_size) {
     }
     const int BLOCK=bsize[0];
     
-    // Setting up the cache, to avoid repeatedly copying/reading from file with rmat->get_col().
+    /* Setting up the cache, to avoid repeatedly copying/reading from file with rmat->get_col().
+     * We round up the number of genes to a multiple of BLOCK to make things easier when using
+     * std::fill to indicate that particular genes are no longer in memory.
+     */
     Rcpp::IntegerVector cache1(BLOCK*Ncells), cache2(BLOCK*Ncells);
-    std::vector<Rcpp::IntegerVector::iterator> locations1(Ngenes, cache1.end()), locations2(Ngenes, cache2.end());
+    const int roundedNgenes=BLOCK*int(Ngenes/BLOCK + 1); 
+    std::vector<Rcpp::IntegerVector::iterator> locations1(roundedNgenes, cache1.end()), locations2(roundedNgenes, cache2.end());
     Rcpp::IntegerVector::iterator b1It=cache1.begin(), b2It=cache2.begin();
     int current_block1=0, current_block2=0;
 
