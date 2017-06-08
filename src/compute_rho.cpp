@@ -267,7 +267,17 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings, SEXP block_size) {
         // Repeating for the second block. If this is the same as the first block, we just update that instead.
         const int block2=int(g2x/BLOCK);
         Rcpp::IntegerVector::iterator start2_copy;
-        if (block2==block1) { // No need to try and discard, this would have already been done above.
+        if (block2==block1) { 
+            if (updated1) { 
+                /* No need to discard the existing cache1, this would have already been done above. 
+                 * We do, however, have to update current_block2 and discard cache2 (we can't do this
+                 * later as old_start would no longer be correct with an updated current_block2).
+                 */
+                auto old_start=locations2.begin()+current_block2*BLOCK;
+                std::fill(old_start, old_start+BLOCK, cache2.end());
+                current_block2=block2;
+                b2It=cache2.begin();
+            }
             auto& restart1=locations1[g2x]; 
             if (restart1==cache1.end()) { 
                 if (b1It==cache1.end()) { 
