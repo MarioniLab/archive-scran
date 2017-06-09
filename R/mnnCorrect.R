@@ -47,8 +47,7 @@ mnnCorrect <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL
         # Identifying the biological component of the batch correction vector 
         # (i.e., the part that is parallel to the biological subspace) and removing it.
         #bio.span <- cbind(span1, span2)
-        library(pracma)
-        #bio.span<-orth(bio.span)
+        #bio.span <- pracma::orth(bio.span)
         
         #reduce the component in each span from the batch correction vector, span1 span2 order does not matter
         bv <- sets$vect               
