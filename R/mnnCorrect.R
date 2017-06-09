@@ -1,5 +1,4 @@
 
-
 mnnCorrect <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL) 
 # Performs correction based on the batches specified in the ellipsis.
 #    
@@ -54,9 +53,9 @@ mnnCorrect <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL
         #reduce the component in each span from the batch correction vector, span1 span2 order does not matter
         bv <- sets$vect               
         bio.comp <- bv %*% span1 %*% t(span1)
-        correction <- t(bv) - t(bio.comp) 
-        bio.comp <- t(correction) %*% span2 %*% t(span2)
-        correction <- correction - t(bio.comp) 
+        correction <- t(bv) #- t(bio.comp) 
+        #bio.comp <- t(correction) %*% span2 %*% t(span2)
+        #correction <- correction - t(bio.comp) 
         
         # Applying the correction and storing the numbers of nearest neighbors.
         other.batch <- other.batch + correction
@@ -109,12 +108,23 @@ find.mutual.nn <- function(exprs1, exprs2, k1, k2, sigma=1)
 
     # Gaussian smoothing of individual correction vectors for MNN pairs.
     if (sigma==0) {
-        G <- matrix(1, n2, n2)
-    } else {
-        dd2 <- as.matrix(dist(data2))
-        G <- exp(-dd2^2/sigma)  
+      G <- matrix(1, n2, n2)
     }
+    else if (n2<3000) {
+      dd2 <- as.matrix(dist(data2))
+      G <- exp(-dd2^2/sigma)
+    }
+    else {
+      kk=min(length(A2),100)
+      W <- FNN::get.knnx(data2[A2,], query=data2, k=kk)
+      G <- matrix(0,n2,n2)
+      for (i in 1:n2){
+        #G[i,A2[W$nn.index[i,]]]=W$}
+        G[i,A2[W$nn.index[i,]]]=exp(-(W$nn.dist[i,])^2/sigma) }
+    }
+    G= (G+t(G)) /2
     
+    #################
     D <- rowSums(G)
     nA2 <- tabulate(A2, nbins=n2)
     norm.dens <- t(G/(D*nA2))[,A2,drop=FALSE] # density normalized to avoid domination from dense parts
