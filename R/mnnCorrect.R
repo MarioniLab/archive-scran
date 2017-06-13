@@ -1,13 +1,17 @@
-
-mnnCorrect <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL) 
+mnnCorrect <- function(...,inquiry_genes, hvg_genes, k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL) 
 # Performs correction based on the batches specified in the ellipsis.
 #    
 # written by Laleh Haghverdi
 # with modifications by Aaron Lun
 # created 7 April 2017
 # last modified 12 April 2017
-{ 
+{
+    genes_all<-union(inquiry_genes, hvg_genes)
+
+ 
     batches <- list(...) 
+    batches<-lapply(batches,selectRows,select.names=genes_all)
+
     nbatches <- length(batches) 
     if (nbatches < 2L) { stop("at least two batches must be specified") }
     if (cos.norm) { batches <- lapply(batches, cosine.norm) } 
@@ -31,9 +35,9 @@ mnnCorrect <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL
 
     for (b in 2:nbatches) { 
         other.batch <- batches[[order[b]]]
-
+        
         # Finding pairs of mutual nearest neighbours.
-        sets <- find.mutual.nn(ref.batch, other.batch, k1=k, k2=k, sigma=sigma)
+        sets <- find.mutual.nn(ref.batch, other.batch, hvg_genes, k1=k, k2=k, sigma=sigma)
         s1 <- sets$set1
         s2 <- sets$set2
 
@@ -47,14 +51,15 @@ mnnCorrect <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL
         # Identifying the biological component of the batch correction vector 
         # (i.e., the part that is parallel to the biological subspace) and removing it.
         #bio.span <- cbind(span1, span2)
-        #bio.span <- pracma::orth(bio.span)
+        library(pracma)
+        #bio.span<-orth(bio.span)
         
         #reduce the component in each span from the batch correction vector, span1 span2 order does not matter
         bv <- sets$vect               
         bio.comp <- bv %*% span1 %*% t(span1)
-        correction <- t(bv) #- t(bio.comp) 
-        #bio.comp <- t(correction) %*% span2 %*% t(span2)
-        #correction <- correction - t(bio.comp) 
+        correction <- t(bv) - t(bio.comp) 
+        bio.comp <- t(correction) %*% span2 %*% t(span2)
+        correction <- correction - t(bio.comp) 
         
         # Applying the correction and storing the numbers of nearest neighbors.
         other.batch <- other.batch + correction
@@ -70,7 +75,7 @@ mnnCorrect <- function(..., k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL
     list(corrected=output, num.mnn=num.mnn)
 }
 
-find.mutual.nn <- function(exprs1, exprs2, k1, k2, sigma=1)
+find.mutual.nn <- function(exprs1, exprs2, hvg_genes, k1, k2, sigma=1)
 # Finds mutal neighbors between data1 and data2.
 # Computes the batch correction vector for each cell in data2.
 {
@@ -82,13 +87,14 @@ find.mutual.nn <- function(exprs1, exprs2, k1, k2, sigma=1)
     n.total <- n1 + n2
     W <- matrix(0, n.total, n.total)
 
-    W21 <- FNN::get.knnx(data2, query=data1, k=k1)
+    
+    W21 <- FNN::get.knnx(data2[,which(colnames(data2)==hvg_genes)], query=data1[,which(colnames(data1)==hvg_genes)], k=k1)
     js1 <- matrix(seq_len(n1), n1, k1)
     is1 <- n1 + W21$nn.index
     indices1 <- cbind(as.vector(js1), as.vector(is1))
     W[indices1] <- 1
 
-    W12 <- FNN::get.knnx(data1, query=data2, k=k2)
+    W12 <- FNN::get.knnx(data1[,which(colnames(data1)==hvg_genes)], query=data2[,which(colnames(data2)==hvg_genes)], k=k2)
     js2 <- matrix(n1 + seq_len(n2), n2, k2)
     is2 <- W12$nn.index
     indices2 <- cbind(as.vector(js2), as.vector(is2))
@@ -191,3 +197,10 @@ cosine.norm <- function(X)
     X/matrix(cellnorm, nrow(X), ncol(X), byrow=TRUE)
 }
 
+selectRows <- function(data,select.names){
+  #Reduce data to selects rows by row names  
+  data<-as.matrix(data)
+  data<-data[as.character(select.names),]
+  row.names(data)<-select.names
+  return(data)
+}
