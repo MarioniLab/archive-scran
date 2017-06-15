@@ -1,4 +1,5 @@
-mnnCorrect <- function(...,inquiry_genes, hvg_genes, k=20, sigma=1, cos.norm=TRUE, svd.dim=20, order=NULL) 
+
+mnnCorrect <- function(...,inquiry_genes, hvg_genes, k=20, sigma=0.1, cos.norm=TRUE, svd.dim=2, order=NULL) 
 # Performs correction based on the batches specified in the ellipsis.
 #    
 # written by Laleh Haghverdi
@@ -10,8 +11,9 @@ mnnCorrect <- function(...,inquiry_genes, hvg_genes, k=20, sigma=1, cos.norm=TRU
 
  
     batches <- list(...) 
-    batches<-lapply(batches,selectRows,select.names=genes_all)
-
+    batches0<-lapply(batches,selectRows,select.names=inquiry_genes)
+    batches<-lapply(batches,selectRows,select.names=hvg_genes)
+    
     nbatches <- length(batches) 
     if (nbatches < 2L) { stop("at least two batches must be specified") }
     if (cos.norm) { batches <- lapply(batches, cosine.norm) } 
@@ -29,72 +31,93 @@ mnnCorrect <- function(...,inquiry_genes, hvg_genes, k=20, sigma=1, cos.norm=TRU
     # Setting up the variables.
     ref <- order[1]
     ref.batch <- batches[[ref]]
+    ref.batch0 <- batches0[[ref]]
+    
     num.mnn <- matrix(NA_integer_, nbatches, 2)
-    output <- vector("list", nbatches)
-    output[[ref]] <- ref.batch
+    #output <- vector("list", nbatches)
+    #output[[ref]] <- ref.batch
 
+    output0 <- vector("list", nbatches)
+    output0[[ref]] <- ref.batch0
+    
     for (b in 2:nbatches) { 
         other.batch <- batches[[order[b]]]
+        other.batch0 <- batches0[[order[b]]]
         
         # Finding pairs of mutual nearest neighbours.
-        sets <- find.mutual.nn(ref.batch, other.batch, hvg_genes, k1=k, k2=k, sigma=sigma)
+        sets <- find.mutual.nn(ref.batch, other.batch, ref.batch0, other.batch0, k1=k, k2=k, sigma=sigma)
         s1 <- sets$set1
         s2 <- sets$set2
 
-        # Computing the biological subspace in both batches.
+        if (svd.dim==0){
+          correction <- t(sets$vect)
+          correction0 <- t(sets$vect0)
+        }
+        else {
+          
+        ## Computing the biological subspace in both batches.
         ndim <- min(c(svd.dim, dim(ref.batch), dim(other.batch)))
-        span1 <- get.bio.span(ref.batch[,s1,drop=FALSE], min(ndim, length(s1)))
-        span2 <- get.bio.span(other.batch[,s2,drop=FALSE], min(ndim, length(s2)))
-        nshared <- find.shared.subspace(span1, span2, assume.orthonormal=TRUE, get.angle=FALSE)$nshared
-        if (nshared==0L) { warning("batches not sufficiently related") }
+        span1 <- get.bio.span(ref.batch0[,s1,drop=FALSE],hvg_genes, min(ndim, length(s1)))
+        span2 <- get.bio.span(other.batch0[,s2,drop=FALSE],hvg_genes, min(ndim, length(s2)))
+        #nshared <- find.shared.subspace(span1, span2, assume.orthonormal=TRUE, get.angle=FALSE)$nshared
+        #if (nshared==0L) { warning("batches not sufficiently related") }
 
         # Identifying the biological component of the batch correction vector 
         # (i.e., the part that is parallel to the biological subspace) and removing it.
-        #bio.span <- cbind(span1, span2)
         library(pracma)
         #bio.span<-orth(bio.span)
         
         #reduce the component in each span from the batch correction vector, span1 span2 order does not matter
-        bv <- sets$vect               
-        bio.comp <- bv %*% span1 %*% t(span1)
-        correction <- t(bv) - t(bio.comp) 
-        bio.comp <- t(correction) %*% span2 %*% t(span2)
-        correction <- correction - t(bio.comp) 
+        bv <- sets$vect
+        bv0 <- sets$vect0      
+        bio.comp <- bv0 %*% span1 %*% t(span1)
+        correction0 <- t(bv0) - t(bio.comp)
+        bio.comp <- t(correction0) %*% span2 %*% t(span2)
+        correction0 <- correction0 - t(bio.comp)
+        
+        correction <- t(sets$vect)
+        } #else
         
         # Applying the correction and storing the numbers of nearest neighbors.
         other.batch <- other.batch + correction
+        other.batch0 <- other.batch0 + correction0
+        
         num.mnn[b,] <- c(length(s1), length(s2))
-        output[[b]] <- other.batch
+        output0[[b]] <- other.batch0
 
         # Expanding the reference batch to include the new, corrected data.
         ref.batch <- cbind(ref.batch, other.batch)
+        ref.batch0 <- cbind(ref.batch0, other.batch0)
     }
 
     # Formatting output to be consistent with input.
-    names(output) <- names(batches)
-    list(corrected=output, num.mnn=num.mnn)
+    names(output0) <- names(batches0)
+    list(corrected=output0, num.mnn=num.mnn)
 }
 
-find.mutual.nn <- function(exprs1, exprs2, hvg_genes, k1, k2, sigma=1)
+find.mutual.nn <- function(exprs1, exprs2, exprs10, exprs20, k1, k2, sigma=1)
 # Finds mutal neighbors between data1 and data2.
 # Computes the batch correction vector for each cell in data2.
 {
     data1 <- t(exprs1)
     data2 <- t(exprs2)
-
+    
+    data10 <- t(exprs10)
+    data20 <- t(exprs20)
+    
     n1 <- nrow(data1)
     n2 <- nrow(data2)
     n.total <- n1 + n2
     W <- matrix(0, n.total, n.total)
 
     
-    W21 <- FNN::get.knnx(data2[,which(colnames(data2)==hvg_genes)], query=data1[,which(colnames(data1)==hvg_genes)], k=k1)
+    W21 <- FNN::get.knnx(data2, query=data1, k=k1)
     js1 <- matrix(seq_len(n1), n1, k1)
     is1 <- n1 + W21$nn.index
     indices1 <- cbind(as.vector(js1), as.vector(is1))
     W[indices1] <- 1
 
-    W12 <- FNN::get.knnx(data1[,which(colnames(data1)==hvg_genes)], query=data2[,which(colnames(data2)==hvg_genes)], k=k2)
+    W12 <- FNN::get.knnx(data1, query=data2, k=k2)
     js2 <- matrix(n1 + seq_len(n2), n2, k2)
     is2 <- W12$nn.index
     indices2 <- cbind(as.vector(js2), as.vector(is2))
@@ -110,7 +133,8 @@ find.mutual.nn <- function(exprs1, exprs2, hvg_genes, k1, k2, sigma=1)
     A2 <- A[,2] - n1
     A2 <- A2[A2 > 0]
     vect <- data1[A1,] - data2[A2,]    
-
+    vect0 <- data10[A1,] - data20[A2,] 
+    
     # Gaussian smoothing of individual correction vectors for MNN pairs.
     if (sigma==0) {
       G <- matrix(1, n2, n2)
@@ -137,16 +161,22 @@ find.mutual.nn <- function(exprs1, exprs2, hvg_genes, k1, k2, sigma=1)
     partitionf <- rowSums(norm.dens)
     batchvect <- batchvect/partitionf
 
+    batchvect0 <- norm.dens %*% vect0 
+    batchvect0 <- batchvect0/partitionf
+    
     # Report cells that are MNNs, and the correction vector per cell in data2.
-    list(set1=unique(A1), set2=unique(A2), vect=batchvect)
+    list(set1=unique(A1), set2=unique(A2), vect=batchvect, vect0=batchvect0)
 }
 
-get.bio.span <- function(exprs, ndim) 
+get.bio.span <- function(exprs,hvg_genes, ndim) 
 # Computes the basis matrix of the biological subspace of 'exprs'.
 # The first 'ndim' dimensions are assumed to capture the biological subspace.
 # Avoids extra dimensions dominated by technical noise, which will result in both 
 # trivially large and small angles when using find.shared.subspace().
 {
+    keephvg<-1*(row.names(exprs) %in% hvg_genes)
+    keeph<-matrix(rep(keephvg,ncol(exprs)),nrow=nrow(exprs),ncol=ncol(exprs))
+    exprs<-exprs*keeph
     exprs <- exprs - rowMeans(exprs) 
     S <- svd(exprs)#, nu=ndim, nv=0)
     #S$u
