@@ -38,7 +38,7 @@
         curdex <- indices[[clust]]
         cur.out <- .Call(cxx_subset_and_divide, x, subset.row-1L, curdex-1L) 
         cur.libs <- cur.out[[1]]
-        ave.cell <- cur.out[[2]]       
+        exprs <- cur.out[[2]]       
 
         # Checking cluster sizes
         cur.cells <- length(curdex)
@@ -46,14 +46,15 @@
             stop("not enough cells in each cluster for specified 'sizes'") 
         } 
 
-        # Getting rid of zeros.
+        # Computing the average cell and getting rid of zeros.
+        ave.cell <- rowMeans(exprs)
         keep <- ave.cell > .Machine$double.xmin
         use.ave.cell <- ave.cell[keep]
-        cur.subset.row <- subset.row[keep]
+        exprs <- exprs[keep,,drop=FALSE]
 
         # Using our summation approach.
         sphere <- .generateSphere(cur.libs)
-        new.sys <- .create_linear_system(x, cur.subset.row, curdex, use.ave.cell, cur.libs, sphere, sizes) 
+        new.sys <- .create_linear_system(exprs, use.ave.cell, sphere, sizes) 
         design <- new.sys$design
         output <- new.sys$output
 
@@ -123,24 +124,21 @@
 
 LOWWEIGHT <- 0.000001
 
-.create_linear_system <- function(cur.exprs, subset.row, subset.col, use.ave.cell, use.lib.sizes, sphere, pool.sizes) {
+.create_linear_system <- function(cur.exprs, ave.cell, sphere, pool.sizes) {
     sphere <- sphere - 1L # zero-indexing in C++.
-    subset.row <- subset.row - 1L
-    subset.col <- subset.col - 1L
 
     nsizes <- length(pool.sizes)
     row.dex <- col.dex <- output <- vector("list", 2L)
-    cur.cells <- length(subset.col)
+    cur.cells <- ncol(cur.exprs)
 
-    out <- .Call(cxx_forge_system, cur.exprs, subset.row, subset.col,
-                 use.ave.cell, use.lib.sizes, sphere, pool.sizes)
+    # Creating the linear system with the requested pool sizes.
+    out <- .Call(cxx_forge_system, cur.exprs, ave.cell, sphere, pool.sizes)
     row.dex[[1]] <- out[[1]] 
     col.dex[[1]] <- out[[2]]
     output[[1]]<- out[[3]]
     
     # Adding extra equations to guarantee solvability (downweighted).
-    out <- .Call(cxx_forge_system, cur.exprs, subset.row, subset.col,
-                 use.ave.cell, use.lib.sizes, sphere, 1L)
+    out <- .Call(cxx_forge_system, cur.exprs, ave.cell, sphere, 1L)
     row.dex[[2]] <- out[[1]] + cur.cells * nsizes
     col.dex[[2]] <- out[[2]]
     output[[2]] <- out[[3]] * sqrt(LOWWEIGHT)

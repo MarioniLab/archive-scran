@@ -13,7 +13,7 @@
 
 extern "C" {
 
-SEXP forge_system (SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP forge_system (SEXP, SEXP, SEXP, SEXP);
 
 SEXP shuffle_scores (SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
