@@ -124,7 +124,6 @@ SEXP rank_subset_internal(const M mat, SEXP intype, SEXP subset_row, SEXP subset
     const size_t cslen=csubout.size();
     
     // Setting up the output matrix.
-    const size_t ngenes=mat->get_nrow();
     const size_t ncells=mat->get_ncol();
     auto omat=beachmat::create_integer_output(cslen, rslen, intype, true);
     if (!cslen) { 
