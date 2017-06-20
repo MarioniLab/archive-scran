@@ -17,7 +17,10 @@ SEXP subset_and_divide_internal(const M in, SEXP inmat, SEXP row_subset, SEXP co
     V incoming(in->get_nrow());
     Rcpp::NumericVector outgoing(rslen);
     Rcpp::NumericVector libsizes(cslen);
-    auto omat=beachmat::create_numeric_output(rslen, cslen, inmat, false, true);
+
+    beachmat::output_param oparam(inmat, false, true);
+    oparam.set_chunk_dim(rslen, 1); // pure-column chunks for random access, if HDF5.
+    auto omat=beachmat::create_numeric_output(rslen, cslen, oparam);
 
     auto lbIt=libsizes.begin();
     size_t cs=0;

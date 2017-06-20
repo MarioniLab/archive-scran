@@ -22,7 +22,7 @@ SEXP average_ranks_internal(const M mat, SEXP intype, SEXP subset, SEXP transpos
     const double mean_adj=double(slen-1)/2;
     V incoming(ngenes);
     Rcpp::NumericVector outgoing(slen);
-    auto omat=beachmat::create_numeric_output(out_nr, out_nc, intype, true, false);
+    auto omat=beachmat::create_numeric_output(out_nr, out_nc, beachmat::output_param(intype, true, false));
 
     for (size_t c=0; c<ncells; ++c) {
         mat->get_col(c, incoming.begin());

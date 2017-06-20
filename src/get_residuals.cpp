@@ -27,8 +27,8 @@ SEXP get_residuals(SEXP exprs, SEXP qr, SEXP qraux, SEXP subset, SEXP lower_boun
     }
     const double lbound=lb[0];
     const bool check_lower=R_FINITE(lbound);
-    
-    auto omat=beachmat::create_numeric_output(slen, ncells, exprs, true, false);
+
+    auto omat=beachmat::create_numeric_output(slen, ncells, beachmat::output_param(exprs, true, false));
     Rcpp::NumericVector tmp(ncells);
     double* tptr=(ncells ? &(tmp[0]) : NULL);
     std::deque<int> below_bound;

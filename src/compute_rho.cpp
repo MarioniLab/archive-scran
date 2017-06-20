@@ -125,7 +125,9 @@ SEXP rank_subset_internal(const M mat, SEXP intype, SEXP subset_row, SEXP subset
     
     // Setting up the output matrix.
     const size_t ncells=mat->get_ncol();
-    auto omat=beachmat::create_integer_output(cslen, rslen, intype, true);
+    beachmat::output_param oparam(intype, true, false);
+    oparam.set_chunk_dim(cslen, 1); // Column chunks (tranposed, so each column is a gene now).
+    auto omat=beachmat::create_integer_output(cslen, rslen, oparam);
     if (!cslen) { 
         return omat->yield();
     }
