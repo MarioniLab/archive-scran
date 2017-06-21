@@ -6,7 +6,7 @@
 #
 # written by Aaron Lun
 # created 23 November 2015
-# last modified 6 June 2017 
+# last modified 21 June 2017 
 {
     ncells <- ncol(x)
     if (!is.null(clusters)) {
@@ -36,21 +36,16 @@
     # Computing normalization factors within each cluster first.
     for (clust in seq_len(nclusters)) { 
         curdex <- indices[[clust]]
-        cur.out <- .Call(cxx_subset_and_divide, x, subset.row-1L, curdex-1L) 
-        cur.libs <- cur.out[[1]]
-        exprs <- cur.out[[2]]       
-
-        # Checking cluster sizes
         cur.cells <- length(curdex)
         if (any(sizes > cur.cells)) { 
             stop("not enough cells in each cluster for specified 'sizes'") 
         } 
 
-        # Computing the average cell and getting rid of zeros.
-        ave.cell <- rowMeans(exprs)
-        keep <- ave.cell > .Machine$double.xmin
-        use.ave.cell <- ave.cell[keep]
-        exprs <- exprs[keep,,drop=FALSE]
+        cur.out <- .Call(cxx_subset_and_divide, x, subset.row-1L, curdex-1L) 
+        cur.libs <- cur.out[[1]]
+        exprs <- cur.out[[2]]
+        use.ave.cell <- cur.out[[3]]
+        ave.cell <- cur.out[[4]]
 
         # Using our summation approach.
         sphere <- .generateSphere(cur.libs)

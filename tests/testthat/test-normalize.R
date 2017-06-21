@@ -105,7 +105,6 @@ ref <- sumInR(x[subset.row,,drop=FALSE], sizes)
 obs <- computeSumFactors(x, subset.row=subset.row, sizes=sizes)
 expect_equal(ref, obs)
 
-
 ####################################################################################################
 
 # Trying it out with other options.
