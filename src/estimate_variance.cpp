@@ -1,16 +1,13 @@
 #include "scran.h"
 #include "run_dormqr.h"
 
-SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) {
-    BEGIN_RCPP
-
+template<class M>
+SEXP estimate_variance_internal (SEXP qr, SEXP qraux, M emat, SEXP subset) {
     // Setting up for Q-based multiplication.
     run_dormqr multQ(qr, qraux, 'T');
     const int ncoefs=multQ.get_ncoefs();
     const int ncells=multQ.get_nobs();
 
-    // Setting up expression data.
-    auto emat=beachmat::create_numeric_matrix(exprs);
     if (ncells!=int(emat->get_ncol())) {
         throw std::runtime_error("number of rows of QR matrix not equal to number of cells");
     }
@@ -38,5 +35,17 @@ SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) {
     }
 
     return Rcpp::List::create(means, vars);
+}
+
+SEXP estimate_variance (SEXP qr, SEXP qraux, SEXP exprs, SEXP subset) {
+    BEGIN_RCPP
+    int rtype=beachmat::find_sexp_type(exprs);
+    if (rtype==INTSXP) {
+        auto emat=beachmat::create_integer_matrix(exprs);
+        return estimate_variance_internal(qr, qraux, emat.get(), subset);
+    } else {
+        auto emat=beachmat::create_numeric_matrix(exprs);
+        return estimate_variance_internal(qr, qraux, emat.get(), subset);
+    }
     END_RCPP
 }
