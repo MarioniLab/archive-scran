@@ -1,7 +1,7 @@
 setGeneric("cyclone", function(x, ...) standardGeneric("cyclone"))
 
-setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, 
-                                        BPPARAM=SerialParam(), verbose=FALSE, subset.row=NULL)
+.cyclone <- function(x, pairs, gene.names=rownames(x), iter=1000, min.iter=100, min.pairs=50, 
+                     BPPARAM=SerialParam(), verbose=FALSE, subset.row=NULL)
 # Takes trained pairs and test data, and predicts the cell cycle phase from that. 
 #
 # written by Antonio Scialdone
@@ -63,7 +63,7 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
     phases[scores$G1 < 0.5 & scores$G2M < 0.5] <- "S"
 
     return(list(phases=phases, scores=scores, normalized.scores=scores.normalised))  
-})
+}
 
 .get_phase_score <- function(to.use, exprs, pairings, iter, min.iter, min.pairs) 
 # Pass all arguments explicitly rather than via function environment
@@ -71,6 +71,8 @@ setMethod("cyclone", "matrix", function(x, pairs, gene.names=rownames(x), iter=1
 {
     .Call(cxx_shuffle_scores, to.use, exprs, pairings$first, pairings$second, pairings$index, iter, min.iter, min.pairs) 
 }
+
+setMethod("cyclone", "ANY", .cyclone)
 
 setMethod("cyclone", "SCESet", function(x, pairs, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) {
     if (is.null(subset.row)) {

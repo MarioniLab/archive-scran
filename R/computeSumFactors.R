@@ -152,7 +152,7 @@ LOWWEIGHT <- 0.000001
 
 setGeneric("computeSumFactors", function(x, ...) standardGeneric("computeSumFactors"))
 
-setMethod("computeSumFactors", "matrix", .computeSumFactors)
+setMethod("computeSumFactors", "ANY", .computeSumFactors)
 
 setMethod("computeSumFactors", "SCESet", function(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE, sf.out=FALSE) { 
     if (is.null(subset.row)) { 

@@ -1,12 +1,10 @@
-setGeneric("decomposeVar", function(x, fit, ...) standardGeneric("decomposeVar"))
-
-setMethod("decomposeVar", c("matrix", "list"), function(x, fit, design=NA, subset.row=NULL, ...)
+.decompose_var <- function(x, fit, design=NA, subset.row=NULL, ...)
 # Computes the biological variability of the log-CPMs by subtracting the
 # inferred technical variance from the total variance.
 #
 # written by Aaron Lun
 # created 21 January 2016 
-# last modified 6 June 2017
+# last modified 22 June 2017
 {
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
     checked <- .make_var_defaults(x, fit=fit, design=design)
@@ -24,7 +22,11 @@ setMethod("decomposeVar", c("matrix", "list"), function(x, fit, design=NA, subse
                       p.value=pval, FDR=p.adjust(pval, method="BH"))
     rownames(out) <- rownames(x)[subset.row]
     return(out)
-})
+}
+
+setGeneric("decomposeVar", function(x, fit, ...) standardGeneric("decomposeVar"))
+
+setMethod("decomposeVar", c("ANY", "list"), .decompose_var)
 
 setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
     .check_centered_SF(x, assay=assay)
