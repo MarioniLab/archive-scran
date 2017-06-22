@@ -1,22 +1,39 @@
-
-mnnCorrect <- function(...,inquiry_genes, hvg_genes, k=20, sigma=0.1, cos.norm=TRUE, svd.dim=2, order=NULL) 
+mnnCorrect <- function(..., inquiry.genes=NULL, hvg.genes=NULL, k=20, sigma=0.1, cos.norm=TRUE, svd.dim=2, order=NULL) 
 # Performs correction based on the batches specified in the ellipsis.
 #    
 # written by Laleh Haghverdi
 # with modifications by Aaron Lun
 # created 7 April 2017
-# last modified 12 April 2017
+# last modified 22 June 2017
 {
-    genes_all<-union(inquiry_genes, hvg_genes)
-
- 
-    batches <- list(...) 
-    batches0<-lapply(batches,selectRows,select.names=inquiry_genes)
-    batches<-lapply(batches,selectRows,select.names=hvg_genes)
-    
+    batches <- batches0 <- list(...) 
     nbatches <- length(batches) 
     if (nbatches < 2L) { stop("at least two batches must be specified") }
     if (cos.norm) { batches <- lapply(batches, cosine.norm) } 
+
+    # Checking for identical number of rows (and rownames).
+    first <- batches[[1]]
+    ref.nrow <- nrow(first)
+    ref.rownames <- rownames(first)
+    for (b in 2:nbatches) {
+        current <- batches[[b]]
+        if (!identical(nrow(current), ref.nrow)) {
+            stop("number of rows is not the same across batches")
+        } else if (!identical(rownames(current), ref.rownames)) {
+            stop("row names are not the same across batches")
+        }
+    }
+
+    # Subsetting to the desired subset of genes.
+    if (!is.null(inquiry.genes)) {
+        batches0 <- lapply(batches0, "[", i=inquiry.genes, , drop=FALSE) # Need the extra comma!
+    }
+    if (!is.null(hvg.genes)) { 
+        batches <- lapply(batches, "[", i=hvg.genes, , drop=FALSE)
+    }
+    inquiry.genes <- .subset_to_index(inquiry.genes, first, byrow=TRUE)
+    hvg.genes <- .subset_to_index(hvg.genes, first, byrow=TRUE)
+    inquiry.in.hvg <- inquiry.genes %in% hvg.genes 
 
     # Setting up the order.
     if (is.null(order)) {
@@ -50,32 +67,30 @@ mnnCorrect <- function(...,inquiry_genes, hvg_genes, k=20, sigma=0.1, cos.norm=T
         s2 <- sets$set2
 
         if (svd.dim==0){
-          correction <- t(sets$vect)
-          correction0 <- t(sets$vect0)
-        }
-        else {
-          
-        ## Computing the biological subspace in both batches.
-        ndim <- min(c(svd.dim, dim(ref.batch), dim(other.batch)))
-        span1 <- get.bio.span(ref.batch0[,s1,drop=FALSE],hvg_genes, min(ndim, length(s1)))
-        span2 <- get.bio.span(other.batch0[,s2,drop=FALSE],hvg_genes, min(ndim, length(s2)))
-        #nshared <- find.shared.subspace(span1, span2, assume.orthonormal=TRUE, get.angle=FALSE)$nshared
-        #if (nshared==0L) { warning("batches not sufficiently related") }
-
-        # Identifying the biological component of the batch correction vector 
-        # (i.e., the part that is parallel to the biological subspace) and removing it.
-        library(pracma)
-        #bio.span<-orth(bio.span)
-        
-        #reduce the component in each span from the batch correction vector, span1 span2 order does not matter
-        bv <- sets$vect
-        bv0 <- sets$vect0      
-        bio.comp <- bv0 %*% span1 %*% t(span1)
-        correction0 <- t(bv0) - t(bio.comp)
-        bio.comp <- t(correction0) %*% span2 %*% t(span2)
-        correction0 <- correction0 - t(bio.comp)
-        
-        correction <- t(sets$vect)
+            correction <- t(sets$vect)
+            correction0 <- t(sets$vect0)
+        } else {
+            ## Computing the biological subspace in both batches.
+            ndim <- min(c(svd.dim, dim(ref.batch), dim(other.batch)))
+            span1 <- get.bio.span(ref.batch0[,s1,drop=FALSE], inquiry.in.hvg, min(ndim, length(s1)))
+            span2 <- get.bio.span(other.batch0[,s2,drop=FALSE], inquiry.in.hvg, min(ndim, length(s2)))
+            #nshared <- find.shared.subspace(span1, span2, assume.orthonormal=TRUE, get.angle=FALSE)$nshared
+            #if (nshared==0L) { warning("batches not sufficiently related") }
+    
+            # Identifying the biological component of the batch correction vector 
+            # (i.e., the part that is parallel to the biological subspace) and removing it.
+            #library(pracma)
+            #bio.span<-orth(bio.span)
+            
+            #reduce the component in each span from the batch correction vector, span1 span2 order does not matter
+            bv <- sets$vect
+            bv0 <- sets$vect0      
+            bio.comp <- bv0 %*% span1 %*% t(span1)
+            correction0 <- t(bv0) - t(bio.comp)
+            bio.comp <- t(correction0) %*% span2 %*% t(span2)
+            correction0 <- correction0 - t(bio.comp)
+            
+            correction <- t(sets$vect)
         } #else
         
         # Applying the correction and storing the numbers of nearest neighbors.
@@ -137,21 +152,20 @@ find.mutual.nn <- function(exprs1, exprs2, exprs10, exprs20, k1, k2, sigma=1)
     
     # Gaussian smoothing of individual correction vectors for MNN pairs.
     if (sigma==0) {
-      G <- matrix(1, n2, n2)
+        G <- matrix(1, n2, n2)
+    } else if (n2<3000) {
+        dd2 <- as.matrix(dist(data2))
+        G <- exp(-dd2^2/sigma)
+    } else {
+        kk <- min(length(A2),100)
+        W <- get.knnx(data2[A2,], query=data2, k=kk)
+        G <- matrix(0,n2,n2)
+        for (i in seq_len(n2)) { 
+            #G[i,A2[W$nn.index[i,]]]=W$}
+            G[i,A2[W$nn.index[i,]]]=exp(-(W$nn.dist[i,])^2/sigma) 
+        }
     }
-    else if (n2<3000) {
-      dd2 <- as.matrix(dist(data2))
-      G <- exp(-dd2^2/sigma)
-    }
-    else {
-      kk=min(length(A2),100)
-      W <- FNN::get.knnx(data2[A2,], query=data2, k=kk)
-      G <- matrix(0,n2,n2)
-      for (i in 1:n2){
-        #G[i,A2[W$nn.index[i,]]]=W$}
-        G[i,A2[W$nn.index[i,]]]=exp(-(W$nn.dist[i,])^2/sigma) }
-    }
-    G= (G+t(G)) /2
+    G <- (G+t(G)) /2
     
     #################
     D <- rowSums(G)
@@ -168,15 +182,15 @@ find.mutual.nn <- function(exprs1, exprs2, exprs10, exprs20, k1, k2, sigma=1)
     list(set1=unique(A1), set2=unique(A2), vect=batchvect, vect0=batchvect0)
 }
 
-get.bio.span <- function(exprs,hvg_genes, ndim) 
+get.bio.span <- function(exprs, inquiry.in.hvg, ndim) 
 # Computes the basis matrix of the biological subspace of 'exprs'.
 # The first 'ndim' dimensions are assumed to capture the biological subspace.
 # Avoids extra dimensions dominated by technical noise, which will result in both 
 # trivially large and small angles when using find.shared.subspace().
 {
-    keephvg<-1*(row.names(exprs) %in% hvg_genes)
-    keeph<-matrix(rep(keephvg,ncol(exprs)),nrow=nrow(exprs),ncol=ncol(exprs))
-    exprs<-exprs*keeph
+    keeph <- numeric(nrow(exprs))
+    keeph[inquiry.in.hvg] <- 1
+    exprs <- exprs * keeph
     exprs <- exprs - rowMeans(exprs) 
     S <- svd(exprs)#, nu=ndim, nv=0)
     #S$u
@@ -225,12 +239,4 @@ cosine.norm <- function(X)
 {
     cellnorm <- pmax(1e-8, sqrt(colSums(X^2)))
     X/matrix(cellnorm, nrow(X), ncol(X), byrow=TRUE)
-}
-
-selectRows <- function(data,select.names){
-  #Reduce data to selects rows by row names  
-  data<-as.matrix(data)
-  data<-data[as.character(select.names),]
-  row.names(data)<-select.names
-  return(data)
 }
