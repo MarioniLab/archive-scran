@@ -10,6 +10,8 @@ SEXP estimate_variance_internal (SEXP qr, SEXP qraux, M emat, SEXP subset) {
 
     if (ncells!=int(emat->get_ncol())) {
         throw std::runtime_error("number of rows of QR matrix not equal to number of cells");
+    } else if (ncells==0) {
+        throw std::runtime_error("cannot compute variance for zero cells");
     }
     auto subout=check_subset_vector(subset, emat->get_nrow());
     const size_t slen=subout.size();
@@ -24,12 +26,10 @@ SEXP estimate_variance_internal (SEXP qr, SEXP qraux, M emat, SEXP subset) {
         emat->get_row(*sIt, tmp.begin());
         (*mIt)=std::accumulate(tmp.begin(), tmp.end(), 0.0)/ncells;
 
-        std::copy(tmp.begin(), tmp.end(), multQ.rhs.begin());
-        multQ.run();
-
+        multQ.run(&(tmp[0])); // Okay, due to zero check above.
         double& curvar=(*vIt);
-        for (int c=ncoefs; c<ncells; ++c) { // only using the residual effects.
-            curvar += multQ.rhs[c]*multQ.rhs[c];
+        for (auto tIt=tmp.begin()+ncoefs; tIt!=tmp.end(); ++tIt) { // only using the residual effects.
+            curvar += (*tIt) * (*tIt);
         }
         curvar /= ncells - ncoefs;
     }
