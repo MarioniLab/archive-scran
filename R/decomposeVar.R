@@ -4,23 +4,31 @@
 #
 # written by Aaron Lun
 # created 21 January 2016 
-# last modified 22 June 2017
+# last modified 24 June 2017
 {
-    subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
-    checked <- .make_var_defaults(x, fit=fit, design=design)
-    design <- checked$design
-    QR <- qr(design, LAPACK=TRUE)
-
-    lout <- .Call(cxx_estimate_variance, QR$qr, QR$qraux, x, subset.row-1L)
-    lmeans <- lout[[1]]
-    lvar <- lout[[2]]
+    if (!missing(x)) { 
+        subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
+        checked <- .make_var_defaults(x, fit=fit, design=design)
+        design <- checked$design
+        QR <- qr(design, LAPACK=TRUE)
+        
+        lout <- .Call(cxx_estimate_variance, QR$qr, QR$qraux, x, subset.row-1L)
+        lmeans <- lout[[1]]
+        lvar <- lout[[2]]
+        gnames <- rownames(x)[subset.row]
+    } else {
+        lmeans <- fit$mean
+        lvar <- fit$var
+        design <- fit$design
+        gnames <- names(lmeans)
+    }
     
     tech.var <- fit$trend(lmeans)
     bio.var <- lvar - tech.var
     pval <- testVar(total=lvar, null=tech.var, df=nrow(design) - ncol(design), ...)
     out <- data.frame(mean=lmeans, total=lvar, bio=bio.var, tech=tech.var,
-                      p.value=pval, FDR=p.adjust(pval, method="BH"))
-    rownames(out) <- rownames(x)[subset.row]
+                      p.value=pval, FDR=p.adjust(pval, method="BH"),
+                      row.names=gnames)
     return(out)
 }
 

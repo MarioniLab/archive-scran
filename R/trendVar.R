@@ -30,7 +30,7 @@
         } 
 
         # Fitting a parametric curve to try to flatten the shape.
-        if (is.null(start)) start <- .get_nls_starts(vars, means)
+        if (is.null(start)) start <- .get_nls_starts(kept.vars, kept.means)
         init.fit <- nls(kept.vars ~ (a*kept.means)/(kept.means^n + b), start=start,
                         control=nls.control(warnOnly=TRUE, maxiter=500), algorithm="port",
                         lower=list(a=0, b=0, n=1))
@@ -82,7 +82,7 @@
     lvars <- log2(vars)
     fit <- loess(lvars ~ means)
 
-    # Getting a rought peak location from the fitted values.
+    # Getting a rough peak location from the fitted values.
     toppt <- which.max(fitted(fit))
     top.x <- means[toppt]
     top.y <- 2^fitted(fit)[toppt]

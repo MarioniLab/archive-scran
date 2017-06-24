@@ -1,5 +1,4 @@
 # This tests the variance calculation functions in scran.
-
 # require(scran); require(testthat); source("test-variance.R")
 
 set.seed(20000)
@@ -25,6 +24,22 @@ m <- min(out$mean)
 expect_equal(out$trend(m-1), out$trend(m)/m * (m-1))
 
 expect_equal(out$design, as.matrix(rep(1, ncells)))
+
+# Checking that genes with no variance don't break the results, but still get reported in the output.
+
+test_that("trendVar is robust to zero-variance genes", {
+    dz <- rbind(1, d, 0)
+    outz <- trendVar(dz)
+    expect_equal(outz$mean, c(1, out$mean, 0))
+    expect_equal(outz$var, c(0, out$var, 0))
+    expect_equal(out$trend(outz$mean), outz$trend(outz$mean))
+    
+    out.semi <- trendVar(d, trend="semiloess")
+    outz.semi <- trendVar(dz, trend="semiloess")
+    expect_equal(outz$mean, c(1, out$mean, 0))
+    expect_equal(outz$var, c(0, out$var, 0))
+    expect_equal(out$trend(outz$mean), outz$trend(outz$mean))
+})
 
 # Get the same results directly on a SCESet, with various spike-in specifications.
 
@@ -173,6 +188,19 @@ expect_identical(out.ref, out2) # Checking that subset.row works.
 subX <- X[,1:10] # Checking that it raises a warning upon subsetting (where the size factors are no longer centered).
 expect_warning(decomposeVar(subX, fit, design=NULL), "size factors not centred")
 expect_warning(decomposeVar(normalize(subX), fit, design=NULL), NA)
+
+# Using all genes for trend fitting.
+
+test_that("decomposeVar works with all genes", {
+    all.fit <- trendVar(X, use.spikes=NA)
+    all.dec <- decomposeVar(X, all.fit, get.spikes=TRUE)
+    expect_equal(all.fit$mean, setNames(all.dec$mean, rownames(all.dec)))
+    expect_equal(all.fit$var, setNames(all.dec$total, rownames(all.dec)))
+    expect_equal(all.fit$trend(all.fit$mean), setNames(all.dec$tech, rownames(all.dec)))
+
+    all.dec2 <- decomposeVar(fit=all.fit)
+    expect_equal(all.dec, all.dec2)
+})
 
 # Testing with a modified design matrix.
 
