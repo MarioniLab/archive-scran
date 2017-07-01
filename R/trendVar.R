@@ -11,7 +11,7 @@
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
     checked <- .make_var_defaults(x, fit=NULL, design=design)
     design <- checked$design
-    QR <- qr(design, LAPACK=TRUE)
+    QR <- .ranksafe_qr(design)
 
     lout <- .Call(cxx_estimate_variance, QR$qr, QR$qraux, x, subset.row - 1L)
     means <- lout[[1]]

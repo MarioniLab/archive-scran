@@ -14,7 +14,7 @@
     if (!is.null(design)) { 
         checked <- .make_var_defaults(x, fit=NULL, design=design)
         design <- checked$design
-        QR <- qr(design, LAPACK=TRUE)
+        QR <- .ranksafe_qr(design)
         
         # Computing residuals; don't set a lower bound.
         rx <- .calc_residuals_wt_zeroes(x, QR=QR, subset.row=subset.row, lower.bound=NA) 
