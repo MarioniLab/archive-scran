@@ -5,18 +5,18 @@
 #
 # written by Aaron Lun
 # created 3 April 2017
-# last modified 6 June 2017    
+# last modified 26 June 2017    
 { 
     ncells <- ncol(x)
     if (!is.null(subset.row)) {
         x <- x[.subset_to_index(subset.row, x, byrow=TRUE),,drop=FALSE]
     }
     
-    # Reducing dimensions.
+    # Reducing dimensions, if 'd' is less than the number of genes.
     x <- t(x)
-    if (!is.na(d) && d < ncells) {
-        pc <- prcomp(x)
-        x <- pc$x[,seq_len(d),drop=FALSE]
+    if (!is.na(d) && d < ncol(x)) {
+        pc <- prcomp(x, rank.=d)
+        x <- pc$x
     }
 
     # Getting the kNNs.

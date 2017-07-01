@@ -9,7 +9,7 @@ mnnCorrect <- function(..., inquiry.genes=NULL, hvg.genes=NULL, k=20, sigma=0.1,
     batches <- batches0 <- list(...) 
     nbatches <- length(batches) 
     if (nbatches < 2L) { stop("at least two batches must be specified") }
-    if (cos.norm) { batches <- lapply(batches, cosine.norm) } 
+   
 
     # Checking for identical number of rows (and rownames).
     first <- batches[[1]]
@@ -35,6 +35,7 @@ mnnCorrect <- function(..., inquiry.genes=NULL, hvg.genes=NULL, k=20, sigma=0.1,
     hvg.genes <- .subset_to_index(hvg.genes, first, byrow=TRUE)
     inquiry.in.hvg <- inquiry.genes %in% hvg.genes 
 
+    if (cos.norm) { batches <- lapply(batches, cosine.norm) }               
     # Setting up the order.
     if (is.null(order)) {
         order <- seq_len(nbatches)
