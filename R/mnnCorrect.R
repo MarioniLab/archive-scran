@@ -111,7 +111,7 @@ mnnCorrect <- function(..., inquiry.genes=NULL, hvg.genes=NULL, k=20, sigma=0.1,
     list(corrected=output0, num.mnn=num.mnn)
 }
 
-find.mutual.nn <- function(exprs1, exprs2, exprs10, exprs20, k1, k2, sigma=1)
+find.mutual.nn <- function(exprs1, exprs2, exprs10, exprs20, k1, k2, sigma=0.1)
 # Finds mutal neighbors between data1 and data2.
 # Computes the batch correction vector for each cell in data2.
 {
@@ -174,6 +174,7 @@ find.mutual.nn <- function(exprs1, exprs2, exprs10, exprs20, k1, k2, sigma=1)
     norm.dens <- t(G/(D*nA2))[,A2,drop=FALSE] # density normalized to avoid domination from dense parts
     batchvect <- norm.dens %*% vect 
     partitionf <- rowSums(norm.dens)
+    partitionf[partitionf==0]<-1  # to avoid nans (instead get 0s)
     batchvect <- batchvect/partitionf
 
     batchvect0 <- norm.dens %*% vect0 
