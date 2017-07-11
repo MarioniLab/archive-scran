@@ -4,7 +4,7 @@
 #
 # written by Aaron Lun
 # created 21 January 2016 
-# last modified 24 June 2017
+# last modified 11 July 2017
 {
     if (!missing(x)) { 
         subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
@@ -25,7 +25,7 @@
     
     tech.var <- fit$trend(lmeans)
     bio.var <- lvar - tech.var
-    pval <- testVar(total=lvar, null=tech.var, df=nrow(design) - ncol(design), ...)
+    pval <- testVar(total=lvar, null=tech.var, df=nrow(design) - ncol(design), second.df=fit$df, ...)
     out <- data.frame(mean=lmeans, total=lvar, bio=bio.var, tech=tech.var,
                       p.value=pval, FDR=p.adjust(pval, method="BH"),
                       row.names=gnames)
