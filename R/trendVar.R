@@ -1,6 +1,6 @@
 .trend_var <- function(x, parametric=TRUE, method=c("loess", "spline", "semiloess"), 
                        span=0.3, family="symmetric", degree=1, df=4,
-                       old=FALSE, start=NULL, design=NULL, subset.row=NULL)
+                       start=NULL, design=NULL, subset.row=NULL)
 # Fits a polynomial trend to the technical variability of the log-CPMs,
 # against their abundance (i.e., average log-CPM).
 # 
