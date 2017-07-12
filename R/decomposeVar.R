@@ -19,20 +19,13 @@
     } else {
         lmeans <- fit$mean
         lvar <- fit$var
-        design <- fit$.internal$design
+        design <- fit$design
         gnames <- names(lmeans)
     }
     
     tech.var <- fit$trend(lmeans)
     bio.var <- lvar - tech.var
-    if (fit$.internal$var.model=="f") {
-        pval <- testVar(total=lvar, null=tech.var, df=nrow(design) - ncol(design), 
-                        second.df=fit$.internal$df, ...)
-    } else {
-        # Equivalent to a one-sided, two-group t-test where one group has n=1.
-        t.stat <- (lvar/tech.var-1)/sqrt(fit$.internal$s2 * (1+1/length(fit$var)))
-        pval <- pt(t.stat, length(fit$var) - fit$.internal$df, lower.tail=FALSE)
-    }
+    pval <- testVar(total=lvar, null=tech.var, df=nrow(design) - ncol(design), second.df=fit$df, ...)
     out <- data.frame(mean=lmeans, total=lvar, bio=bio.var, tech=tech.var,
                       p.value=pval, FDR=p.adjust(pval, method="BH"),
                       row.names=gnames)
