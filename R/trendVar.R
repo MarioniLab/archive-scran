@@ -1,6 +1,6 @@
 .trend_var <- function(x, parametric=TRUE, method=c("loess", "spline", "semiloess"), 
-                       span=0.3, family="symmetric", degree=1, df=4,
-                       old=FALSE, start=NULL, design=NULL, subset.row=NULL)
+                       span=0.3, family="symmetric", degree=1, df=4, start=NULL, 
+                       var.model=c("f", "normal"), design=NULL, subset.row=NULL)
 # Fits a polynomial trend to the technical variability of the log-CPMs,
 # against their abundance (i.e., average log-CPM).
 # 
@@ -22,6 +22,7 @@
     kept.vars <- vars[is.okay]
     kept.means <- means[is.okay]
 
+    # Switching from old-school 'semiloess'.
     method <- match.arg(method) 
     if (method=="semiloess") {
         warning("'semiloess' is deprecated, use parametric=TRUE and method='loess' instead")
@@ -47,43 +48,55 @@
         SUBSUBFUN <- function(x) { 1 }
     } 
     
-    # Fitting loess or splines to the remainder.
+    # Fitting loess or splines to what's left after removing the shape.
     if (method=="loess") { 
         after.fit <- loess(to.fit ~ kept.means, degree=degree, family=family, span=span)
+        trend.df <- after.fit$enp
     } else {
         after.fit <- MASS::rlm(to.fit ~ ns(kept.means, df=df))
+        trend.df <- df+1
     }
     SUBFUN <- function(x) { exp(predict(after.fit, data.frame(kept.means=x))) * SUBSUBFUN(x) }
 
-    # Estimating the df2, as well as scale shift from estimating mean of logs (assuming shape of trend is correct).
+    # Modelling the variability around the trend, including the scale shift from estimating the mean of logs.
     leftovers <- kept.vars/SUBFUN(kept.means)
-    f.fit <- fitFDistRobustly(leftovers, df1=nrow(design) - ncol(design))
-    f.df2 <- f.fit$df2
-    
-    # We don't just want the scaling factor, we want the scaled mean of the F-distribution (see explanation below).
-    if (is.infinite(f.df2)) { 
-        f.scale <- f.fit$scale
-    } else if (f.df2 > 2) {
-        f.scale <- f.fit$scale * f.df2/(f.df2 - 2) 
+    var.model <- match.arg(var.model)
+    if (var.model=="f") { 
+        f.fit <- fitFDistRobustly(leftovers, df1=nrow(design) - ncol(design))
+        f.df2 <- f.fit$df2
+     
+        # We don't just want the scaling factor, we want the scaled mean of the F-distribution (see explanation below).
+        rescale <- f.fit$scale
+        if (is.infinite(f.df2)) { 
+            # do nothing. 
+        } else if (f.df2 > 2) {
+            rescale <- rescale * f.df2/(f.df2 - 2) 
+        } else {
+            warning("undefined expectation for small df2")
+        }
+        extra <- list(df=f.df2)
     } else {
-        warning("undefined expectation for small df2")
-        f.scale <- f.fit$scale
+        V <- var(leftovers)
+        soln <- uniroot(function(x) exp(2*x)*x - V, interval=c(0, V))
+        rescale <- exp(soln$root)
+        extra <- list(s2=soln$root, df=trend.df)
     }
     
     # Creating a predictive function, with special behaviour at the ends.
     left.edge <- min(kept.means)
-    left.val <- SUBFUN(left.edge) * f.scale
+    left.val <- SUBFUN(left.edge) * rescale
     right.edge <- max(kept.means)
-    right.val <- SUBFUN(right.edge) * f.scale
+    right.val <- SUBFUN(right.edge) * rescale
 
     FUN <- function(x) {
-        out <- SUBFUN(x) * f.scale
+        out <- SUBFUN(x) * rescale
         lower <- x < left.edge
         out[lower] <- x[lower] * (left.val/left.edge) # Gradient towards zero.
         out[x > right.edge] <- right.val
         return(out)
     }
-    return(list(mean=means, var=vars, trend=FUN, design=design, df=f.df2, start=start))
+    return(list(mean=means, var=vars, trend=FUN, 
+                .internal=c(list(start=start, design=design, var.model=var.model), extra)))
 }
 
 .get_nls_starts <- function(vars, means, grad.prop=0.5, grid.length=100, grid.max=10) {
