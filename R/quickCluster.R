@@ -28,6 +28,13 @@ setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, g
         out <- cluster_fast_greedy(g)
         clusters <- out$membership
 
+
+        nclusters <- length(unique(clusters)) # Stepping back in the merge tree to increase cluster size.
+        while (any(table(clusters) < min.size)) {
+            ncluster <- nclusters - 1L
+            clusters <- cut_at(out, nclusters)
+        }
+
     } else {
         distM <- dist(as.matrix(rkout)) # Coercing to matrix, if it isn't already.
         htree <- hclust(distM, method='ward.D2')
@@ -41,6 +48,34 @@ setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, g
     clusters <- factor(clusters)
     return(clusters)
 })
+
+.merge_closest_graph <- function(g, clusters, min.size) {
+    while (1) {
+        all.sizes <- table(clusters)
+        if (all(all.sizes >= min.size)) { break }
+        clust.names <- as.integer(names(all.sizes))
+        
+        # Picking the smallest cluster and picking the merge with greatest modularity.
+        failed <- clust.names[which.min(all.sizes)]
+        to.merge <- clusters==failed
+        max.m <- 0
+        max.clust <- clusters
+        
+        for (other in clust.names) {
+            if (other==failed) { next }
+            next.clust <- clusters
+            next.clust[to.merge] <- other
+            next.m <- modularity(g, next.clust)
+            if (max.m < next.m) {
+                max.m <- next.m 
+                max.clust <- next.clust
+            }
+        }
+
+        clusters <- max.clust
+    }
+    return(clusters)
+}
 
 setMethod("quickCluster", "SCESet", function(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) { 
     if (is.null(subset.row)) {
