@@ -1,12 +1,12 @@
 .trend_var <- function(x, parametric=TRUE, method=c("loess", "spline", "semiloess"), 
                        span=0.3, family="symmetric", degree=1, df=4,
-                       start=NULL, design=NULL, subset.row=NULL)
+                       start=NULL, design=NULL, subset.row=NULL, min.mean=0.1)
 # Fits a polynomial trend to the technical variability of the log-CPMs,
 # against their abundance (i.e., average log-CPM).
 # 
 # written by Aaron Lun
 # created 21 January 2016
-# last modified 11 July 2017
+# last modified 13 July 2017
 {
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
     checked <- .make_var_defaults(x, fit=NULL, design=design)
@@ -18,7 +18,8 @@
     vars <- lout[[2]]
     names(means) <- names(vars) <- rownames(x)[subset.row]
 
-    is.okay <- vars > 1e-8
+    # Filtering out zero-variance and low-abundance genes.
+    is.okay <- vars > 1e-8 & means >= min.mean
     kept.vars <- vars[is.okay]
     kept.means <- means[is.okay]
 
@@ -30,15 +31,17 @@
     }
    
     # Fitting a parametric curve to try to flatten the shape.
+    # This is of the form y = a*x/(x^n + b), but each coefficent is actually set
+    # to exp(*) to avoid needing to set lower bounds.
     if (parametric) { 
         if (length(kept.vars) <= 3L) {
             stop("need at least 4 values for non-linear curve fitting")
         } 
 
         if (is.null(start)) start <- .get_nls_starts(kept.vars, kept.means)
-        init.fit <- nls(kept.vars ~ (a*kept.means)/(kept.means^n + b), start=start,
-                        control=nls.control(warnOnly=TRUE, maxiter=500), algorithm="port",
-                        lower=list(a=0, b=0, n=1))
+        init.fit <- nls(kept.vars ~ (exp(A)*kept.means)/(kept.means^(1+exp(N)) + exp(B)), 
+                        start=list(A=log(start$a), B=log(start$b), N=log(pmax(1e-8, start$n-1))),
+                        control=nls.control(warnOnly=TRUE, maxiter=500))
 
         to.fit <- log(kept.vars/fitted(init.fit))
         SUBSUBFUN <- function(x) { predict(init.fit, data.frame(kept.means=x)) }
@@ -88,7 +91,7 @@
 
 .get_nls_starts <- function(vars, means, grad.prop=0.5, grid.length=100, grid.max=10) {
     lvars <- log2(vars)
-    fit <- loess(lvars ~ means)
+    fit <- loess(lvars ~ means, degree=1)
 
     # Getting a rough peak location from the fitted values.
     toppt <- which.max(fitted(fit))
