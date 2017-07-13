@@ -37,8 +37,15 @@
     for (clust in seq_len(nclusters)) { 
         curdex <- indices[[clust]]
         cur.cells <- length(curdex)
-        if (any(sizes > cur.cells)) { 
-            stop("not enough cells in each cluster for specified 'sizes'") 
+
+        cur.sizes <- sizes
+        if (any(cur.sizes > cur.cells)) { 
+            cur.sizes <- cur.sizes[cur.sizes <= cur.cells]
+            if (length(cur.sizes)) { 
+                warning("not enough cells in at least one cluster for some 'sizes'")
+            } else {
+                stop("not enough cells in at least one cluster for any 'sizes'")
+            }
         } 
 
         cur.out <- .Call(cxx_subset_and_divide, x, subset.row-1L, curdex-1L) 
@@ -49,7 +56,7 @@
 
         # Using our summation approach.
         sphere <- .generateSphere(cur.libs)
-        new.sys <- .create_linear_system(exprs, use.ave.cell, sphere, sizes) 
+        new.sys <- .create_linear_system(exprs, use.ave.cell, sphere, cur.sizes) 
         design <- new.sys$design
         output <- new.sys$output
 
