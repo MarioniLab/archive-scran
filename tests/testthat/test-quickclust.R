@@ -5,37 +5,37 @@ set.seed(30000)
 ncells <- 700
 ngenes <- 1000
 
+dummy <- matrix(rnbinom(ncells*ngenes, mu=10, size=20), ncol=ncells, nrow=ngenes)
+known.clusters <- sample(3, ncells, replace=TRUE)
+dummy[1:300,known.clusters==1L] <- 0
+dummy[301:600,known.clusters==2L] <- 0  
+dummy[601:900,known.clusters==3L] <- 0
+    
 test_that("quickCluster works in the simple case", {
-    dummy <- matrix(rnbinom(ncells*ngenes, mu=10, size=20), ncol=ncells, nrow=ngenes)
-
-    known.clusters <- sample(3, ncells, replace=TRUE)
-    dummy[1:300,known.clusters==1L] <- 0
-    dummy[301:600,known.clusters==2L] <- 0  
-    dummy[601:900,known.clusters==3L] <- 0
-
     emp.clusters <- quickCluster(dummy)
     expect_true(length(unique(paste0(known.clusters, emp.clusters)))==3L)
     shuffled <- c(1:50, 301:350, 601:650)
     expect_identical(quickCluster(dummy, subset.row=shuffled), emp.clusters)
 })
 
-# Checking out the ranks.
-
-emp.ranks <- quickCluster(dummy, get.ranks=TRUE)
-ref <- apply(dummy, 2, FUN=function(y) {
-    r <- rank(y)
-    r <- r - mean(r)
-    r/sqrt(sum(r^2))/2
+test_that("quickCluster correctly computes the ranks", {
+    emp.ranks <- quickCluster(dummy, get.ranks=TRUE)
+    ref <- apply(dummy, 2, FUN=function(y) {
+        r <- rank(y)
+        r <- r - mean(r)
+        r/sqrt(sum(r^2))/2
+    })
+    expect_equal(emp.ranks, ref)
+    
+    shuffled <- c(50:100, 401:350, 750:850)
+    emp.ranks <- quickCluster(dummy, get.ranks=TRUE, subset.row=shuffled)
+    ref <- apply(dummy, 2, FUN=function(y) {
+        r <- rank(y[shuffled])
+        r <- r - mean(r)
+        r/sqrt(sum(r^2))/2
+    })
+    expect_equal(emp.ranks, ref)
 })
-expect_equal(emp.ranks, ref)
-
-emp.ranks <- quickCluster(dummy, get.ranks=TRUE, subset.row=shuffled)
-ref <- apply(dummy, 2, FUN=function(y) {
-    r <- rank(y[shuffled])
-    r <- r - mean(r)
-    r/sqrt(sum(r^2))/2
-})
-expect_equal(emp.ranks, ref)
 
 # Checking out that clustering is consistent with that based on correlations.
 
@@ -88,16 +88,6 @@ expect_identical(length(quickCluster(mat, method="igraph", d=NA)), ncol(mat)) # 
 suppressWarnings(expect_false(identical(quickCluster(mat), quickCluster(mat[subset.row,])))) # Checking that subsetting gets different results.
 suppressWarnings(expect_identical(quickCluster(mat, subset.row=subset.row), quickCluster(mat[subset.row,]))) # Checking that subset.row works.
 
-# Checking out what happens with silly inputs.
-
-expect_error(quickCluster(dummy[0,]), "rank variances of zero detected for a cell")
-expect_error(quickCluster(dummy[,0]), "fewer cells than the minimum cluster size")
-
-leftovers <- 100
-expect_warning(forced <- quickCluster(dummy[,c(which(known.clusters==1), which(known.clusters==2), which(known.clusters==3)[1:leftovers])]), 
-               sprintf("%i cells were not assigned to any cluster", leftovers))
-expect_identical(as.character(tail(forced, leftovers)), rep("0", leftovers))
-
 # Seeing how it interacts with the normalization method.
 
 set.seed(300003)
@@ -121,6 +111,18 @@ out3 <- computeSumFactors(dummy, cluster=known.clusters, ref=3)
 expect_equal(out, out3)
 
 expect_error(computeSumFactors(dummy, cluster=known.clusters, ref=0), "'ref.clust' value not in 'clusters'")
+
+# Checking out what happens with silly inputs.
+
+expect_error(quickCluster(dummy[0,]), "rank variances of zero detected for a cell")
+expect_error(quickCluster(dummy[,0]), "fewer cells than the minimum cluster size")
+
+leftovers <- 100
+expect_warning(forced <- quickCluster(dummy[,c(which(known.clusters==1), 
+                                               which(known.clusters==2), 
+                                               which(known.clusters==3)[seq_len(leftovers)])]), 
+               sprintf("%i cells were not assigned to any cluster", leftovers))
+expect_identical(as.character(tail(forced, leftovers)), rep("0", leftovers))
 
 # Trying it out on a SCESet object.
 
