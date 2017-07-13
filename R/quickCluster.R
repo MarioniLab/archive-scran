@@ -27,13 +27,7 @@ setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, g
         g <- buildSNNGraph(rkout, ...)
         out <- cluster_fast_greedy(g)
         clusters <- out$membership
-
-
-        nclusters <- length(unique(clusters)) # Stepping back in the merge tree to increase cluster size.
-        while (any(table(clusters) < min.size)) {
-            ncluster <- nclusters - 1L
-            clusters <- cut_at(out, nclusters)
-        }
+        clusters <- .merge_closest_graph(g, clusters, min.size=min.size)
 
     } else {
         distM <- dist(as.matrix(rkout)) # Coercing to matrix, if it isn't already.

@@ -129,11 +129,32 @@ ref2 <- sumInR(dummy[,clusters==2], sizes, center=FALSE)
 adj <- t(t(dummy)/colSums(dummy))
 pseudo1 <- rowMeans(adj[,clusters==1])
 pseudo2 <- rowMeans(adj[,clusters==2])
-rescale2 <- median(pseudo2/pseudo1)
+ref2 <- ref2*median(pseudo2/pseudo1)
 
 ref <- numeric(ncells)
 ref[clusters==1] <- ref1
-ref[clusters==2] <- ref2*rescale2
+ref[clusters==2] <- ref2
+ref <- ref/mean(ref)
+expect_equal(ref, obs)
+
+# Trying with not-quite-enough cells in one cluster.
+
+clusters <- rep(1:2, c(80, 120))
+sizes <- seq(20, 100, 5)
+expect_warning(obs <- computeSumFactors(dummy[,clusters==1], sizes=sizes), "not enough cells in at least one cluster")
+ref1 <- sumInR(dummy[,clusters==1], sizes[sizes<=80], center=FALSE) 
+expect_equal(ref1/mean(ref1), obs)
+
+expect_warning(obs <- computeSumFactors(dummy, sizes=sizes, cluster=clusters), "not enough cells in at least one cluster")
+ref2 <- sumInR(dummy[,clusters==2], sizes, center=FALSE) # Ensure that second cluster isn't affected by subsetting of sizes.
+adj <- t(t(dummy)/colSums(dummy))
+pseudo1 <- rowMeans(adj[,clusters==1])
+pseudo2 <- rowMeans(adj[,clusters==2])
+ref2 <- ref2 * median(pseudo2/pseudo1)
+
+ref <- numeric(ncells)
+ref[clusters==1] <- ref1
+ref[clusters==2] <- ref2
 ref <- ref/mean(ref)
 expect_equal(ref, obs)
 
@@ -148,121 +169,10 @@ expect_equal(unname(sizeFactors(out)), computeSumFactors(dummy))
 
 # Throwing in some silly inputs.
 
-expect_error(computeSumFactors(dummy[,0,drop=FALSE]), "not enough cells in each cluster")
+expect_error(computeSumFactors(dummy[,0,drop=FALSE]), "not enough cells in at least one cluster")
 expect_error(computeSumFactors(dummy[0,,drop=FALSE]), "cells should have non-zero library sizes")
 expect_error(computeSumFactors(dummy, sizes=c(10, 10, 20)), "'sizes' is not unique")
 expect_error(computeSumFactors(dummy, clusters=integer(0)), "'x' ncols is not equal to 'clusters' length")
-
-####################################################################################################
-
-# Checking out what happens with clustering.
-
-set.seed(20001)
-ncells <- 700
-ngenes <- 1000
-count.sizes <- rnbinom(ncells, mu=100, size=5)
-multiplier <- seq_len(ngenes)/100
-dummy <- outer(multiplier, count.sizes)
-
-known.clusters <- sample(3, ncells, replace=TRUE)
-dummy[1:300,known.clusters==1L] <- 0
-dummy[301:600,known.clusters==2L] <- 0  
-dummy[601:900,known.clusters==3L] <- 0
-
-emp.clusters <- quickCluster(dummy)
-expect_true(length(unique(paste0(known.clusters, emp.clusters)))==3L)
-shuffled <- c(1:50, 301:350, 601:650)
-expect_identical(quickCluster(dummy, subset.row=shuffled), emp.clusters)
-
-# Checking out the ranks.
-
-emp.ranks <- quickCluster(dummy, get.ranks=TRUE)
-ref <- apply(dummy, 2, FUN=function(y) {
-    r <- rank(y)
-    r <- r - mean(r)
-    r/sqrt(sum(r^2))/2
-})
-expect_equal(emp.ranks, ref)
-
-emp.ranks <- quickCluster(dummy, get.ranks=TRUE, subset.row=shuffled)
-ref <- apply(dummy, 2, FUN=function(y) {
-    r <- rank(y[shuffled])
-    r <- r - mean(r)
-    r/sqrt(sum(r^2))/2
-})
-expect_equal(emp.ranks, ref)
-
-# Checking out that clustering is consistent with that based on correlations.
-
-set.seed(200011)
-mat <- matrix(rpois(10000, lambda=5), nrow=20)
-obs <- quickCluster(mat)
-
-refM <- sqrt(0.5*(1 - cor(mat, method="spearman")))
-distM <- as.dist(refM) 
-htree <- hclust(distM, method='ward.D2')
-clusters <- unname(dynamicTreeCut::cutreeDynamic(htree, minClusterSize=200, distM=refM, verbose=0))
-expect_identical(clusters, as.integer(obs))
-
-obs <- quickCluster(mat, min.size=50)
-clusters <- unname(dynamicTreeCut::cutreeDynamic(htree, minClusterSize=50, distM=refM, verbose=0))
-expect_identical(clusters, as.integer(obs))
-
-mat <- matrix(rpois(10000, lambda=5), nrow=20)
-subset.row <- 15:1 # With subsetting
-refM <- sqrt(0.5*(1 - cor(mat[subset.row,], method="spearman")))
-distM <- as.dist(refM) 
-htree <- hclust(distM, method='ward.D2')
-obs <- quickCluster(mat, min.size=50, subset.row=subset.row)
-clusters <- unname(dynamicTreeCut::cutreeDynamic(htree, minClusterSize=50, distM=refM, verbose=0))
-expect_identical(clusters, as.integer(obs))
-
-# Other checks
-
-expect_identical(length(quickCluster(mat, method="igraph", d=NA)), ncol(mat)) # Checking that the dimensions are correct for igraph.
-suppressWarnings(expect_false(identical(quickCluster(mat), quickCluster(mat[subset.row,])))) # Checking that subsetting gets different results.
-suppressWarnings(expect_identical(quickCluster(mat, subset.row=subset.row), quickCluster(mat[subset.row,]))) # Checking that subset.row works.
-
-# Checking out what happens with silly inputs.
-
-expect_error(quickCluster(dummy[0,]), "rank variances of zero detected for a cell")
-expect_error(quickCluster(dummy[,0]), "fewer cells than the minimum cluster size")
-
-leftovers <- 100
-expect_warning(forced <- quickCluster(dummy[,c(which(known.clusters==1), which(known.clusters==2), which(known.clusters==3)[1:leftovers])]), 
-               sprintf("%i cells were not assigned to any cluster", leftovers))
-expect_identical(as.character(tail(forced, leftovers)), rep("0", leftovers))
-
-# Seeing how it interacts with the normalization method.
-
-out <- computeSumFactors(dummy, cluster=known.clusters)
-expect_equal(out, count.sizes/mean(count.sizes)) # Even though there is a majority of DE, each pair of clusters is still okay.
-
-out1 <- computeSumFactors(dummy, cluster=known.clusters, ref=1)
-expect_equal(out, out1)
-out2 <- computeSumFactors(dummy, cluster=known.clusters, ref=2)
-expect_equal(out, out2)
-out3 <- computeSumFactors(dummy, cluster=known.clusters, ref=3)
-expect_equal(out, out3)
-
-expect_error(computeSumFactors(dummy, cluster=known.clusters, ref=0), "'ref.clust' value not in 'clusters'")
-
-# Trying it out on a SCESet object.
-
-set.seed(20002)
-count.sizes <- rnbinom(ncells, mu=100, size=5)
-multiplier <- sample(seq_len(ngenes)/100)
-dummy <- outer(multiplier, count.sizes)
-
-known.clusters <- sample(3, ncells, replace=TRUE)
-dummy[1:300,known.clusters==1L] <- 0
-dummy[301:600,known.clusters==2L] <- 0  
-dummy[601:900,known.clusters==3L] <- 0
-
-rownames(dummy) <- paste0("X", seq_len(ngenes))
-X <- newSCESet(countData=data.frame(dummy))
-emp.clusters <- quickCluster(X)
-expect_true(length(unique(paste0(known.clusters, emp.clusters)))==3L)
 
 ####################################################################################################
 
