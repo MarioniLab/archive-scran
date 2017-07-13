@@ -4,17 +4,20 @@
 set.seed(30000)
 ncells <- 700
 ngenes <- 1000
-dummy <- matrix(rnbinom(ncells*ngenes, mu=10, size=20), ncol=ncells, nrow=ngenes)
 
-known.clusters <- sample(3, ncells, replace=TRUE)
-dummy[1:300,known.clusters==1L] <- 0
-dummy[301:600,known.clusters==2L] <- 0  
-dummy[601:900,known.clusters==3L] <- 0
+test_that("quickCluster works in the simple case", {
+    dummy <- matrix(rnbinom(ncells*ngenes, mu=10, size=20), ncol=ncells, nrow=ngenes)
 
-emp.clusters <- quickCluster(dummy)
-expect_true(length(unique(paste0(known.clusters, emp.clusters)))==3L)
-shuffled <- c(1:50, 301:350, 601:650)
-expect_identical(quickCluster(dummy, subset.row=shuffled), emp.clusters)
+    known.clusters <- sample(3, ncells, replace=TRUE)
+    dummy[1:300,known.clusters==1L] <- 0
+    dummy[301:600,known.clusters==2L] <- 0  
+    dummy[601:900,known.clusters==3L] <- 0
+
+    emp.clusters <- quickCluster(dummy)
+    expect_true(length(unique(paste0(known.clusters, emp.clusters)))==3L)
+    shuffled <- c(1:50, 301:350, 601:650)
+    expect_identical(quickCluster(dummy, subset.row=shuffled), emp.clusters)
+})
 
 # Checking out the ranks.
 
@@ -62,20 +65,22 @@ expect_identical(clusters, as.integer(obs))
 # Checking that we're executing the igraph methods correctly.
 
 set.seed(300002)
-mat <- matrix(rpois(10000, lambda=5), nrow=20)
-obs <- quickCluster(mat, min.size=0, method="igraph")
-ref <- quickCluster(mat, get.rank=TRUE)
-
-snn <- buildSNNGraph(ref) 
-library(igraph)
-out <- cluster_fast_greedy(snn)
-expect_identical(factor(out$membership), obs)
-
-min.size <- 100 # Checking that min.size merging works.
-expect_false(all(table(obs) >= min.size))
-obs2 <- quickCluster(mat, min.size=min.size, method="igraph")
-expect_true(all(table(obs2) >= min.size))
-expect_true(all(table(obs)[as.character(setdiff(unique(obs), unique(obs2)))] < min.size))
+test_that("quickCluster with igraph works with min.size settings", {
+    mat <- matrix(rpois(10000, lambda=5), nrow=20)
+    obs <- quickCluster(mat, min.size=0, method="igraph")
+    ref <- quickCluster(mat, get.rank=TRUE)
+    
+    snn <- buildSNNGraph(ref) 
+    library(igraph)
+    out <- cluster_fast_greedy(snn)
+    expect_identical(factor(out$membership), obs)
+    
+    min.size <- 100 # Checking that min.size merging works.
+    expect_false(all(table(obs) >= min.size))
+    obs2 <- quickCluster(mat, min.size=min.size, method="igraph")
+    expect_true(all(table(obs2) >= min.size))
+    expect_true(all(table(obs)[as.character(setdiff(unique(obs), unique(obs2)))] < min.size))
+})
 
 # Other checks
 

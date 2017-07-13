@@ -139,24 +139,26 @@ expect_equal(ref, obs)
 
 # Trying with not-quite-enough cells in one cluster.
 
-clusters <- rep(1:2, c(80, 120))
-sizes <- seq(20, 100, 5)
-expect_warning(obs <- computeSumFactors(dummy[,clusters==1], sizes=sizes), "not enough cells in at least one cluster")
-ref1 <- sumInR(dummy[,clusters==1], sizes[sizes<=80], center=FALSE) 
-expect_equal(ref1/mean(ref1), obs)
-
-expect_warning(obs <- computeSumFactors(dummy, sizes=sizes, cluster=clusters), "not enough cells in at least one cluster")
-ref2 <- sumInR(dummy[,clusters==2], sizes, center=FALSE) # Ensure that second cluster isn't affected by subsetting of sizes.
-adj <- t(t(dummy)/colSums(dummy))
-pseudo1 <- rowMeans(adj[,clusters==1])
-pseudo2 <- rowMeans(adj[,clusters==2])
-ref2 <- ref2 * median(pseudo2/pseudo1)
-
-ref <- numeric(ncells)
-ref[clusters==1] <- ref1
-ref[clusters==2] <- ref2
-ref <- ref/mean(ref)
-expect_equal(ref, obs)
+test_that("computeSumFactors correctly subsets 'sizes' for small clusters", {
+    clusters <- rep(1:2, c(80, 120))
+    sizes <- seq(20, 100, 5)
+    expect_warning(obs <- computeSumFactors(dummy[,clusters==1], sizes=sizes), "not enough cells in at least one cluster")
+    ref1 <- sumInR(dummy[,clusters==1], sizes[sizes<=80], center=FALSE) 
+    expect_equal(ref1/mean(ref1), obs)
+    
+    expect_warning(obs <- computeSumFactors(dummy, sizes=sizes, cluster=clusters), "not enough cells in at least one cluster")
+    ref2 <- sumInR(dummy[,clusters==2], sizes, center=FALSE) # Ensure that second cluster isn't affected by subsetting of sizes.
+    adj <- t(t(dummy)/colSums(dummy))
+    pseudo1 <- rowMeans(adj[,clusters==1])
+    pseudo2 <- rowMeans(adj[,clusters==2])
+    ref2 <- ref2 * median(pseudo2/pseudo1)
+    
+    ref <- numeric(ncells)
+    ref[clusters==1] <- ref1
+    ref[clusters==2] <- ref2
+    ref <- ref/mean(ref)
+    expect_equal(ref, obs)
+})
 
 # Trying it out on a SCESet object.
 
