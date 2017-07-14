@@ -46,8 +46,12 @@
         to.fit <- log(kept.vars/fitted(init.fit))
         SUBSUBFUN <- function(x) { predict(init.fit, data.frame(kept.means=x)) }
     } else {
+        if (length(kept.vars) < 2L) {
+            stop("need at least 2 values for non-parametric curve fitting")
+        } 
         to.fit <- log(kept.vars)
-        SUBSUBFUN <- function(x) { 1 }
+        left.edge <- min(kept.means)
+        SUBSUBFUN <- function(x) { pmin(1, x/left.edge) } # To get a gradient from 0 to 1 below the supported range.
     } 
     
     # Fitting loess or splines to the remainder.
@@ -56,7 +60,14 @@
     } else {
         after.fit <- MASS::rlm(to.fit ~ ns(kept.means, df=df))
     }
-    SUBFUN <- function(x) { exp(predict(after.fit, data.frame(kept.means=x))) * SUBSUBFUN(x) }
+
+    # Only trusting the parametric froms for extrapolation; restricting non-parametric forms within the supported range.
+    left.edge <- min(kept.means)
+    right.edge <- max(kept.means)
+    SUBFUN <- function(x) { 
+        both.bounded <- pmax(pmin(x, right.edge), left.edge)
+        exp(predict(after.fit, data.frame(kept.means=both.bounded))) * SUBSUBFUN(x)
+    }
 
     # Estimating the df2, as well as scale shift from estimating mean of logs (assuming shape of trend is correct).
     leftovers <- kept.vars/SUBFUN(kept.means)
@@ -72,19 +83,10 @@
         warning("undefined expectation for small df2")
         f.scale <- f.fit$scale
     }
-    
-    # Creating a predictive function, with special behaviour at the ends.
-    left.edge <- min(kept.means)
-    left.val <- SUBFUN(left.edge) * f.scale
-    right.edge <- max(kept.means)
-    right.val <- SUBFUN(right.edge) * f.scale
-
-    FUN <- function(x) {
-        out <- SUBFUN(x) * f.scale
-        lower <- x < left.edge
-        out[lower] <- x[lower] * (left.val/left.edge) # Gradient towards zero.
-        out[x > right.edge] <- right.val
-        return(out)
+    FUN <- function(x) { 
+        output <- SUBFUN(x) * f.scale
+        names(output) <- names(x)
+        return(output)
     }
     return(list(mean=means, var=vars, trend=FUN, design=design, df=f.df2, start=start))
 }

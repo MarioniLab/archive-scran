@@ -39,16 +39,16 @@ test_that("normalization runs properly", {
 })
 
 test_that("variance estimation runs properly", {
-    fit1 <- trendVar(X)
+    fit1 <- trendVar(X, parametric=FALSE) # because parametric=TRUE doesn't work properly with non-log values.
     dec1 <- decomposeVar(X, fit1)
-    fit2 <- trendVar(X_)
+    fit2 <- trendVar(X_, parametric=FALSE)
     dec2 <- decomposeVar(X_, fit1)
     expect_equal(fit1, fit2)
     expect_equal(dec1, dec2)
 
-    fit1 <- trendVar(Y)
+    fit1 <- trendVar(Y, parametric=FALSE)
     dec1 <- decomposeVar(Y, fit1)
-    fit2 <- trendVar(Y_)
+    fit2 <- trendVar(Y_, parametric=FALSE)
     dec2 <- decomposeVar(Y_, fit1)
     expect_equal(fit1, fit2)
     expect_equal(dec1, dec2)
