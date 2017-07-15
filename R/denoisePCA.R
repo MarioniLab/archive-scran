@@ -4,7 +4,7 @@
 #
 # written by Aaron Lun
 # created 13 March 2017    
-# last modified 6 June 2017
+# last modified 15 July 2017
 {
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
     x <- x[subset.row,] # Might as well, need to do PCA on the subsetted matrix anyway.
@@ -48,14 +48,19 @@
     # Performing PCA and discarding later PCs that add up to the technical sum.
     pcout <- prcomp(t(x)) # no scaling, otherwise technical sum isn't comparable.
     npcs <- ncol(pcout$x)
-    above.noise <- cumsum(rev(pcout$sdev^2)) > technical
-    if (any(above.noise)) { 
-        to.keep <- seq_len(npcs - min(which(above.noise)) + 1L)
+    prog.var <- pcout$sdev^2
+    flipped.prog.var <- rev(prog.var)
+    estimated.contrib <- cumsum(flipped.prog.var) + flipped.prog.var * (npcs:1 - 1L)
+    estimated.contrib <- rev(estimated.contrib)
+
+    below.noise <- technical > estimated.contrib
+    if (any(below.noise)) { 
+        to.keep <- min(which(below.noise))
     } else {
-        to.keep <- 1L
+        to.keep <- npcs
     }
 
-    return(pcout$x[,to.keep,drop=FALSE])
+    return(pcout$x[,seq_len(to.keep),drop=FALSE])
 } 
 
 setGeneric("denoisePCA", function(x, ...) standardGeneric("denoisePCA"))
