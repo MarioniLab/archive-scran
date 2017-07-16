@@ -58,10 +58,10 @@ SEXP shuffle_scores_internal (M mat_ptr,
     for (auto cIt=mycells.begin(); cIt!=mycells.end(); ++cIt, ++oIt) { 
 
         // Extracting only the expression values that are used in at least one pair.
-        mat_ptr->get_col(*cIt - 1, all_exprs.begin());
+        auto inIt=mat_ptr->get_const_col(*cIt - 1, all_exprs.begin());
         auto curIt=current_exprs.begin();
         for (auto uIt=used.begin(); uIt!=used.end(); ++uIt, ++curIt) {
-            (*curIt)=all_exprs[*uIt];
+            (*curIt)=*(inIt + *uIt);
         }
         
         const double curscore=get_proportion(current_exprs, minp, marker1, marker2);

@@ -229,7 +229,8 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings, SEXP block_size) {
      */
     Rcpp::IntegerVector cache1(BLOCK*Ncells), cache2(BLOCK*Ncells);
     const int roundedNgenes=BLOCK*int(Ngenes/BLOCK + 1); 
-    std::vector<Rcpp::IntegerVector::iterator> locations1(roundedNgenes, cache1.end()), locations2(roundedNgenes, cache2.end());
+    std::deque<bool> filled1(roundedNgenes, false), filled2(roundedNgenes, false);
+    std::vector<Rcpp::IntegerVector::const_iterator> locations1(roundedNgenes), locations2(roundedNgenes); 
     Rcpp::IntegerVector::iterator b1It=cache1.begin(), b2It=cache2.begin();
     int current_block1=0, current_block2=0;
 
@@ -254,43 +255,43 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings, SEXP block_size) {
             if (block1 < current_block1) { 
                 throw std::runtime_error("pairs should be arranged in increasing block order");
             }
-            auto old_start=locations1.begin()+current_block1*BLOCK;
-            std::fill(old_start, old_start+BLOCK, cache1.end()); // Deleting references to the old block.
+            auto old_filled=filled1.begin()+current_block1*BLOCK;
+            std::fill(old_filled, old_filled+BLOCK, false); 
             current_block1=block1;
             b1It=cache1.begin();          
         }
         auto& start1=locations1[g1x]; 
-        if (start1==cache1.end()) { 
+        if (!filled1[g1x]) {
             if (b1It==cache1.end()) { 
                 throw std::runtime_error("first block cache exceeded");
             }
-            start1=b1It;
-            rmat->get_col(g1x, start1);
+            start1=rmat->get_const_col(g1x, b1It);
             b1It+=Ncells;
+            filled1[g1x]=true;
         }
 
         // Repeating for the second block. If this is the same as the first block, we just update that instead.
         const int block2=int(g2x/BLOCK);
-        Rcpp::IntegerVector::iterator start2_copy;
+        Rcpp::IntegerVector::const_iterator start2_copy;
         if (block2==block1) { 
             if (updated1) { 
                 /* No need to discard the existing cache1, this would have already been done above. 
                  * We do, however, have to update current_block2 and discard cache2 (we can't do this
                  * later as old_start would no longer be correct with an updated current_block2).
                  */
-                auto old_start=locations2.begin()+current_block2*BLOCK;
-                std::fill(old_start, old_start+BLOCK, cache2.end());
+                auto old_start=filled2.begin()+current_block2*BLOCK;
+                std::fill(old_start, old_start+BLOCK, false);
                 current_block2=block2;
                 b2It=cache2.begin();
             }
             auto& restart1=locations1[g2x]; 
-            if (restart1==cache1.end()) { 
+            if (!filled1[g2x]) {
                 if (b1It==cache1.end()) { 
                     throw std::runtime_error("first block cache exceeded");
                 }
-                restart1=b1It;
-                rmat->get_col(g2x, restart1);
+                restart1=rmat->get_const_col(g2x, b1It);
                 b1It+=Ncells;
+                filled1[g2x]=true;
             }
             start2_copy=restart1;
         } else {
@@ -298,19 +299,19 @@ SEXP compute_rho(SEXP g1, SEXP g2, SEXP rankings, SEXP block_size) {
                 if (!updated1 && block2 < current_block2) { 
                     throw std::runtime_error("pairs should be arranged in increasing block order");
                 }
-                auto old_start=locations2.begin()+current_block2*BLOCK;
-                std::fill(old_start, old_start+BLOCK, cache2.end());
+                auto old_start=filled2.begin()+current_block2*BLOCK;
+                std::fill(old_start, old_start+BLOCK, false);
                 current_block2=block2;
                 b2It=cache2.begin();          
             } 
             auto& start2=locations2[g2x]; 
-            if (start2==cache2.end()) { 
+            if (!filled2[g2x]) { 
                 if (b2It==cache2.end()) { 
                     throw std::runtime_error("second block cache exceeded");
                 }
-                start2=b2It;
-                rmat->get_col(g2x, start2);
+                start2=rmat->get_const_col(g2x, b2It);
                 b2It+=Ncells;
+                filled2[g2x]=true;
             }
             start2_copy=start2;
         }
