@@ -128,4 +128,16 @@ test_that("denoisePCA works with SCESet inputs", {
     not.spike <- setdiff(seq_len(ngenes), is.spike)
     pcs <- denoisePCA(lcounts, technical=fit$trend, subset.row=not.spike)
     are_PCs_equal(pcx, pcs)
+
+    # Checking lowrank calculations.
+    X3 <- denoisePCA(X, technical=fit$trend, value="lowrank")
+    ref <- denoisePCA(exprs(X), technical=fit$trend, value="lowrank", subset.row=not.spike)
+    pcx <- assayDataElement(X3, "lowrank")
+    expect_equal(pcx[not.spike,], ref)
+    expect_true(all(is.na(pcx[is.spike,])))
+    
+    X3 <- denoisePCA(X, technical=fit$trend, value="lowrank", get.spikes=TRUE)
+    ref <- denoisePCA(exprs(X), technical=fit$trend, value="lowrank")
+    pcx <- assayDataElement(X3, "lowrank")
+    expect_equal(pcx, ref)
 })
