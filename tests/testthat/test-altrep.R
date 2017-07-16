@@ -65,5 +65,5 @@ test_that("correlatePairs runs properly", {
     ref <- correlatePairs(Y[20:50,])
     set.seed(100) 
     alt <- correlatePairs(Y_[20:50,])
-
+    expect_equal(ref, alt)
 })
