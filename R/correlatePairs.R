@@ -201,7 +201,7 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
     invisible(NULL)
 }
 
-setMethod("correlatePairs", "matrix", .correlate_pairs)
+setMethod("correlatePairs", "ANY", .correlate_pairs)
 
 setMethod("correlatePairs", "SCESet", function(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE, lower.bound=NULL, 
                                                assay="exprs", get.spikes=FALSE) {

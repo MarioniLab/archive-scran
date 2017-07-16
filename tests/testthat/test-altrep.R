@@ -28,7 +28,7 @@ test_that("cyclone runs properly", {
     expect_identical(assignments1, assignments2)
 })
 
-test_that("normalization runs properly", {
+test_that("computeSumFactors runs properly", {
     sf1 <- computeSumFactors(X_)
     sf2 <- computeSumFactors(X)
     expect_identical(sf1, sf2)
@@ -38,7 +38,7 @@ test_that("normalization runs properly", {
     expect_identical(sf1, sf2)
 })
 
-test_that("variance estimation runs properly", {
+test_that("Variance estimation runs properly", {
     fit1 <- trendVar(X, parametric=FALSE) # because parametric=TRUE doesn't work properly with non-log values.
     dec1 <- decomposeVar(X, fit1)
     fit2 <- trendVar(X_, parametric=FALSE)
@@ -52,4 +52,18 @@ test_that("variance estimation runs properly", {
     dec2 <- decomposeVar(Y_, fit1)
     expect_equal(fit1, fit2)
     expect_equal(dec1, dec2)
+})
+
+test_that("correlatePairs runs properly", {
+    set.seed(100) 
+    ref <- correlatePairs(X[1:10,])
+    set.seed(100) 
+    alt <- correlatePairs(X_[1:10,])
+    expect_equal(ref, alt)
+
+    set.seed(100) 
+    ref <- correlatePairs(Y[20:50,])
+    set.seed(100) 
+    alt <- correlatePairs(Y_[20:50,])
+
 })
