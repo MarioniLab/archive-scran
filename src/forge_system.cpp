@@ -23,11 +23,11 @@ SEXP subset_and_divide_internal(const M in, SEXP inmat, SEXP row_subset, SEXP co
     {
         // Computing the row sums.
         V combined(rslen);
-        for (auto csIt=csubout.begin(); csIt!=csubout.end(); ++csIt) {
-            in->get_col(*csIt, incoming.begin());
+        for (const auto& c : csubout) { 
+            auto inIt=in->get_const_col(c, incoming.begin());
             auto coIt=combined.begin();
             for (auto rsIt=rsubout.begin(); rsIt!=rsubout.end(); ++rsIt, ++coIt) {
-                (*coIt)+=incoming[*rsIt];
+                (*coIt)+=*(inIt + *rsIt);
             }
         }
         
@@ -65,10 +65,10 @@ SEXP subset_and_divide_internal(const M in, SEXP inmat, SEXP row_subset, SEXP co
     for (auto csIt=csubout.begin(); csIt!=csubout.end(); ++csIt, ++lbIt, ++cs) {
 
         // Extracting the column, subsetting the rows.
-        in->get_col(*csIt, incoming.begin(), start_row, end_row);
+        auto inIt=in->get_const_col(*csIt, incoming.begin(), start_row, end_row);
         auto oIt=outgoing.begin();
         for (auto trIt=to_retain.begin(); trIt!=to_retain.end(); ++trIt, ++oIt) {
-            (*oIt)=incoming[*trIt];
+            (*oIt)=*(inIt + *trIt);
         }
            
         // Dividing by the library size. 
@@ -118,8 +118,9 @@ SEXP subset_and_divide(SEXP matrix, SEXP row_subset, SEXP col_subset) {
 
 /*** A function to estimate the pooled size factors and construct the linear equations. ***/
 
-template<class M>
-SEXP forge_system_internal (const M emat, SEXP ref, SEXP ordering, SEXP poolsizes) {
+SEXP forge_system (SEXP exprs, SEXP ref, SEXP ordering, SEXP poolsizes) {
+    BEGIN_RCPP
+    auto emat=beachmat::create_numeric_matrix(exprs);
     const size_t ngenes=emat->get_nrow();
     const size_t ncells=emat->get_ncol();
     if (ncells==0) { throw std::runtime_error("at least one cell required for normalization"); }
@@ -131,8 +132,7 @@ SEXP forge_system_internal (const M emat, SEXP ref, SEXP ordering, SEXP poolsize
         throw std::runtime_error("sizes should be a non-empty integer vector"); 
     }
     int last_size=-1, total_SIZE=0;
-    for (auto psIt=pool_sizes.begin(); psIt!=pool_sizes.end(); ++psIt) { 
-        const int& SIZE=*psIt;
+    for (const auto& SIZE : pool_sizes) { 
         if (SIZE < 1 || SIZE > ncells) { throw std::runtime_error("each element of sizes should be within [1, number of cells]"); }
         if (SIZE < last_size) { throw std::runtime_error("sizes should be sorted"); }
         total_SIZE+=SIZE;
@@ -146,15 +146,15 @@ SEXP forge_system_internal (const M emat, SEXP ref, SEXP ordering, SEXP poolsize
     // Checking ordering.
     Rcpp::IntegerVector order(ordering);
     if (order.size() < ncells*2-1)  { throw std::runtime_error("ordering vector is too short for number of cells"); }
-    for (auto oIt=order.begin(); oIt!=order.end(); ++oIt) {
-        if (*oIt < 0 || *oIt > ncells) { 
+    for (const auto& o : order) { 
+        if (o < 0 || o > ncells) { 
             throw std::runtime_error("elements of ordering vector are out of range");
         }
     }
 
     // Filling up the cell vector.
     Rcpp::NumericVector all_collected(last_size*ngenes);
-    std::deque<Rcpp::NumericVector::iterator> collected;
+    std::deque<Rcpp::NumericVector::const_iterator> collected;
     auto acIt=all_collected.begin();
     collected.push_back(acIt); // unfilled first vector, which gets dropped and refilled in the first iteration anyway.
     acIt+=ngenes;
@@ -162,8 +162,8 @@ SEXP forge_system_internal (const M emat, SEXP ref, SEXP ordering, SEXP poolsize
     auto orIt_tail=order.begin();
     Rcpp::NumericVector tmp(emat->get_nrow());
     for (int s=1; s<last_size; ++s, ++orIt_tail, acIt+=ngenes) {
-        emat->get_col(*orIt_tail, acIt);
-        collected.push_back(acIt); 
+        auto colIt=emat->get_const_col(*orIt_tail, acIt);
+        collected.push_back(colIt); 
     }
 
     // Setting up the output vectors.
@@ -182,11 +182,14 @@ SEXP forge_system_internal (const M emat, SEXP ref, SEXP ordering, SEXP poolsize
         std::fill(combined.begin(), combined.end(), 0);
         
         // Dropping the column that we've moved past, adding the next column.
-        auto acIt=collected.front();
+        if (acIt==all_collected.end()) { 
+            acIt=all_collected.begin();
+        }
         collected.pop_front();
-        collected.push_back(acIt);
-        emat->get_col(*orIt_tail, acIt);
+        auto curIt=emat->get_const_col(*orIt_tail, acIt);
+        collected.push_back(curIt);
         ++orIt_tail;
+        acIt+=ngenes;
 
         int index=0;
         int rownum=win; // Setting the row so that all pools with the same SIZE form consecutive equations.
@@ -232,18 +235,7 @@ SEXP forge_system_internal (const M emat, SEXP ref, SEXP ordering, SEXP poolsize
     }    
 
     return Rcpp::List::create(row_num, col_num, pool_factor);
-}
-
-SEXP forge_system(SEXP exprs, SEXP ref, SEXP ordering, SEXP poolsizes) {
-    BEGIN_RCPP
-    int rtype=beachmat::find_sexp_type(exprs);
-    if (rtype==INTSXP) {
-        auto emat=beachmat::create_integer_matrix(exprs);
-        return forge_system_internal(emat.get(), ref, ordering, poolsizes);
-    } else {
-        auto emat=beachmat::create_numeric_matrix(exprs);
-        return forge_system_internal(emat.get(), ref, ordering, poolsizes);
-    }
     END_RCPP
 }
+
 
