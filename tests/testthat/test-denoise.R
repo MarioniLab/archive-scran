@@ -58,8 +58,9 @@ test_that("denoisePCA works as expected", {
     lrout <- denoisePCA(lcounts, technical=fit$trend, value="lowrank")
     expect_identical(dim(lrout), dim(lcounts))
     expect_equal(rowMeans(lrout), rowMeans(lcounts))
-    QR <- qr(lrout - rowMeans(lcounts))    
+    QR <- qr(lrout - rowMeans(lcounts)) # has the correct rank.
     expect_equal(QR$rank, npcs)
+    expect_equal(sum(apply(pcs, 2, var)), sum(apply(lrout, 1, var))) # explains the same amount of variance.
 }) 
 
 test_that("denoisePCA works with different settings", {
