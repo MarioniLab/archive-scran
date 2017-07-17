@@ -103,7 +103,7 @@
     ncores <- bpworkers(BPPARAM)
     starting <- as.integer(seq(from=1, to=njobs+1, length.out=ncores+1))
     jobsize <- diff(starting)
-    starting <- head(starting, -1) - 1L
+    starting <- starting[-length(starting)] - 1L
     return(mapply("+", starting, lapply(jobsize, seq_len), SIMPLIFY=FALSE))
 }
 

@@ -342,18 +342,27 @@ expect_error(correlatePairs(X, nulls, subset.row=list(1,2,3)), "'subset.row' as 
 
 # Subsetting to specify matrix of specific pairs.
 
-subgenes <- cbind(1:10, 2:11)
-msubbed <- correlatePairs(X, nulls, subset.row=subgenes)
-expect_identical(rownames(X)[subgenes[,1]], msubbed$gene1)
-expect_identical(rownames(X)[subgenes[,2]], msubbed$gene2)
-msub.names <- paste0(msubbed$gene1, ".", msubbed$gene2)
-msub.ref <- ref[match(msub.names, ref.names),]
-msub.ref$FDR <- p.adjust(msub.ref$p.value, method="BH")
-rownames(msub.ref) <- NULL
-expect_equal(msub.ref, msubbed)
-expect_error(correlatePairs(X, nulls, subset.row=matrix(0, 0, 0)), "'subset.row' should be a numeric matrix with 2 columns")
-expect_error(correlatePairs(X, nulls, subset.row=cbind(1,2,3)), "'subset.row' should be a numeric matrix with 2 columns")
-expect_error(correlatePairs(X, nulls, subset.row=cbind(TRUE, FALSE)), "'subset.row' should be a numeric matrix with 2 columns")
+test_that("correlatePairs with pairs matrix works as expected", {
+    subgenes <- cbind(1:10, 2:11)
+    msubbed <- correlatePairs(X, nulls, subset.row=subgenes)
+    expect_identical(rownames(X)[subgenes[,1]], msubbed$gene1)
+    expect_identical(rownames(X)[subgenes[,2]], msubbed$gene2)
+
+    msub.names <- paste0(msubbed$gene1, ".", msubbed$gene2)
+    msub.ref <- ref[match(msub.names, ref.names),]
+    msub.ref$FDR <- p.adjust(msub.ref$p.value, method="BH")
+    rownames(msub.ref) <- NULL
+    expect_equal(msub.ref, msubbed)
+
+    subgenes2 <- rownames(X)[subgenes]
+    dim(subgenes2) <- dim(subgenes)
+    msubbed2 <- correlatePairs(X, nulls, subset.row=subgenes2)
+    expect_equal(msubbed, msubbed2)
+
+    expect_error(correlatePairs(X, nulls, subset.row=matrix(0, 0, 0)), "'subset.row' should be a numeric/character matrix with 2 columns")
+    expect_error(correlatePairs(X, nulls, subset.row=cbind(1,2,3)), "'subset.row' should be a numeric/character matrix with 2 columns")
+    expect_error(correlatePairs(X, nulls, subset.row=cbind(TRUE, FALSE)), "'subset.row' should be a numeric/character matrix with 2 columns")
+})
 
 ####################################################################################################
 

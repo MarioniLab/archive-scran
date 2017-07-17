@@ -114,7 +114,9 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
     is.ordered <- FALSE 
     if (is.matrix(subset.row)) {
         # If matrix, we're using pre-specified pairs.
-        if (!is.numeric(subset.row) || ncol(subset.row)!=2L) { stop("'subset.row' should be a numeric matrix with 2 columns") }
+        if ((!is.numeric(subset.row) && !is.character(subset.row)) || ncol(subset.row)!=2L) { 
+            stop("'subset.row' should be a numeric/character matrix with 2 columns") 
+        }
         s1 <- .subset_to_index(subset.row[,1], x, byrow=TRUE)
         s2 <- .subset_to_index(subset.row[,2], x, byrow=TRUE)
 
