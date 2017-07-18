@@ -171,7 +171,7 @@ SEXP rank_subset_internal(const M mat, SEXP intype, SEXP subset_row, SEXP subset
         for (int cs=0; cs<cslen; ++cs, ++iIt){ 
             ranks[*iIt]=cs+1;
         }
-        omat->fill_col(rs, ranks.begin());
+        omat->set_col(rs, ranks.begin());
     }
 
     return omat->yield();

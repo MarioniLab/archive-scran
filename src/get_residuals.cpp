@@ -60,7 +60,7 @@ SEXP get_residuals(SEXP exprs, SEXP qr, SEXP qraux, SEXP subset, SEXP lower_boun
             below_bound.clear();
         }
 
-        omat->fill_row(s, tmp.begin());
+        omat->set_row(s, tmp.begin());
     }
 
     return omat->yield();

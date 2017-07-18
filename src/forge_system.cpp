@@ -80,7 +80,7 @@ SEXP subset_and_divide_internal(const M in, SEXP inmat, SEXP row_subset, SEXP co
             out/=curlib;
         }
 
-        omat->fill_col(cs, outgoing.begin());
+        omat->set_col(cs, outgoing.begin());
 
         // Adding to the average.
         oIt=outgoing.begin();

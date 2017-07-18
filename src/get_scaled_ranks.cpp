@@ -71,9 +71,9 @@ SEXP average_ranks_internal(const M mat, SEXP intype, SEXP subset, SEXP transpos
         }
 
         if (do_transpose) { 
-            omat->fill_row(c, outgoing.begin());
+            omat->set_row(c, outgoing.begin());
         } else {
-            omat->fill_col(c, outgoing.begin());
+            omat->set_col(c, outgoing.begin());
         }
     }
 
