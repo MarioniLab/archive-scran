@@ -1,15 +1,15 @@
 \name{trendVar}
 \alias{trendVar}
-\alias{trendVar,matrix-method}
+\alias{trendVar,ANY-method}
 \alias{trendVar,SCESet-method}
 
 \title{Fit a variance trend}
 \description{Fit a mean-dependent trend to the gene-specific variances in single-cell RNA-seq data.}
 
 \usage{
-\S4method{trendVar}{matrix}(x, method=c("loess", "spline", "semiloess"), 
+\S4method{trendVar}{ANY}(x, method=c("loess", "spline", "semiloess"), 
     span=0.3, family="symmetric", degree=1, df=4,
-    parametric=TRUE, start=NULL, min.mean=0.1,
+    parametric=FALSE, start=NULL, min.mean=0.1,
     design=NULL, subset.row=NULL) 
 
 \S4method{trendVar}{SCESet}(x, subset.row=NULL, ..., assay="exprs", use.spikes=TRUE)
@@ -17,7 +17,7 @@
 
 \arguments{
 \item{x}{
-    A numeric matrix of normalized log-expression values, where each column corresponds to a cell and each row corresponds to a spike-in transcript.
+    A numeric matrix-like object of normalized log-expression values, where each column corresponds to a cell and each row corresponds to a spike-in transcript.
     Alternatively, a SCESet object that contains such values.
 }
 \item{method}{A string specifying the algorithm to use for smooth trend fitting.}

@@ -1,21 +1,22 @@
 \name{Deconvolution Methods}
 \alias{computeSumFactors}
-\alias{computeSumFactors,matrix-method}
+\alias{computeSumFactors,ANY-method}
 \alias{computeSumFactors,SCESet-method}
 
 \title{Normalization by deconvolution}
 \description{Methods to normalize single-cell RNA-seq data by deconvolving size factors from cell pools.}
 
 \usage{
-\S4method{computeSumFactors}{matrix}(x, sizes=seq(20, 100, 5), clusters=NULL, 
+\S4method{computeSumFactors}{ANY}(x, sizes=seq(20, 100, 5), clusters=NULL, 
     ref.clust=NULL, positive=FALSE, errors=FALSE, subset.row=NULL)
+
 \S4method{computeSumFactors}{SCESet}(x, subset.row=NULL, ..., assay="counts", 
     get.spikes=FALSE, sf.out=FALSE)
 }
 
 \arguments{
 \item{x}{
-    A numeric count matrix where rows are genes and columns are cells.
+    A numeric matrix-like object of counts, where rows are genes and columns are cells.
     Alternatively, a SCESet object containing such a matrix.
 }
 \item{sizes}{A numeric vector of pool sizes, i.e., number of cells per pool.}

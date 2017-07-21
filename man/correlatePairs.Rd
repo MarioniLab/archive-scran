@@ -1,6 +1,6 @@
 \name{correlatePairs}
 \alias{correlatePairs}
-\alias{correlatePairs,matrix-method}
+\alias{correlatePairs,ANY-method}
 \alias{correlatePairs,SCESet-method}
 \alias{correlateNull}
 
@@ -10,7 +10,7 @@
 \usage{
 correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE) 
 
-\S4method{correlatePairs}{matrix}(x, null.dist=NULL, design=NULL, BPPARAM=SerialParam(), 
+\S4method{correlatePairs}{ANY}(x, null.dist=NULL, design=NULL, BPPARAM=SerialParam(), 
     tol=1e-8, iters=1e6, residuals=FALSE, use.names=TRUE, 
     subset.row=NULL, per.gene=FALSE, lower.bound=NULL, block.size=100L)
 
@@ -24,7 +24,7 @@ correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE)
 \item{design}{A numeric design matrix containing uninteresting factors to be ignored.}
 \item{residuals}{A logical scalar indicating whether correlations should be calculated from residuals when \code{design!=NULL}.}
 \item{x}{
-    A numeric matrix of log-normalized expression values, where rows are genes and columns are cells.
+    A numeric matrix-like object of log-normalized expression values, where rows are genes and columns are cells.
     Alternatively, a SCESet object containing such a matrix.
 }
 \item{null.dist}{A numeric vector of rho values under the null hypothesis.}
