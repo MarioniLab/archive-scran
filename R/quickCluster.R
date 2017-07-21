@@ -47,7 +47,12 @@ setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, g
     while (1) {
         all.sizes <- table(clusters)
         if (all(all.sizes >= min.size)) { break }
+
         clust.names <- as.integer(names(all.sizes))
+        if (length(clust.names)==2L) { 
+            clusters[] <- 1L
+            break
+        }
         
         # Picking the smallest cluster and picking the merge with greatest modularity.
         failed <- clust.names[which.min(all.sizes)]
@@ -68,6 +73,8 @@ setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, g
 
         clusters <- max.clust
     }
+
+    clusters <- as.integer(factor(clusters))
     return(clusters)
 }
 

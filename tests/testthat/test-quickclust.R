@@ -79,7 +79,9 @@ test_that("quickCluster with igraph works with min.size settings", {
     expect_false(all(table(obs) >= min.size))
     obs2 <- quickCluster(mat, min.size=min.size, method="igraph")
     expect_true(all(table(obs2) >= min.size))
-    expect_true(all(table(obs)[as.character(setdiff(unique(obs), unique(obs2)))] < min.size))
+
+    combined <- paste0(obs, ".", obs2)
+    expect_identical(length(unique(combined)), length(unique(obs))) # Confirm that they are nested.
 })
 
 # Other checks
