@@ -278,7 +278,7 @@ test_that("testVar's F-test works as expected", {
     
     exprs <- log2(spike.data/(colSums(spike.data)/mean(colSums(spike.data)))+1)
     fit <- trendVar(exprs)
-    pvals <- testVar(fit$var, fit$trend(fit$mean), df=ncells-1, second.df=fit$df, test='f')
+    pvals <- testVar(fit$var, fit$trend(fit$mean), df=ncells-1, second.df=fit$df2, test='f')
     
     rat <- (fit$var/fit$trend(fit$mean))
     df1 <- nrow(fit$design)-ncol(fit$design)

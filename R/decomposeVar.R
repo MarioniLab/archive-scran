@@ -25,7 +25,7 @@
     
     tech.var <- fit$trend(lmeans)
     bio.var <- lvar - tech.var
-    pval <- testVar(total=lvar, null=tech.var, df=nrow(design) - ncol(design), second.df=fit$df, ...)
+    pval <- testVar(total=lvar, null=tech.var, df=nrow(design) - ncol(design), second.df=fit$df2, ...)
     out <- data.frame(mean=lmeans, total=lvar, bio=bio.var, tech=tech.var,
                       p.value=pval, FDR=p.adjust(pval, method="BH"),
                       row.names=gnames)

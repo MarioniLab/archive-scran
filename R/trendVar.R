@@ -88,7 +88,7 @@
         names(output) <- names(x)
         return(output)
     }
-    return(list(mean=means, var=vars, trend=FUN, design=design, df=f.df2, start=start))
+    return(list(mean=means, var=vars, trend=FUN, design=design, df2=f.df2, start=start))
 }
 
 .get_nls_starts <- function(vars, means, grad.prop=0.5, grid.length=100, grid.max=10) {
