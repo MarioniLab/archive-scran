@@ -46,7 +46,7 @@ test_that("trendVar behaves correctly with subsetting", {
 
 test_that("trendVar works correctly on SCESet objects", {
     # Get the same results directly on a SCESet, with various spike-in specifications.
-    suppressWarnings(expect_error(trendVar(X), "need at least 4 values for non-linear curve fitting")) 
+    suppressWarnings(expect_error(trendVar(X, parametric=TRUE), "need at least 4 values for non-linear curve fitting")) 
     suppressWarnings(expect_error(trendVar(X, parametric=FALSE), "need at least 2 values for non-parametric curve fitting"))
 
     cntrl_data <- list(All=!logical(ngenes), Some=rbinom(ngenes, 1, 0.5)==0, None=logical(ngenes))
@@ -62,7 +62,7 @@ test_that("trendVar works correctly on SCESet objects", {
     
     setSpike(X) <- "None"
     expect_identical(isSpike(X), cntrl_data$None)
-    expect_error(trendVar(X), "need at least 4 values for non-linear curve fitting")
+    expect_error(trendVar(X), "need at least 2 values for non-parametric curve fitting")
     out3 <- trendVar(X, use.spikes=FALSE)
     expect_equal(out3$mean, out2$mean)
     expect_equal(out3$var, out2$var)
@@ -156,7 +156,7 @@ expect_equal(out$var, colMeans(effects^2))
 
 test_that("trendVar throws the correct errors", {
     expect_error(trendVar(d[0,,drop=FALSE], parametric=FALSE), "need at least 2 values for non-parametric curve fitting") # loess fails with empty input vectors.
-    expect_error(trendVar(d[0,,drop=FALSE]), "need at least 4 values for non-linear curve fitting")
+    expect_error(trendVar(d[0,,drop=FALSE], parametric=TRUE), "need at least 4 values for non-linear curve fitting")
     expect_error(trendVar(d[,0,drop=FALSE]), "BLAS/LAPACK routine 'DGEQP3' gave error code -4") # QR fails straight away.
     expect_error(trendVar(d[,1,drop=FALSE], parametric=FALSE), "invalid 'x'") # undefined variance with no d.f.
 })
