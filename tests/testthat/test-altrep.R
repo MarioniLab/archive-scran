@@ -39,16 +39,16 @@ test_that("computeSumFactors runs properly", {
 })
 
 test_that("Variance estimation runs properly", {
-    fit1 <- trendVar(X, parametric=FALSE) # because parametric=TRUE doesn't work properly with non-log values.
+    fit1 <- trendVar(X) 
     dec1 <- decomposeVar(X, fit1)
-    fit2 <- trendVar(X_, parametric=FALSE)
+    fit2 <- trendVar(X_)
     dec2 <- decomposeVar(X_, fit1)
     expect_equal(fit1, fit2)
     expect_equal(dec1, dec2)
 
-    fit1 <- trendVar(Y, parametric=FALSE)
+    fit1 <- trendVar(Y)
     dec1 <- decomposeVar(Y, fit1)
-    fit2 <- trendVar(Y_, parametric=FALSE)
+    fit2 <- trendVar(Y_)
     dec2 <- decomposeVar(Y_, fit1)
     expect_equal(fit1, fit2)
     expect_equal(dec1, dec2)

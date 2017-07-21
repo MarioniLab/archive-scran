@@ -183,7 +183,7 @@ First, we fit a mean-variance trend to the normalized log-expression values with
 By default, this done using only the spike-in transcripts, as these should only exhibit technical noise.
 
 ```{r}
-fit <- trendVar(sce)
+fit <- trendVar(sce, parametric=TRUE)
 ```
 
 The fitted value of the trend is used as an estimate of the technical component.

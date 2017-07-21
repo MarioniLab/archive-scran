@@ -7,9 +7,10 @@
 \description{Fit a mean-dependent trend to the gene-specific variances in single-cell RNA-seq data.}
 
 \usage{
-\S4method{trendVar}{matrix}(x, parametric=TRUE, method=c("loess", "spline", "semiloess"), 
+\S4method{trendVar}{matrix}(x, method=c("loess", "spline", "semiloess"), 
     span=0.3, family="symmetric", degree=1, df=4,
-    start=NULL, design=NULL, subset.row=NULL, min.mean=0.1)
+    parametric=TRUE, start=NULL, min.mean=0.1,
+    design=NULL, subset.row=NULL) 
 
 \S4method{trendVar}{SCESet}(x, subset.row=NULL, ..., assay="exprs", use.spikes=TRUE)
 }
@@ -19,15 +20,15 @@
     A numeric matrix of normalized log-expression values, where each column corresponds to a cell and each row corresponds to a spike-in transcript.
     Alternatively, a SCESet object that contains such values.
 }
-\item{parametric}{A logical scalar indicating whether a parametric curve should be fitted prior to smoothing.}
-\item{trend}{A string specifying the algorithm to use for smooth trend fitting.}
+\item{method}{A string specifying the algorithm to use for smooth trend fitting.}
 \item{span, family, degree}{Arguments to pass to \code{\link{loess}}.}
 \item{df}{Arguments to pass to \code{\link[splines]{ns}}.}
+\item{parametric}{A logical scalar indicating whether a parametric curve should be fitted prior to smoothing.}
 \item{start}{A named list of numeric scalars, containing starting values for parametric fitting with \code{\link{nls}}. 
 This is automatically generated with the most suitable values if set to \code{NULL}.}
+\item{min.mean}{A numeric scalar specifying the threshold on the mean of log-expression values to be used for trend fitting.}
 \item{design}{A numeric matrix describing the uninteresting factors contributing to expression in each cell.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
-\item{min.mean}{A numeric scalar specifying the threshold on the mean of log-expression values to be used for trend fitting.}
 \item{...}{Additional arguments to pass to \code{trendVar,matrix-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{use.spikes}{A logical scalar specifying whether the trend should be fitted to variances for spike-in transcripts or endogenous genes.}
@@ -50,13 +51,15 @@ Otherwise, it will default to an all-ones matrix, effectively treating all cells
 }
 
 \section{Trend fitting options}{
-If \code{parametric=TRUE}, a non-linear curve of the form
+If \code{parametric=FALSE}, smoothing is performed directly on the log-variances.
+This is the default as it provides the most stable performance on arbitrary mean-variance relationships.
+
+If \code{parametric=TRUE}, wa non-linear curve of the form
 \deqn{y = \frac{ax}{x^n + b}}{y = ax/(x^n + b)}
 is fitted to the variances against the means using \code{\link{nls}}.
 The specified smoothing algorihtm is applied to the log-ratios of the variance to the fitted value.
-The aim is to use the parametric curve top reduce the sharpness of the trend for easier smoothing, as empirical smoothing algorithms do not handle sharp gradients well.
+The aim is to use the parametric curve to reduce the sharpness of the expected mean-variance relationship[for easier smoothing.
 Conversely, the parametric form is not exact, so the smoothers will model any remaining trends in the residuals.
-If \code{parametric=FALSE}, smoothing is performed directly on the log-variances.
 
 The \code{method} argument specifies the smoothing algorithm to be applied on the log-ratios/variances.
 By default, a robust loess curve is used for trend fitting via \code{\link{loess}}.

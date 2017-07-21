@@ -22,7 +22,7 @@ test_that("trendVar works on a basic scenario", {
     expect_is(out$trend, "function") 
     mx <- max(out$mean)
     mn <- min(out$mean)
-    expect_true(out$trend(mx) > out$trend(mx+1))
+    expect_equal(out$trend(mx), out$trend(mx+1))
     expect_equal(out$trend(0), 0)
     
     expect_equal(out$design, as.matrix(rep(1, ncells)))
@@ -108,18 +108,18 @@ test_that("trendVar works with other trend functions",  {
     mx <- max(out$mean)
     mn <- min(out$mean)
 
-    out.semi <- trendVar(d, parametric=FALSE)
+    out.semi <- trendVar(d, parametric=TRUE)
     expect_equal(out$mean, out.semi$mean)
     expect_equal(out$var, out.semi$var)
     expect_is(out.semi$trend, "function") 
-    expect_equal(out.semi$trend(mx), out.semi$trend(mx+1))
+    expect_true(out.semi$trend(mx) > out.semi$trend(mx+1))
     expect_equal(out.semi$trend(0), 0)
 
     out.spl <- trendVar(d, method="spline")
     expect_equal(out$mean, out.spl$mean)
     expect_equal(out$var, out.spl$var)
     expect_is(out.spl$trend, "function") 
-    expect_true(out.spl$trend(mx) > out.spl$trend(mx+1))
+    expect_equal(out.spl$trend(mx), out.spl$trend(mx+1))
     expect_equal(out.spl$trend(0), 0)
 })
 
@@ -134,7 +134,7 @@ expect_equal(out$var, colMeans(effects^2))
 
 expect_is(out$trend, "function")
 m <- max(out$mean)
-expect_true(out$trend(m) > out$trend(m+1))
+expect_equal(out$trend(m), out$trend(m+1))
 m <- min(out$mean)
 expect_equal(out$trend(0), 0)
 

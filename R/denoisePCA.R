@@ -95,8 +95,8 @@ setGeneric("denoisePCA", function(x, ...) standardGeneric("denoisePCA"))
 
 setMethod("denoisePCA", "matrix", .denoisePCA)
 
-setMethod("denoisePCA", "SCESet", function(x, ..., value=c("pca", "n", "lowrank"), 
-                                           subset.row=NULL, assay="exprs", get.spikes=FALSE) {
+setMethod("denoisePCA", "SCESet", function(x, ..., subset.row=NULL, value=c("pca", "n", "lowrank"), 
+                                           assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) {
         subset.row <- .spike_subset(x, get.spikes)
     }

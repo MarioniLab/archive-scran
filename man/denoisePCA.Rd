@@ -10,7 +10,8 @@
 \S4method{denoisePCA}{matrix}(x, technical, design=NULL, subset.row=NULL,
     value=c("pca", "n", "lowrank"), min.rank=5, max.rank=100)
 
-\S4method{denoisePCA}{SCESet}(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE)
+\S4method{denoisePCA}{SCESet}(x, ..., subset.row=NULL, 
+    value=c("pca", "n", "lowrank"), assay="exprs", get.spikes=FALSE)
 }
 
 \arguments{

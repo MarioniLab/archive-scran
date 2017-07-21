@@ -38,7 +38,7 @@ importFrom("statmod", glmgam.fit)
 importFrom("splines", ns)
 
 importFrom("FNN", get.knn, get.knnx)
-importFrom("igraph", make_graph, simplify, E, "E<-", cluster_fast_greedy)
+importFrom("igraph", make_graph, simplify, E, "E<-", cluster_fast_greedy, modularity)
 
 # Graphical stuff:
 importFrom("shiny", actionButton, brushOpts, brushedPoints, column, fluidPage, fluidRow, observeEvent, 
