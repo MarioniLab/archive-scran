@@ -14,7 +14,7 @@
     design <- checked$design
     QR <- .ranksafe_qr(design)
 
-    lout <- .Call(cxx_estimate_variance, QR$qr, QR$qraux, x, subset.row - 1L)
+    lout <- .Call(cxx_fit_linear_model, QR$qr, QR$qraux, x, subset.row - 1L, FALSE)
     means <- lout[[1]]
     vars <- lout[[2]]
     names(means) <- names(vars) <- rownames(x)[subset.row]
