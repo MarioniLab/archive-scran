@@ -98,7 +98,7 @@
         min.p <- rep(1, ngenes)
         for (con in seq_len(ncon)) { 
             cur.p <- all.p[,con]
-            cur.rank <- rank(cur.p, ties="first")
+            cur.rank <- rank(cur.p, ties.method="first")
             min.rank <- pmin(min.rank, cur.rank)
             min.p <- pmin(min.p, cur.p)
         }
