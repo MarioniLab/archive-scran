@@ -93,7 +93,7 @@ setMethod("buildSNNGraph", "SCESet", function(x, ..., subset.row=NULL, assay="ex
     }
     if (use.dimred) {
         out <- .buildSNNGraph(reducedDimension(x), d=NA, transposed=TRUE,
-                              ..., subset.row=subset.row)
+                              ..., subset.row=NULL)
     } else {
         out <- .buildSNNGraph(assayDataElement(x, assay), transposed=FALSE,
                               ..., subset.row=subset.row)

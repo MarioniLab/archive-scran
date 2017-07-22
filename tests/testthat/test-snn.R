@@ -110,6 +110,12 @@ test_that("buildSNNGRaph with PCA works correctly", {
     reducedDimension(X) <- pc$x[,1:50]
     alt <- buildSNNGraph(X, use.dimred=TRUE)
     are_graphs_same(ref, alt)
+
+    # Ignores spike-in and subset.row specifications (correctly).
+    X <- calculateQCMetrics(X, feature_controls=list(ERCC=selected))
+    setSpike(X) <- "ERCC"
+    alt <- buildSNNGraph(X, use.dimred=TRUE)
+    are_graphs_same(ref, alt)
 })
 
 # Silly inputs.
