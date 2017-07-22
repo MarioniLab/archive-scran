@@ -1,4 +1,5 @@
-.findMarkers <- function(x, clusters, design=NULL, pval.type=c("any", "all"), direction=c("any", "up", "down"), subset.row=NULL)
+.findMarkers <- function(x, clusters, design=NULL, pval.type=c("any", "all"), direction=c("any", "up", "down"), 
+                         min.mean=0.1, subset.row=NULL)
 # Uses limma to find the markers that are differentially expressed between clusters,
 # given a log-expression matrix and some blocking factors in 'design'.
 #
@@ -32,12 +33,21 @@
     means <- stats[[2]]
     sigma2 <- stats[[3]]
 
-    # Performing the EB shrinkage, limma-style.
-    df.residual <- rep(nrow(full.design) - ncol(full.design), length(means))
-    eb.out <- squeezeVar(sigma2, df=df.residual, robust=TRUE, covariate=means)
-    df.total <- df.residual + eb.out$df.prior
-    df.pooled <- sum(df.residual, na.rm = TRUE)
-    df.total <- pmin(df.total, df.pooled)
+    # Performing the EB shrinkage in two chunks if min.mean is requested.
+    # This ensures that discreteness at low means is quarantined from the high abundances.
+    higher <- means >= min.mean
+    if (is.null(min.mean) || all(higher) || !any(higher)) { 
+        eb.out <- .perform_eb_shrinkage(sigma2, covariate=means, design=full.design)
+    } else {
+        high.out <- .perform_eb_shrinkage(sigma2[higher], covariate=means[higher], design=full.design)
+        low.out <- .perform_eb_shrinkage(sigma2[!higher], covariate=means[!higher], design=full.design)
+        eb.out <- mapply(low.out, high.out, FUN=function(low, high) {
+            val <- numeric(length(means))
+            val[higher] <- high
+            val[!higher] <- low
+            val            
+        }, SIMPLIFY=FALSE)
+    }
 
     # Doing a dummy fit, to avoid having to manually calculate standard errors.
     lfit <- lmFit(rbind(seq_len(nrow(full.design))), full.design)
@@ -68,7 +78,7 @@
             cur.lfc <- ref.coef - coefficients[not.h[con],]
             all.lfc[,con] <- cur.lfc
             cur.t <- cur.lfc/(lfit2$stdev.unscaled[con]*sqrt(eb.out$var.post))
-            cur.p <- 2 * pt(-abs(cur.t), df=df.total)
+            cur.p <- 2 * pt(-abs(cur.t), df=eb.out$df.total)
 
             if (direction=="up") { 
                 cur.p <- ifelse(cur.lfc > 0, cur.p/2, 1-cur.p/2)
@@ -113,6 +123,17 @@
     }
 
     return(output)
+}
+
+.perform_eb_shrinkage <- function(sigma2, covariate, design)
+# EB shrinkage, limma-style.
+{
+    df.residual <- rep(nrow(design) - ncol(design), length(covariate))
+    eb.out <- squeezeVar(sigma2, df=df.residual, robust=TRUE, covariate=covariate)
+    df.total <- df.residual + eb.out$df.prior
+    df.pooled <- sum(df.residual, na.rm = TRUE)
+    df.total <- pmin(df.total, df.pooled)
+    return(list(var.post=eb.out$var.post, df.total=df.total))
 }
 
 setGeneric("findMarkers", function(x, ...) standardGeneric("findMarkers"))

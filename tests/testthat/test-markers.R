@@ -14,8 +14,11 @@ X <- normalize(X)
 
 # Setting up a reference function.
 library(limma)
-REFFUN <- function(y, design, clust.vals, output, pval.type="any", direction="any") { 
+REFFUN <- function(y, design, clust.vals, output, pval.type="any", direction="any", min.mean=0.1) { 
     lfit <- lmFit(y, design)
+    all.means <- rowMeans(y)
+    do.solo <- is.null(min.mean) || all(all.means >= min.mean) || !any(all.means >= min.mean)
+
     for (host in clust.vals) {
         collected.lfc <- collected.p <- list()
         
@@ -25,8 +28,21 @@ REFFUN <- function(y, design, clust.vals, output, pval.type="any", direction="an
             con[[target]] <- -1
             
             fit2 <- contrasts.fit(lfit, con)
-            fit2 <- eBayes(fit2, trend=TRUE, robust=TRUE)
-            res <- topTable(fit2, n=Inf, sort.by="none")
+            if (do.solo) {
+                fit2 <- eBayes(fit2, trend=TRUE, robust=TRUE)
+                res <- topTable(fit2, n=Inf, sort.by="none")
+            } else {
+                higher <- all.means >= min.mean
+                fit2a <- fit2[higher,]
+                fit2b <- fit2[!higher,]
+                fit2a <- eBayes(fit2a, trend=TRUE, robust=TRUE)
+                fit2b <- eBayes(fit2b, trend=TRUE, robust=TRUE)
+
+                resa <- topTable(fit2a, n=Inf, sort.by="none")
+                resb <- topTable(fit2b, n=Inf, sort.by="none")
+                res <- rbind(resa, resb)
+                res <- res[order(c(which(higher), which(!higher))),]                
+            }
 
             if (direction=="up") {
                 is.up <- res$logFC > 0
@@ -143,6 +159,24 @@ test_that("findMarkers works with non-infinite prior d.f.", {
     design <- model.matrix(~0 + clusters)
     colnames(design) <- levels(clusters)
     REFFUN(y, design, levels(clusters), out)
+})
+
+# Testing the min.mean setting.
+
+set.seed(700002)
+test_that("findMarkers works with a variety of minimum means", {
+    s2 <- 10/rchisq(1000, df=10)
+    y <- matrix(rnorm(1000*200, sd=sqrt(s2)), nrow=1000)
+    rownames(y) <- paste0("X", seq_len(1000))
+    clusters <- factor(sample(3, 200, replace=TRUE))
+    
+    design <- model.matrix(~0 + clusters)
+    colnames(design) <- levels(clusters)
+    out <- findMarkers(y, clusters=clusters, min.mean=0)
+    REFFUN(y, design, levels(clusters), out, min.mean=0)
+
+    out <- findMarkers(y, clusters=clusters, min.mean=NULL)
+    REFFUN(y, design, levels(clusters), out, min.mean=NULL)
 })
 
 # Checking consistency upon silly inputs.
