@@ -86,11 +86,8 @@ setGeneric("buildSNNGraph", function(x, ...) standardGeneric("buildSNNGraph"))
 
 setMethod("buildSNNGraph", "matrix", .buildSNNGraph)
 
-setMethod("buildSNNGraph", "SingleCellExperiment", function(x, ..., subset.row=NULL, assay="exprs", 
-                                                            get.spikes=FALSE, use.dimred=NULL) {
-    if (is.null(subset.row)) { 
-        subset.row <- .spike_subset(x, get.spikes)
-    }
+setMethod("buildSNNGraph", "SingleCellExperiment", function(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE, use.dimred=NULL) {
+    subset.row <- .SCE_subset_genes(subset.row, x=x, get.spikes=get.spikes)
     if (!is.null(use.dimred)) {
         out <- .buildSNNGraph(reducedDim(x, use.dimred), d=NA, transposed=TRUE,
                               ..., subset.row=NULL)

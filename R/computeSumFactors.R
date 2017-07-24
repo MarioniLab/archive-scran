@@ -166,19 +166,8 @@ setGeneric("computeSumFactors", function(x, ...) standardGeneric("computeSumFact
 setMethod("computeSumFactors", "ANY", .computeSumFactors)
 
 setMethod("computeSumFactors", "SingleCellExperiment", function(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE, sf.out=FALSE) { 
-    mat <- assay(x, i=assay)
-    despiked <- .spike_subset(x, get.spikes)
-    
-    if (is.null(subset.row)) { 
-        subset.row <- despiked 
-    } else {
-        subset.row <- .subset_to_index(subset.row, mat, byrow=TRUE)
-        if (!is.null(despiked)) { 
-            subset.row <- intersect(subset.row, which(despiked))
-        }
-    }
-
-    sf <- .computeSumFactors(mat, subset.row=subset.row, ...) 
+    subset.row <- .SCE_subset_genes(subset.row=subset.row, x=x, get.spikes=get.spikes)
+    sf <- .computeSumFactors(assay(x, i=assay), subset.row=subset.row, ...) 
     if (sf.out) { 
         return(sf) 
     }

@@ -88,8 +88,6 @@ setMethod("sandbag", "matrix", function(x, phases, gene.names=rownames(x), fract
 })
 
 setMethod("sandbag", "SingleCellExperiment", function(x, phases, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) {
-    if (is.null(subset.row)) { 
-        subset.row <- .spike_subset(x, get.spikes)
-    }
+    subset.row <- .SCE_subset_genes(subset.row=subset.row, x=x, get.spikes=get.spikes)
     sandbag(assay(x, i=assay), phases=phases, ..., subset.row=subset.row)
 })

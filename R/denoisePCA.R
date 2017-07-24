@@ -97,16 +97,14 @@ setMethod("denoisePCA", "matrix", .denoisePCA)
 
 setMethod("denoisePCA", "SingleCellExperiment", function(x, ..., subset.row=NULL, value=c("pca", "n", "lowrank"), 
                                                          assay="exprs", get.spikes=FALSE) {
-    if (is.null(subset.row)) {
-        subset.row <- .spike_subset(x, get.spikes)
-    }
+    subset.row <- .SCE_subset_genes(subset.row=subset.row, x=x, get.spikes=get.spikes)
     out <- .denoisePCA(assay(x, i=assay), ..., value=value, subset.row=subset.row)
 
     value <- match.arg(value) 
     if (value=="pca"){ 
-        reducedDimension(x) <- out
+        reducedDim(x, "PCA") <- out
     } else if (value=="n") {
-        ; # will put this into metadata in the future.
+        metadata(x)$denoised.npcs <- out
     } else if (value=="lowrank") {
         original <- assay(x, i=assay)
         subset.row <- .subset_to_index(subset.row, original, byrow=TRUE)

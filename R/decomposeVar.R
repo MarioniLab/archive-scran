@@ -39,8 +39,11 @@ setMethod("decomposeVar", c("ANY", "list"), .decompose_var)
 setMethod("decomposeVar", c("SingleCellExperiment", "list"), function(x, fit, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
     .check_centered_SF(x, assay=assay)
     out <- decomposeVar(assay(x, i=assay), fit, ..., subset.row=subset.row)
+
+    # We just set spike-ins to NA rather than removing them.
+    # This guarantees same gene order as if we had done x[subset.row,].
     if (!get.spikes) {
-        nokeep <- isSpike(x, warning=FALSE)
+        nokeep <- isSpike(x)
         if (!is.null(subset.row)) { 
             nokeep <- nokeep[subset.row]
         }

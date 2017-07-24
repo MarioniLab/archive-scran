@@ -3,9 +3,8 @@
 setGeneric("convertTo", function(x, ...) standardGeneric("convertTo"))
 
 setMethod("convertTo", "SingleCellExperiment", function(x, type=c("edgeR", "DESeq2", "monocle"),
-    row.fields=NULL, col.fields=NULL, ..., assay, use.all.sf=TRUE, normalize=TRUE, 
-    subset.row=NULL, get.spikes=FALSE) {
-
+                                                        row.fields=NULL, col.fields=NULL, ..., assay, use.all.sf=TRUE, normalize=TRUE, 
+                                                        subset.row=NULL, get.spikes=FALSE) {
     # Setting up the extraction.
     type <- match.arg(type)
     sf <- suppressWarnings(sizeFactors(x))
@@ -18,13 +17,8 @@ setMethod("convertTo", "SingleCellExperiment", function(x, type=c("edgeR", "DESe
     }
     if (missing(assay)) { assay <- "counts" }
 
-    # Determining whether spikes should be retained.
-    if (is.null(subset.row)) {
-        subset.row <- .spike_subset(x, get.spikes)
-    }
-    if (!is.null(subset.row)) {
-        subset.row <- .subset_to_index(subset.row, x)
-    }
+    # Determining which genes should be extracted.
+    subset.row <- .SCE_subset_genes(subset.row, x=x, get.spikes=get.spikes)
 
     # Collecting size factors for spikes.
     offset.index <- rep(1L, nrow(x))

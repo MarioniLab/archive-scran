@@ -27,6 +27,19 @@
     return(out)
 }
 
+.SCE_subset_genes <- function(subset.row, x, get.spikes) {
+    despiked <- .spike_subset(x, get.spikes)
+    if (is.null(subset.row)) { 
+        subset.row <- despiked
+    } else {
+        subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
+        if (!is.null(despiked)) { 
+            subset.row <- intersect(subset.row, which(despiked))
+        }
+    }
+    return(subset.row)
+}
+
 #################################################
 
 .make_var_defaults <- function(x, fit, design) 

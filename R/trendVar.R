@@ -138,6 +138,7 @@ setMethod("trendVar", "SingleCellExperiment", function(x, subset.row=NULL, ..., 
     mat <- assay(x, i=assay)
     subset.row <- .subset_to_index(subset.row, mat, byrow=TRUE)
 
+    # Can use only spikes, everything but spikes, or everything. 
     if (!is.na(use.spikes)) {
         is.spike <- isSpike(x)
         if (is.null(is.spike)) {
