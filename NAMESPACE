@@ -15,13 +15,12 @@ exportMethods(
     correlatePairs,
     denoisePCA,
     findMarkers, overlapExprs,
-    "isSpike<-", 
     convertTo
 )
 
 importFrom("Rcpp", sourceCpp)
 
-importFrom("Biobase", assayDataElement, "assayDataElement<-", fData, exprs, featureData, phenoData, pData)
+importFrom("scater", calcAverage)
 
 importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("Matrix", sparseMatrix, qr, qr.coef, qr.qty, t, which)
@@ -52,5 +51,5 @@ importFrom("graphics", text)
 
 # packages in "Depends":
 import(BiocParallel)
-import(scater)
+import(SingleCellExperiment)
 import(methods)

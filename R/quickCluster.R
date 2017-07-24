@@ -39,7 +39,7 @@
     }
     clusters <- factor(clusters)
     return(clusters)
-})
+}
 
 .merge_closest_graph <- function(g, clusters, min.size) {
     while (1) {
