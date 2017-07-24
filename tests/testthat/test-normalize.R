@@ -86,24 +86,26 @@ sumInR <- function(x, sizes, center=TRUE) {
     return(sf)
 }
 
-ngenes2 <- 200
-x <- matrix(rpois(ngenes2*ncells, lambda=10), nrow=ngenes2, ncol=ncells)
-sizes <- seq(20, 100, 5)
-ref <- sumInR(x, sizes)
-obs <- computeSumFactors(x, sizes=sizes)
-expect_equal(ref, obs)
-
-x <- matrix(rpois(ncells*ngenes2, lambda=10), nrow=ngenes2, ncol=ncells)
-x[sample(nrow(x), 100),] <- 0L # Throwing in some zeroes.
-ref <- sumInR(x, sizes)
-obs <- computeSumFactors(x, sizes=sizes, mean.warn=FALSE) # shutting up the warnings here.
-expect_equal(ref, obs)
-
-x <- matrix(rpois(ncells*ngenes2, lambda=10), nrow=ngenes2, ncol=ncells)
-subset.row <- sample(nrow(x), 100)
-ref <- sumInR(x[subset.row,,drop=FALSE], sizes)
-obs <- computeSumFactors(x, subset.row=subset.row, sizes=sizes)
-expect_equal(ref, obs)
+test_that("computeSumFactors agrees with a reference implementation", {
+    ngenes2 <- 200
+    x <- matrix(rpois(ngenes2*ncells, lambda=10), nrow=ngenes2, ncol=ncells)
+    sizes <- seq(20, 100, 5)
+    ref <- sumInR(x, sizes)
+    obs <- computeSumFactors(x, sizes=sizes)
+    expect_equal(ref, obs)
+    
+    x <- matrix(rpois(ncells*ngenes2, lambda=10), nrow=ngenes2, ncol=ncells)
+    x[sample(nrow(x), 100),] <- 0L # Throwing in some zeroes.
+    ref <- sumInR(x, sizes)
+    obs <- computeSumFactors(x, sizes=sizes, min.mean=0) # Avoiding the filtering here, to test within-cluster filters.
+    expect_equal(ref, obs)
+    
+    x <- matrix(rpois(ncells*ngenes2, lambda=10), nrow=ngenes2, ncol=ncells)
+    subset.row <- sample(nrow(x), 100)
+    ref <- sumInR(x[subset.row,,drop=FALSE], sizes)
+    obs <- computeSumFactors(x, subset.row=subset.row, sizes=sizes)
+    expect_equal(ref, obs)
+})
 
 ####################################################################################################
 
@@ -192,11 +194,10 @@ test_that("computeSumFactors works on SCESest objects", {
 
 set.seed(20002)
 test_that("computeSumFactors correctly detects low-abundance genes", {
-    dummy <- matrix(rpois(ngenes*ncells, lambda=0.1), nrow=ngenes, ncol=ncells)
-    expect_warning(computeSumFactors(dummy), "low-abundance genes")
-    expect_warning(computeSumFactors(dummy, mean.warn=FALSE), NA)
-    keep <- scater::calcAverage(dummy) > 0.11 # slightly higher, as library sizes change after filtering.
-    expect_warning(computeSumFactors(dummy, subset.row=keep), NA)
+    dummy <- matrix(rpois(ngenes*ncells, lambda=1), nrow=ngenes, ncol=ncells)
+    expect_equal(computeSumFactors(dummy), computeSumFactors(dummy[calcAverage(dummy)>=1,], min.mean=NULL))
+    expect_equal(computeSumFactors(dummy, subset.row=1:500),
+                 computeSumFactors(dummy[intersect(1:500, which(calcAverage(dummy)>=1)),], min.mean=NULL))
 })
 
 # Throwing in some silly inputs.

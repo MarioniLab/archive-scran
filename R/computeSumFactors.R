@@ -1,5 +1,5 @@
 .computeSumFactors <- function(x, sizes=seq(20, 100, 5), clusters=NULL, ref.clust=NULL, 
-                               positive=FALSE, errors=FALSE, mean.warn=TRUE, subset.row=NULL) 
+                               positive=FALSE, errors=FALSE, min.mean=1, subset.row=NULL) 
 # This contains the function that performs normalization on the summed counts.
 # It also provides support for normalization within clusters, and then between
 # clusters to make things comparable. It can also switch to linear inverse models
@@ -26,14 +26,17 @@
         stop("'sizes' are not unique") 
     }
 
-    # Checking the subsetting.
+    # Checking the subsetting (with interplay with min.mean if required).
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
+    if (!is.null(min.mean)) { 
+        high.ave <- which(scater::calcAverage(x) >= min.mean)
+        subset.row <- intersect(high.ave, subset.row)
+    }
 
     # Setting some other values.
     nclusters <- length(indices)
     clust.nf <- clust.profile <- clust.libsizes <- clust.meanlib <- clust.se <- vector("list", nclusters)
     warned.neg <- FALSE
-    all.lib <- all.profile <- 0
 
     # Computing normalization factors within each cluster first.
     for (clust in seq_len(nclusters)) { 
@@ -84,20 +87,6 @@
         clust.profile[[clust]] <- ave.cell
         clust.libsizes[[clust]] <- cur.libs
         clust.meanlib[[clust]] <- mean(cur.libs)
-        
-        # Storing things to get the average count for warning.
-        all.lib <- all.lib + sum(cur.libs)
-        all.profile <- all.profile + ave.cell * length(cur.libs)
-    }
-
-    # Printing a warning if we see low-abundance genes.
-    # This mimics the calcAverage calculation, after adjusting for the mean library size.
-    if (mean.warn) {
-        mean.profile <- all.profile/ncells 
-        mean.lib <- all.lib/ncells
-        if (any(mean.profile*mean.lib < 0.1)) {
-            warning("low-abundance genes (library size-adjusted average counts below 0.1) detected")
-        }
     }
 
     # Adjusting size factors between clusters (using the cluster with the
