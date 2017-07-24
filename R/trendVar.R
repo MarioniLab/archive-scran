@@ -133,13 +133,13 @@ setGeneric("trendVar", function(x, ...) standardGeneric("trendVar"))
 
 setMethod("trendVar", "ANY", .trend_var)
 
-setMethod("trendVar", "SCESet", function(x, subset.row=NULL, ..., assay="exprs", use.spikes=TRUE) {
+setMethod("trendVar", "SingleCellExperiment", function(x, subset.row=NULL, ..., assay="exprs", use.spikes=TRUE) {
     .check_centered_SF(x, assay=assay)
-    mat <- assayDataElement(x, assay)
+    mat <- assay(x, i=assay)
     subset.row <- .subset_to_index(subset.row, mat, byrow=TRUE)
 
     if (!is.na(use.spikes)) {
-        is.spike <- isSpike(x, warning=FALSE)
+        is.spike <- isSpike(x)
         if (is.null(is.spike)) {
             is.spike <- logical(nrow(x))
         }

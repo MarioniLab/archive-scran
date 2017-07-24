@@ -36,9 +36,9 @@ setGeneric("decomposeVar", function(x, fit, ...) standardGeneric("decomposeVar")
 
 setMethod("decomposeVar", c("ANY", "list"), .decompose_var)
 
-setMethod("decomposeVar", c("SCESet", "list"), function(x, fit, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
+setMethod("decomposeVar", c("SingleCellExperiment", "list"), function(x, fit, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
     .check_centered_SF(x, assay=assay)
-    out <- decomposeVar(assayDataElement(x, assay), fit, ..., subset.row=subset.row)
+    out <- decomposeVar(assay(x, i=assay), fit, ..., subset.row=subset.row)
     if (!get.spikes) {
         nokeep <- isSpike(x, warning=FALSE)
         if (!is.null(subset.row)) { 

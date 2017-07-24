@@ -94,9 +94,9 @@ setGeneric("overlapExprs", function(x, ...) standardGeneric("overlapExprs"))
 
 setMethod("overlapExprs", "matrix", .overlapExprs)
 
-setMethod("overlapExprs", "SCESet", function(x, ..., subset.row=NULL, lower.bound=NULL, assay="exprs", get.spikes=FALSE) {
+setMethod("overlapExprs", "SingleCellExperiment", function(x, ..., subset.row=NULL, lower.bound=NULL, assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) { subset.row <- .spike_subset(x, get.spikes) }
     lower.bound <- .guess_lower_bound(x, assay, lower.bound)
-    .overlapExprs(assayDataElement(x, assay), ..., lower.bound=lower.bound, subset.row=subset.row)
+    .overlapExprs(assay(x, i=assay), ..., lower.bound=lower.bound, subset.row=subset.row)
 })                                 
 

@@ -74,10 +74,10 @@ setGeneric("cyclone", function(x, ...) standardGeneric("cyclone"))
 
 setMethod("cyclone", "ANY", .cyclone)
 
-setMethod("cyclone", "SCESet", function(x, pairs, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) {
+setMethod("cyclone", "SingleCellExperiment", function(x, pairs, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) {
     if (is.null(subset.row)) {
         subset.row <- .spike_subset(x, get.spikes)
     }
-    cyclone(assayDataElement(x, assay), pairs=pairs, subset.row=subset.row, ...)          
+    cyclone(assay(x, i=assay), pairs=pairs, subset.row=subset.row, ...)          
 })
 

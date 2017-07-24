@@ -1,5 +1,3 @@
-setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
-
 .correlate_pairs <- function(x, null.dist=NULL, design=NULL, BPPARAM=SerialParam(), tol=1e-8, iters=1e6, residuals=FALSE, 
                              use.names=TRUE, subset.row=NULL, per.gene=FALSE, lower.bound=NULL, block.size=100L)
 # This calculates a (modified) Spearman's rho for each pair of genes.
@@ -203,10 +201,12 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
     invisible(NULL)
 }
 
+setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
+
 setMethod("correlatePairs", "ANY", .correlate_pairs)
 
-setMethod("correlatePairs", "SCESet", function(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE, lower.bound=NULL, 
-                                               assay="exprs", get.spikes=FALSE) {
+setMethod("correlatePairs", "SingleCellExperiment", function(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE, 
+                                                             lower.bound=NULL, assay="exprs", get.spikes=FALSE) {
     by.spikes <- FALSE
     if (is.null(subset.row)) {
         subset.row <- .spike_subset(x, get.spikes)
@@ -214,7 +214,7 @@ setMethod("correlatePairs", "SCESet", function(x, ..., use.names=TRUE, subset.ro
     }
     lower.bound <- .guess_lower_bound(x, assay, lower.bound)
 
-    out <- .correlate_pairs(assayDataElement(x, assay), subset.row=subset.row, per.gene=per.gene, 
+    out <- .correlate_pairs(assay(x, i=assay), subset.row=subset.row, per.gene=per.gene, 
                             use.names=use.names, lower.bound=lower.bound, ...)
 
     # Returning a row for all elements, even if it is NA.

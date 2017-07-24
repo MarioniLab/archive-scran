@@ -78,7 +78,7 @@ setGeneric("improvedCV2", function(x, ...) standardGeneric("improvedCV2"))
 
 setMethod("improvedCV2", "matrix", .improvedCV2)
 
-setMethod("improvedCV2", "SCESet", function(x, spike.type=NULL, ..., assay="exprs", logged=NULL) {
+setMethod("improvedCV2", "SingleCellExperiment", function(x, spike.type=NULL, ..., assay="exprs", logged=NULL) {
     prep <- .prepare_cv2_data(x, spike.type=spike.type)
     
     log.prior <- NULL
@@ -92,7 +92,7 @@ setMethod("improvedCV2", "SCESet", function(x, spike.type=NULL, ..., assay="expr
         }
     }
 
-    .improvedCV2(assayDataElement(x, assay), is.spike=prep$is.spike, 
+    .improvedCV2(assay(x, i=assay), is.spike=prep$is.spike, 
                   sf.cell=prep$sf.cell, sf.spike=prep$sf.spike, log.prior=log.prior, ...)          
 })
 

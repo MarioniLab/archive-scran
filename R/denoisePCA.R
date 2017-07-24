@@ -95,12 +95,12 @@ setGeneric("denoisePCA", function(x, ...) standardGeneric("denoisePCA"))
 
 setMethod("denoisePCA", "matrix", .denoisePCA)
 
-setMethod("denoisePCA", "SCESet", function(x, ..., subset.row=NULL, value=c("pca", "n", "lowrank"), 
-                                           assay="exprs", get.spikes=FALSE) {
+setMethod("denoisePCA", "SingleCellExperiment", function(x, ..., subset.row=NULL, value=c("pca", "n", "lowrank"), 
+                                                         assay="exprs", get.spikes=FALSE) {
     if (is.null(subset.row)) {
         subset.row <- .spike_subset(x, get.spikes)
     }
-    out <- .denoisePCA(assayDataElement(x, assay), ..., value=value, subset.row=subset.row)
+    out <- .denoisePCA(assay(x, i=assay), ..., value=value, subset.row=subset.row)
 
     value <- match.arg(value) 
     if (value=="pca"){ 
@@ -108,11 +108,11 @@ setMethod("denoisePCA", "SCESet", function(x, ..., subset.row=NULL, value=c("pca
     } else if (value=="n") {
         ; # will put this into metadata in the future.
     } else if (value=="lowrank") {
-        original <- assayDataElement(x, assay)
+        original <- assay(x, i=assay)
         subset.row <- .subset_to_index(subset.row, original, byrow=TRUE)
         output <- matrix(NA_real_, nrow(original), ncol(original))
         output[subset.row,] <- out
-        assayDataElement(x, "lowrank") <- output
+        assay(x, i="lowrank") <- output
     }
     return(x)
 })

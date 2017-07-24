@@ -1,6 +1,4 @@
-setGeneric("quickCluster", function(x, ...) standardGeneric("quickCluster"))
-
-setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, get.ranks=FALSE, method=c("hclust", "igraph"), ...)  
+.quick_cluster <- function(x, min.size=200, subset.row=NULL, get.ranks=FALSE, method=c("hclust", "igraph"), ...)  
 # This function generates a cluster vector containing the cluster number assigned to each cell.
 # It takes the counts matrix and a minimum number of Cells per cluster as input.
 # The minimum number should be at least twice as large as the largest group used for summation.
@@ -78,10 +76,14 @@ setMethod("quickCluster", "matrix", function(x, min.size=200, subset.row=NULL, g
     return(clusters)
 }
 
-setMethod("quickCluster", "SCESet", function(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) { 
+setGeneric("quickCluster", function(x, ...) standardGeneric("quickCluster"))
+
+setMethod("quickCluster", "matrix", .quick_cluster)
+
+setMethod("quickCluster", "SingleCellExperiment", function(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) { 
     if (is.null(subset.row)) {
         subset.row <- .spike_subset(x, get.spikes)
     }
-    quickCluster(assayDataElement(x, assay), subset.row=subset.row, ...)
+    .quick_cluster(assay(x, i=assay), subset.row=subset.row, ...)
 })
 

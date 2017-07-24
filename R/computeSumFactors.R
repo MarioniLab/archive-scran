@@ -165,8 +165,8 @@ setGeneric("computeSumFactors", function(x, ...) standardGeneric("computeSumFact
 
 setMethod("computeSumFactors", "ANY", .computeSumFactors)
 
-setMethod("computeSumFactors", "SCESet", function(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE, sf.out=FALSE) { 
-    mat <- assayDataElement(x, assay)
+setMethod("computeSumFactors", "SingleCellExperiment", function(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE, sf.out=FALSE) { 
+    mat <- assay(x, i=assay)
     despiked <- .spike_subset(x, get.spikes)
     
     if (is.null(subset.row)) { 

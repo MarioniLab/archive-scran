@@ -2,19 +2,19 @@
 
 setGeneric("convertTo", function(x, ...) standardGeneric("convertTo"))
 
-setMethod("convertTo", "SCESet", function(x, type=c("edgeR", "DESeq2", "monocle"),
-    fData.col=NULL, pData.col=NULL, ..., assay, use.all.sf=TRUE, normalize=TRUE, 
+setMethod("convertTo", "SingleCellExperiment", function(x, type=c("edgeR", "DESeq2", "monocle"),
+    row.fields=NULL, col.fields=NULL, ..., assay, use.all.sf=TRUE, normalize=TRUE, 
     subset.row=NULL, get.spikes=FALSE) {
 
     # Setting up the extraction.
     type <- match.arg(type)
     sf <- suppressWarnings(sizeFactors(x))
     if (type=="edgeR" || type=="DESeq2") { 
-        fd <- fData(x)[,fData.col,drop=FALSE]
-        pd <- pData(x)[,pData.col,drop=FALSE] 
+        fd <- rowData(x)[,row.fields,drop=FALSE]
+        pd <- colData(x)[,col.fields,drop=FALSE] 
     } else if (type=="monocle") {
-        fd <- featureData(x)[,fData.col,drop=FALSE]
-        pd <- phenoData(x)[,pData.col,drop=FALSE] 
+        fd <- rowData(x)[,row.fields,drop=FALSE]
+        pd <- colData(x)[,col.fields,drop=FALSE] 
     }
     if (missing(assay)) { assay <- "counts" }
 
@@ -32,7 +32,7 @@ setMethod("convertTo", "SCESet", function(x, type=c("edgeR", "DESeq2", "monocle"
     if (is.null(sf)) { 
         collected.sfs[[1]] <- numeric(length(sf))
     } 
-    for (st in whichSpike(x)) {
+    for (st in spikenames(x)) {
         spike.sf <- suppressWarnings(sizeFactors(x, type=st))
         if (!is.null(spike.sf)) {
             it <- length(collected.sfs) + 1L
@@ -46,7 +46,7 @@ setMethod("convertTo", "SCESet", function(x, type=c("edgeR", "DESeq2", "monocle"
 
     # Constructing objects of various types.
     if (type=="edgeR") {
-        y <- DGEList(assayDataElement(x, assay), ...)
+        y <- DGEList(assay(x, i=assay), ...)
         if (ncol(fd)) { y$genes <- fd }
         if (!is.null(sf)) { 
             nf <- log(sf/y$samples$lib.size)
@@ -64,7 +64,7 @@ setMethod("convertTo", "SCESet", function(x, type=c("edgeR", "DESeq2", "monocle"
         return(y)
 
     } else if (type=="DESeq2") {
-        dds <- DESeq2::DESeqDataSetFromMatrix(assayDataElement(x, assay), pd, ~1, ...)
+        dds <- DESeq2::DESeqDataSetFromMatrix(assay(x, i=assay), pd, ~1, ...)
         S4Vectors::mcols(dds) <- fd
         if (!is.null(sf)) { 
             sizeFactors(dds) <- sf
@@ -89,7 +89,7 @@ setMethod("convertTo", "SCESet", function(x, type=c("edgeR", "DESeq2", "monocle"
                 }
             }
         } else {
-            cur.exprs <- assayDataElement(x, assay)
+            cur.exprs <- assay(x, i=assay)
         }
         out <- monocle::newCellDataSet(cur.exprs, phenoData=pd, featureData=fd, ...)
         if (!is.null(subset.row)) { out <- out[subset.row,] }

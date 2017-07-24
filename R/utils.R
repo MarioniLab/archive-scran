@@ -1,6 +1,6 @@
 .spike_subset <- function(x, get.spikes) {
     if (!get.spikes) {
-        nokeep <- isSpike(x, warning=FALSE)
+        nokeep <- isSpike(x)
         if (!is.null(nokeep) && any(nokeep)) {
             return(!nokeep)
         }
@@ -61,7 +61,7 @@
         is.spike <- isSpike(x, type=spike.type)
         if (is.null(spike.type)) { 
             # Get all spikes.
-            spike.type <- whichSpike(x)            
+            spike.type <- spikeNames(x)            
         }
         if (!length(spike.type)) { 
             stop("no spike-in sets specified from 'x'")
@@ -71,7 +71,7 @@
         # Check that all spike-in factors are either NULL or identical.
         collected <- NULL
         for (st in seq_along(spike.type)) {
-            cur.sf <- suppressWarnings(sizeFactors(x, type=spike.type[st]))
+            cur.sf <- sizeFactors(x, type=spike.type[st])
             if (st==1L) {
                 collected <- cur.sf
             } else if (!isTRUE(all.equal(collected, cur.sf))) {
@@ -162,10 +162,16 @@
 { 
     if (is.null(lower.bound)) { 
         if (assay=="exprs") {
-            lower.bound <- log2(x@logExprsOffset) + 1e-8
+            lower.bound <- log2(.get_log_offset(x)) + 1e-8
         } else if (assay=="counts") {
             lower.bound <- 1e-8
         }
     }
     return(lower.bound)
+}
+
+.get_log_offset <- function(x) 
+# Helper function to get the log-offset value.
+{
+    metadata(x)$log.exprs.offset
 }
