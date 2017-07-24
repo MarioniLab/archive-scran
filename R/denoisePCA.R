@@ -95,10 +95,12 @@ setGeneric("denoisePCA", function(x, ...) standardGeneric("denoisePCA"))
 
 setMethod("denoisePCA", "matrix", .denoisePCA)
 
-setMethod("denoisePCA", "SingleCellExperiment", function(x, ..., subset.row=NULL, value=c("pca", "n", "lowrank"), 
-                                                         assay="exprs", get.spikes=FALSE) {
+setMethod("denoisePCA", "SingleCellExperiment", 
+          function(x, ..., subset.row=NULL, value=c("pca", "n", "lowrank"), 
+                   assay.type="exprs", get.spikes=FALSE) {
+
     subset.row <- .SCE_subset_genes(subset.row=subset.row, x=x, get.spikes=get.spikes)
-    out <- .denoisePCA(assay(x, i=assay), ..., value=value, subset.row=subset.row)
+    out <- .denoisePCA(assay(x, i=assay.type), ..., value=value, subset.row=subset.row)
 
     value <- match.arg(value) 
     if (value=="pca"){ 

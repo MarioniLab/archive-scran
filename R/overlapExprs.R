@@ -94,9 +94,11 @@ setGeneric("overlapExprs", function(x, ...) standardGeneric("overlapExprs"))
 
 setMethod("overlapExprs", "matrix", .overlapExprs)
 
-setMethod("overlapExprs", "SingleCellExperiment", function(x, ..., subset.row=NULL, lower.bound=NULL, assay="exprs", get.spikes=FALSE) {
+setMethod("overlapExprs", "SingleCellExperiment", 
+          function(x, ..., subset.row=NULL, lower.bound=NULL, assay.type="exprs", get.spikes=FALSE) {
+
     subset.row <- .SCE_subset_genes(subset.row=subset.row, x=x, get.spikes=get.spikes)
-    lower.bound <- .guess_lower_bound(x, assay, lower.bound)
-    .overlapExprs(assay(x, i=assay), ..., lower.bound=lower.bound, subset.row=subset.row)
+    lower.bound <- .guess_lower_bound(x, assay.type, lower.bound)
+    .overlapExprs(assay(x, i=assay.type), ..., lower.bound=lower.bound, subset.row=subset.row)
 })                                 
 

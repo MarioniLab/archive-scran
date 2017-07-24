@@ -53,12 +53,12 @@
     return(list(design=design))
 }
 
-.check_centered_SF <- function(x, assay) 
+.check_centered_SF <- function(x, assay.type) 
 # Checks if 'exprs' was requested, and if it could have been computed from counts,
 # If so, then it checks if the size factors are centered.
 {
-    if (assay=="exprs" && 
-        !is.null(suppressWarnings(get_exprs(x, "counts", warning=TRUE))) && 
+    if (assay.type=="exprs" && 
+        "counts" %in% assayNames(x) && 
         !areSizeFactorsCentred(x)) {
         warning("size factors not centred, run 'normalize()' first")
     }
@@ -168,15 +168,15 @@
     .Call(cxx_get_residuals, x, QR$qr, QR$qraux, subset.row - 1L, as.double(lower.bound))
 }
 
-.guess_lower_bound <- function(x, assay, lower.bound) 
+.guess_lower_bound <- function(x, assay.type, lower.bound) 
 # Getting the lower bound on the expression values for a given assay, if not supplied.
 # We bump it up a little to make sure that expression values at the lower bound will 
 # actually be detected as being "<= lower.bound".
 { 
     if (is.null(lower.bound)) { 
-        if (assay=="exprs") {
+        if (assay.type=="exprs") {
             lower.bound <- log2(.get_log_offset(x)) + 1e-8
-        } else if (assay=="counts") {
+        } else if (assay.type=="counts") {
             lower.bound <- 1e-8
         }
     }

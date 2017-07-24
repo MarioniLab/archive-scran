@@ -205,8 +205,10 @@ setGeneric("correlatePairs", function(x, ...) standardGeneric("correlatePairs"))
 
 setMethod("correlatePairs", "ANY", .correlate_pairs)
 
-setMethod("correlatePairs", "SingleCellExperiment", function(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE, 
-                                                             lower.bound=NULL, assay="exprs", get.spikes=FALSE) {
+setMethod("correlatePairs", "SingleCellExperiment", 
+          function(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE, 
+                   lower.bound=NULL, assay.type="exprs", get.spikes=FALSE) {
+              
     by.spikes <- FALSE
     if (is.null(subset.row)) {
         subset.row <- .spike_subset(x, get.spikes)
@@ -214,7 +216,7 @@ setMethod("correlatePairs", "SingleCellExperiment", function(x, ..., use.names=T
     }
     lower.bound <- .guess_lower_bound(x, assay, lower.bound)
 
-    out <- .correlate_pairs(assay(x, i=assay), subset.row=subset.row, per.gene=per.gene, 
+    out <- .correlate_pairs(assay(x, i=assay.type), subset.row=subset.row, per.gene=per.gene, 
                             use.names=use.names, lower.bound=lower.bound, ...)
 
     # Returning a row for all elements, even if it is NA.

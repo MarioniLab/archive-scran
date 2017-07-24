@@ -36,9 +36,11 @@ setGeneric("decomposeVar", function(x, fit, ...) standardGeneric("decomposeVar")
 
 setMethod("decomposeVar", c("ANY", "list"), .decompose_var)
 
-setMethod("decomposeVar", c("SingleCellExperiment", "list"), function(x, fit, subset.row=NULL, ..., assay="exprs", get.spikes=FALSE) {
-    .check_centered_SF(x, assay=assay)
-    out <- decomposeVar(assay(x, i=assay), fit, ..., subset.row=subset.row)
+setMethod("decomposeVar", c("SingleCellExperiment", "list"), 
+          function(x, fit, subset.row=NULL, ..., assay.type="exprs", get.spikes=FALSE) {
+
+    .check_centered_SF(x, assay.type=assay.type)
+    out <- decomposeVar(assay(x, i=assay.type), fit, ..., subset.row=subset.row)
 
     # We just set spike-ins to NA rather than removing them.
     # This guarantees same gene order as if we had done x[subset.row,].

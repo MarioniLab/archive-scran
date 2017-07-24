@@ -80,8 +80,10 @@ setGeneric("quickCluster", function(x, ...) standardGeneric("quickCluster"))
 
 setMethod("quickCluster", "matrix", .quick_cluster)
 
-setMethod("quickCluster", "SingleCellExperiment", function(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE) { 
+setMethod("quickCluster", "SingleCellExperiment", 
+          function(x, subset.row=NULL, ..., assay.type="counts", get.spikes=FALSE) { 
+
     subset.row <- .SCE_subset_genes(subset.row=subset.row, x=x, get.spikes=get.spikes)          
-    .quick_cluster(assay(x, i=assay), subset.row=subset.row, ...)
+    .quick_cluster(assay(x, i=assay.type), subset.row=subset.row, ...)
 })
 

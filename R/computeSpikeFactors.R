@@ -1,6 +1,7 @@
 setGeneric("computeSpikeFactors", function(x, ...) { standardGeneric("computeSpikeFactors") })
 
-setMethod("computeSpikeFactors", "SingleCellExperiment", function(x, type=NULL, sf.out=FALSE, general.use=TRUE) 
+setMethod("computeSpikeFactors", "SingleCellExperiment", 
+          function(x, type=NULL, assay.type="counts", sf.out=FALSE, general.use=TRUE) 
 # Uses the mean-centred total of spike-in transcripts as the size factor.
 #
 # written by Aaron Lun

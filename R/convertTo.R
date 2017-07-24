@@ -2,9 +2,11 @@
 
 setGeneric("convertTo", function(x, ...) standardGeneric("convertTo"))
 
-setMethod("convertTo", "SingleCellExperiment", function(x, type=c("edgeR", "DESeq2", "monocle"),
-                                                        row.fields=NULL, col.fields=NULL, ..., assay, use.all.sf=TRUE, normalize=TRUE, 
-                                                        subset.row=NULL, get.spikes=FALSE) {
+setMethod("convertTo", "SingleCellExperiment", 
+          function(x, type=c("edgeR", "DESeq2", "monocle"),
+                   row.fields=NULL, col.fields=NULL, ..., assay.type, use.all.sf=TRUE, normalize=TRUE, 
+                   subset.row=NULL, get.spikes=FALSE) {
+              
     # Setting up the extraction.
     type <- match.arg(type)
     sf <- suppressWarnings(sizeFactors(x))
@@ -40,7 +42,7 @@ setMethod("convertTo", "SingleCellExperiment", function(x, type=c("edgeR", "DESe
 
     # Constructing objects of various types.
     if (type=="edgeR") {
-        y <- DGEList(assay(x, i=assay), ...)
+        y <- DGEList(assay(x, i=assay.type), ...)
         if (ncol(fd)) { y$genes <- fd }
         if (!is.null(sf)) { 
             nf <- log(sf/y$samples$lib.size)
@@ -58,7 +60,7 @@ setMethod("convertTo", "SingleCellExperiment", function(x, type=c("edgeR", "DESe
         return(y)
 
     } else if (type=="DESeq2") {
-        dds <- DESeq2::DESeqDataSetFromMatrix(assay(x, i=assay), pd, ~1, ...)
+        dds <- DESeq2::DESeqDataSetFromMatrix(assay(x, i=assay.type), pd, ~1, ...)
         S4Vectors::mcols(dds) <- fd
         if (!is.null(sf)) { 
             sizeFactors(dds) <- sf
@@ -83,7 +85,7 @@ setMethod("convertTo", "SingleCellExperiment", function(x, type=c("edgeR", "DESe
                 }
             }
         } else {
-            cur.exprs <- assay(x, i=assay)
+            cur.exprs <- assay(x, i=assay.type)
         }
         out <- monocle::newCellDataSet(cur.exprs, phenoData=pd, featureData=fd, ...)
         if (!is.null(subset.row)) { out <- out[subset.row,] }

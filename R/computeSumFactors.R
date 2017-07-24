@@ -165,9 +165,11 @@ setGeneric("computeSumFactors", function(x, ...) standardGeneric("computeSumFact
 
 setMethod("computeSumFactors", "ANY", .computeSumFactors)
 
-setMethod("computeSumFactors", "SingleCellExperiment", function(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE, sf.out=FALSE) { 
+setMethod("computeSumFactors", "SingleCellExperiment", 
+          function(x, subset.row=NULL, ..., assay.type"counts", get.spikes=FALSE, sf.out=FALSE) { 
+
     subset.row <- .SCE_subset_genes(subset.row=subset.row, x=x, get.spikes=get.spikes)
-    sf <- .computeSumFactors(assay(x, i=assay), subset.row=subset.row, ...) 
+    sf <- .computeSumFactors(assay(x, i=assay.type), subset.row=subset.row, ...) 
     if (sf.out) { 
         return(sf) 
     }

@@ -140,9 +140,11 @@ setGeneric("findMarkers", function(x, ...) standardGeneric("findMarkers"))
 
 setMethod("findMarkers", "matrix", .findMarkers)
 
-setMethod("findMarkers", "SingleCellExperiment", function(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) {
+setMethod("findMarkers", "SingleCellExperiment", 
+          function(x, ..., subset.row=NULL, assay.type="exprs", get.spikes=FALSE) {
+
     subset.row <- .SCE_subset_genes(subset.row=subset.row, x=x, get.spikes=get.spikes)
-    .findMarkers(assay(x, i=assay), ..., subset.row=subset.row)
+    .findMarkers(assay(x, i=assay.type), ..., subset.row=subset.row)
 })                                 
 
 
