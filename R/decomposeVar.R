@@ -39,21 +39,8 @@ setMethod("decomposeVar", c("ANY", "list"), .decompose_var)
 setMethod("decomposeVar", c("SingleCellExperiment", "list"), 
           function(x, fit, subset.row=NULL, ..., assay.type="exprs", get.spikes=FALSE) {
 
+    subset.row <- .SCE_subset_genes(subset.row, x=x, get.spikes=get.spikes)
     .check_centered_SF(x, assay.type=assay.type)
-    out <- decomposeVar(assay(x, i=assay.type), fit, ..., subset.row=subset.row)
-
-    # We just set spike-ins to NA rather than removing them.
-    # This guarantees same gene order as if we had done x[subset.row,].
-    if (!get.spikes) {
-        nokeep <- isSpike(x)
-        if (!is.null(subset.row)) { 
-            nokeep <- nokeep[subset.row]
-        }
-        if (any(nokeep)) { 
-            out$p.value[nokeep] <- NA
-            out$FDR <- p.adjust(out$p.value, method="BH")
-        }
-    }
-    return(out)
+    .decompose_var(assay(x, i=assay.type), fit, ..., subset.row=subset.row)
 })
 
