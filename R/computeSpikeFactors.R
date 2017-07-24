@@ -8,7 +8,17 @@ setMethod("computeSpikeFactors", "SingleCellExperiment",
 # created 17 February 2016
 # last modified 24 July 2017
 {
-    out <- colSums(spikes(x, type=type))
+    is.spike <- isSpike(x, type=type)
+    if (!any(is.spike)) {
+        if (is.null(type)){ 
+            stop("no spike-in transcripts in 'x'") 
+        } else {
+            stop(sprintf("no spike-in transcripts of type '%s' in 'x'", type))
+        }
+    }
+
+    # Computing spike-in size factors.
+    out <- .Call(cxx_sum_spikes, assay(x, i=assay.type), which(is.spike)-1L)
     if (any(out < 1e-8)) { 
         warning("zero spike-in counts during spike-in normalization")
     } 
