@@ -9,7 +9,7 @@
 \usage{
 \S4method{trendVar}{ANY}(x, method=c("loess", "spline", "semiloess"), 
     span=0.3, family="symmetric", degree=1, df=4,
-    parametric=FALSE, start=NULL, mean.warn=TRUE,
+    parametric=FALSE, start=NULL, min.mean=0.1,
     design=NULL, subset.row=NULL) 
 
 \S4method{trendVar}{SCESet}(x, subset.row=NULL, ..., assay="exprs", use.spikes=TRUE)
@@ -26,7 +26,7 @@
 \item{parametric}{A logical scalar indicating whether a parametric curve should be fitted prior to smoothing.}
 \item{start}{A named list of numeric scalars, containing starting values for parametric fitting with \code{\link{nls}}. 
 This is automatically generated with the most suitable values if set to \code{NULL}.}
-\item{mean.warn}{A logical scalar indicating whether a warning should be raised if low-abundance genes are detected.}
+\item{min.mean}{A numeric scalar specifying the minimum mean log-expression in order for a gene to be used for trend fitting.}
 \item{design}{A numeric matrix describing the uninteresting factors contributing to expression in each cell.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to \code{trendVar,matrix-method}.}
@@ -91,10 +91,10 @@ Users can also directly specify which rows to use with \code{subset.row}, which 
 If \code{subset.row} is specified and \code{use.spikes=TRUE}, only the spike-in transcripts in \code{subset.row} are used.
 Otherwise, if \code{use.spikes=FALSE}, only the non-spike in transcripts in \code{subset.row} are used.
 
-If \code{mean.warn=TRUE}, the function will raise a warning if any genes are detected with average log-expression values below 0.1.
-These genes should be prior to trend fitting to preserve the sensitivity of span-based smoothers at moderate-to-high abundances.
+Low-abundance genes with mean log-expression below \code{min.mean} are not used in trend fitting, to preserve the sensitivity of span-based smoothers at moderate-to-high abundances.
 It also protects against discreteness, which can interfere with estimation of the variability of the variance estimates and accurate scaling of the trend.
-For droplet data, a lower threshold of 0.001-0.01 can be used, and the warning can be silenced with \code{mean.warn=FALSE}.
+The default threshold is chosen based on the point at which discreteness is observed in variance estimates from Poisson-distributed counts.
+For heterogeneous droplet data, a lower threshold of 0.001-0.01 should be used.
 
 Obviously, the usefulness of the trend is dependent on the quality of the features to which it is fitted.
 For example, the trend will not provide accurate estimates of the technical component if the coverage of all spike-ins is lower than that of endogenous genes.

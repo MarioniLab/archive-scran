@@ -36,9 +36,13 @@ test_that("trendVar is robust to zero-variance and low-abundance genes", {
     expect_equal(outz$var, c(0, out$var, 0))
     expect_equal(out$trend(outz$mean), outz$trend(outz$mean))
 
-    # Checking that it throws up properly with low-abundance genes.
-    d2 <- d / min(out$mean) * 0.099
-    expect_warning(trendVar(d2), "low-abundance")
+    # Checking that it properly ignores the low-abundance genes.
+    filt <- trendVar(d, min.mean=1)
+    expect_equal(filt$mean, out$mean)
+    expect_equal(filt$var, out$var)
+    expect_false(all(rowMeans(d)>=1))
+    ref <- trendVar(d[rowMeans(d)>=1,])
+    expect_equal(filt$trend(0:100/10), ref$trend(0:100/10))
 })
 
 test_that("trendVar behaves correctly with subsetting", {
@@ -114,7 +118,7 @@ test_that("trendVar checks size factor centering", {
     subX <- X[,1:10] # Checking that it raises a warning upon subsetting (where the size factors are no longer centered).
     expect_warning(trendVar(subX), "size factors not centred")
     suppressWarnings(rnorm <- normalize(subX))
-    expect_warning(trendVar(rnorm, mean.warn=FALSE), NA)
+    expect_warning(trendVar(rnorm), NA)
 })
 
 test_that("trendVar works with other trend functions",  {
@@ -295,7 +299,7 @@ test_that("testVar's F-test works as expected", {
     
     rat <- (fit$var/fit$trend(fit$mean))
     df1 <- nrow(fit$design)-ncol(fit$design)
-    ffit <- limma::fitFDistRobustly(rat[fit$var > 0], df=df1) # filtering out zero-variance genes.
+    ffit <- limma::fitFDistRobustly(rat[fit$var > 0 & fit$mean >= 0.1], df=df1) # filtering out zero-variance, low-abundance genes.
     expect_equal(pvals, pf(rat/ffit$scale, df1=df1, df2=ffit$df2, lower.tail=FALSE))
     
     expect_error(testVar(fit$var, fit$trend(fit$mean), df=ncells-1, test='f'),

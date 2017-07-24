@@ -1,6 +1,6 @@
 .trend_var <- function(x, method=c("loess", "spline", "semiloess"), 
                        span=0.3, family="symmetric", degree=1, df=4,
-                       parametric=FALSE, start=NULL, mean.warn=TRUE,
+                       parametric=FALSE, start=NULL, min.mean=0.1,
                        design=NULL, subset.row=NULL)
 # Fits a polynomial trend to the technical variability of the log-CPMs,
 # against their abundance (i.e., average log-CPM).
@@ -20,12 +20,9 @@
     names(means) <- names(vars) <- rownames(x)[subset.row]
 
     # Filtering out zero-variance and low-abundance genes.
-    is.okay <- vars > 1e-8 
+    is.okay <- vars > 1e-8 & means >= min.mean
     kept.vars <- vars[is.okay]
     kept.means <- means[is.okay]
-    if (mean.warn & any(means < 0.1)) {
-        warning("low-abundance genes (mean log-expression below 0.1) detected") 
-    }
 
     method <- match.arg(method) 
     if (method=="semiloess") {
