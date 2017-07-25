@@ -8,13 +8,17 @@ setMethod("computeSpikeFactors", "SingleCellExperiment",
 # created 17 February 2016
 # last modified 24 July 2017
 {
-    is.spike <- isSpike(x, type=type)
-    if (!any(is.spike)) {
-        if (is.null(type)){ 
-            stop("no spike-in transcripts in 'x'") 
-        } else {
-            stop(sprintf("no spike-in transcripts of type '%s' in 'x'", type))
+    if (is.null(type)) { 
+        is.spike <- isSpike(x)
+    } else {
+        is.spike <- logical(nrow(x))
+        for (tset in type) {
+            current <- isSpike(x, type=tset)
+            if (!is.null(current)) { is.spike <- is.spike | current }
         }
+    }
+    if (!any(is.spike)) {
+        is.spike <- logical(0)
     }
 
     # Computing spike-in size factors.
