@@ -49,7 +49,10 @@ importFrom("viridis", scale_color_viridis)
 importFrom("grDevices", grey.colors)
 importFrom("graphics", text)
 
+importFrom("S4Vectors", mcols)
+importFrom("BiocGenerics", as.data.frame)
+import(methods)
+
 # packages in "Depends":
 import(BiocParallel)
 import(SingleCellExperiment)
-import(methods)

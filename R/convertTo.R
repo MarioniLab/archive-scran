@@ -1,12 +1,11 @@
+.convert_to <- function(x, type=c("edgeR", "DESeq2", "monocle"),
+                        row.fields=NULL, col.fields=NULL, ..., assay.type, use.all.sf=TRUE, normalize=TRUE, 
+                        subset.row=NULL, get.spikes=FALSE) 
 # A function to convert between formats
-
-setGeneric("convertTo", function(x, ...) standardGeneric("convertTo"))
-
-setMethod("convertTo", "SingleCellExperiment", 
-          function(x, type=c("edgeR", "DESeq2", "monocle"),
-                   row.fields=NULL, col.fields=NULL, ..., assay.type, use.all.sf=TRUE, normalize=TRUE, 
-                   subset.row=NULL, get.spikes=FALSE) {
-              
+#
+# written by Aaron Lun
+# a while ago    
+{
     # Setting up the extraction.
     type <- match.arg(type)
     sf <- suppressWarnings(sizeFactors(x))
@@ -14,10 +13,10 @@ setMethod("convertTo", "SingleCellExperiment",
         fd <- rowData(x)[,row.fields,drop=FALSE]
         pd <- colData(x)[,col.fields,drop=FALSE] 
     } else if (type=="monocle") {
-        fd <- rowData(x)[,row.fields,drop=FALSE]
-        pd <- colData(x)[,col.fields,drop=FALSE] 
+        fd <- Biobase::AnnotatedDataFrame(as.data.frame(rowData(x)[,row.fields,drop=FALSE], row.names=rownames(x)))
+        pd <- Biobase::AnnotatedDataFrame(as.data.frame(colData(x)[,col.fields,drop=FALSE]))
     }
-    if (missing(assay)) { assay <- "counts" }
+    if (missing(assay.type)) { assay.type <- "counts" }
 
     # Determining which genes should be extracted.
     subset.row <- .SCE_subset_genes(subset.row, x=x, get.spikes=get.spikes)
@@ -28,8 +27,8 @@ setMethod("convertTo", "SingleCellExperiment",
     if (is.null(sf)) { 
         collected.sfs[[1]] <- numeric(length(sf))
     } 
-    for (st in spikenames(x)) {
-        spike.sf <- suppressWarnings(sizeFactors(x, type=st))
+    for (st in spikeNames(x)) {
+        spike.sf <- sizeFactors(x, type=st)
         if (!is.null(spike.sf)) {
             it <- length(collected.sfs) + 1L
             offset.index[isSpike(x, type=st)] <- it
@@ -61,7 +60,7 @@ setMethod("convertTo", "SingleCellExperiment",
 
     } else if (type=="DESeq2") {
         dds <- DESeq2::DESeqDataSetFromMatrix(assay(x, i=assay.type), pd, ~1, ...)
-        S4Vectors::mcols(dds) <- fd
+        mcols(dds) <- fd
         if (!is.null(sf)) { 
             sizeFactors(dds) <- sf
         }
@@ -84,6 +83,7 @@ setMethod("convertTo", "SingleCellExperiment",
                     cur.exprs[current,] <- t(t(counts(x)[current,,drop=FALSE])/collected.sfs[[it]])
                 }
             }
+            dimnames(cur.exprs) <- dimnames(x)
         } else {
             cur.exprs <- assay(x, i=assay.type)
         }
@@ -92,4 +92,9 @@ setMethod("convertTo", "SingleCellExperiment",
         return(out)
 
     }
-})
+}
+
+setGeneric("convertTo", function(x, ...) standardGeneric("convertTo"))
+
+setMethod("convertTo", "SingleCellExperiment", .convert_to)
+

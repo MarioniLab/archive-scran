@@ -283,10 +283,6 @@ X <- SingleCellExperiment(list(counts=dummy))
 ref <- colSums(dummy)
 sizeFactors(X) <- ref
 
-# Convenient wrappers, yet to be implemented in SingleCellExperiment.
-exprs <- function(x) assay(x, "exprs")
-counts <- function(x) assay(x, "counts")
-
 test_that("normalize() from scater works on endogenous genes", {
     out <- normalize(X)
     sf <- ref/mean(ref)
