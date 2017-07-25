@@ -1,6 +1,6 @@
 .denoisePCA <- function(x, technical, design=NULL, subset.row=NULL,
                         value=c("pca", "n", "lowrank"), min.rank=5, max.rank=100, 
-                        preserve.dim=TRUE)
+                        preserve.dim=FALSE)
 # Performs PCA and chooses the number of PCs to keep based on the technical noise.
 # This is done on the residuals if a design matrix is supplied.
 #
@@ -18,7 +18,7 @@
     # Filtering out genes with negative biological components.
     tech.var <- technical(all.means)
     keep <- all.var > tech.var
-    subset.row <- subset.row[keep]
+    use.rows <- subset.row[keep]
     all.means <- all.means[keep]
     all.var <- all.var[keep]
     tech.var <- tech.var[keep]
@@ -27,7 +27,7 @@
     if (!is.null(design)) {  
         # Computing residuals; don't set a lower bound.
         # Note that this function implicitly subsets by subset.row.
-        rx <- .calc_residuals_wt_zeroes(x, QR=QR, subset.row=subset.row, lower.bound=NA) 
+        rx <- .calc_residuals_wt_zeroes(x, QR=QR, subset.row=use.rows, lower.bound=NA) 
 
         # Rescaling residuals so that the variance is unbiased.
         # This is necessary because variance of residuals is underestimated.
@@ -37,7 +37,7 @@
         # see http://math.stackexchange.com/questions/494181/ for a good explanation).
         y <- rx * sqrt(all.var/rvar)
     } else {
-        y <- x[subset.row,,drop=FALSE] - all.means
+        y <- x[use.rows,,drop=FALSE] - all.means
     }
 
     # Performing SVD to get the variance of each PC, and choosing the number of PCs to keep.
@@ -57,16 +57,19 @@
     } else if (value=="lowrank") {
         more.svd <- La.svd(y, nu=to.keep, nv=to.keep)
         denoised <- more.svd$u %*% (more.svd$d[seq_len(to.keep)] * more.svd$vt) 
-        denoised <- t(denoised) + centers
+        denoised <- t(denoised) + all.means
 
-        # Returning as a full matrix with discarded genes set to zero.
+        # Returning as a the full matrix (or that subsetted with subset.row)
+        # where the discarded genes are set to zero.
+        output <- x
+        output[] <- 0
         if (preserve.dim) { 
-            output <- x
-            output[] <- 0
-            output[subset.row,] <- denoised
-            return(output)
+            output[use.rows,] <- denoised
+        } else {
+            output <- output[subset.row,,drop=FALSE]
+            output[match(use.rows, subset.row),] <- denoised
         }
-        return(denoised)
+        return(output)
     }
 } 
 
@@ -79,11 +82,10 @@
     npcs <- length(var.exp)
     flipped.var.exp <- rev(var.exp)
     estimated.contrib <- cumsum(flipped.var.exp) + flipped.var.exp * (npcs:1 - 1L)
-    estimated.contrib <- rev(estimated.contrib)
 
     below.noise <- tech.var > estimated.contrib
     if (any(below.noise)) { 
-        to.keep <- min(which(below.noise))
+        to.keep <- npcs - max(which(below.noise))
     } else {
         to.keep <- npcs
     }
