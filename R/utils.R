@@ -71,7 +71,6 @@
 {
     sf.cell <- sizeFactors(x)
     if (is.null(spike.type) || !is.na(spike.type)) { 
-        is.spike <- isSpike(x, type=spike.type)
         if (is.null(spike.type)) { 
             # Get all spikes.
             spike.type <- spikeNames(x)            
@@ -83,8 +82,11 @@
         # Collecting the size factors for the requested spike-in sets.
         # Check that all spike-in factors are either NULL or identical.
         collected <- NULL
+        is.spike <- logical(nrow(x))
         for (st in seq_along(spike.type)) {
-            cur.sf <- sizeFactors(x, type=spike.type[st])
+            cur.type <- spike.type[st]
+            is.spike <- is.spike | isSpike(x, type=cur.type)
+            cur.sf <- sizeFactors(x, type=cur.type)
             if (st==1L) {
                 collected <- cur.sf
             } else if (!isTRUE(all.equal(collected, cur.sf))) {
