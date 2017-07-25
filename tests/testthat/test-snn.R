@@ -125,3 +125,8 @@ suppressWarnings(expect_error(buildSNNGraph(dummy[,0], d=NA), "cannot create emp
 suppressWarnings(expect_error(buildSNNGraph(dummy[0,], d=NA), "cannot create empty graph with negative number of vertices"))
 expect_warning(out <- buildSNNGraph(dummy, k=50, d=NA), "'k' set to the number of cells minus 1")
 are_graphs_same(out, buildSNNGraph(dummy, k=19))
+
+# Avoid normalize() overwriting scater's normalize() in other files.
+
+detach("package:igraph", character.only=TRUE)
+
