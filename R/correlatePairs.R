@@ -127,7 +127,7 @@
         s2 <- .subset_to_index(pairings[,2], x, byrow=TRUE)
 
         # Discarding elements not in subset.row.
-        keep <- s1 %in% subset.row && s2 %in% subset.row
+        keep <- s1 %in% subset.row & s2 %in% subset.row
         s1 <- s1[keep]
         s2 <- s2[keep]
 
@@ -233,7 +233,7 @@ setMethod("correlatePairs", "SingleCellExperiment",
                    lower.bound=NULL, assay.type="exprs", get.spikes=FALSE) {
 
     subset.row <- .SCE_subset_genes(subset.row, x=x, get.spikes=get.spikes)              
-    lower.bound <- .guess_lower_bound(x, assay, lower.bound)
+    lower.bound <- .guess_lower_bound(x, assay.type, lower.bound)
     .correlate_pairs(assay(x, i=assay.type), subset.row=subset.row, per.gene=per.gene, 
                      use.names=use.names, lower.bound=lower.bound, ...)
 })
