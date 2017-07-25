@@ -57,24 +57,25 @@ are_graphs_same(g, g2)
 
 # Checking SCESet construction.
 
-suppressWarnings(sce <- newSCESet(countData=2^dummy))
-g <- buildSNNGraph(sce)
-g2 <- buildSNNGraph(exprs(sce))
-are_graphs_same(g, g2)
-
-g <- buildSNNGraph(sce, assay="counts")
-g2 <- buildSNNGraph(2^dummy)
-are_graphs_same(g, g2)
-
-g <- buildSNNGraph(sce, subset.row=selected)
-g2 <- buildSNNGraph(sce[selected,])
-are_graphs_same(g, g2)
-
-sce <- calculateQCMetrics(sce, feature_controls=list(ERCC=selected))
-setSpike(sce) <- "ERCC"
-g <- buildSNNGraph(sce)
-g2 <- buildSNNGraph(sce[-selected,])
-are_graphs_same(g, g2)
+test_that("buildSNNGraph works properly on SingleCellExperiment objects", {
+    sce <- SingleCellExperiment(list(counts=2^dummy, exprs=dummy))
+    g <- buildSNNGraph(sce)
+    g2 <- buildSNNGraph(assay(sce, "exprs"))
+    are_graphs_same(g, g2)
+    
+    g <- buildSNNGraph(sce, assay.type="counts")
+    g2 <- buildSNNGraph(assay(sce, "counts"))
+    are_graphs_same(g, g2)
+    
+    g <- buildSNNGraph(sce, subset.row=selected)
+    g2 <- buildSNNGraph(sce[selected,])
+    are_graphs_same(g, g2)
+    
+    isSpike(sce, "ERCC") <- selected
+    g <- buildSNNGraph(sce)
+    g2 <- buildSNNGraph(sce[-selected,])
+    are_graphs_same(g, g2)
+})
 
 # Checking multi-core processing works.
 
@@ -106,15 +107,14 @@ test_that("buildSNNGRaph with PCA works correctly", {
     are_graphs_same(ref, alt)
 
     # Checking that it correctly extracts stuff from the reducedDimension slot.
-    X <- suppressWarnings(newSCESet(dummy))
-    reducedDimension(X) <- pc$x[,1:50]
-    alt <- buildSNNGraph(X, use.dimred=TRUE)
+    X <- SingleCellExperiment(list(exprs=dummy))
+    reducedDim(X, "PCA") <- pc$x[,1:50]
+    alt <- buildSNNGraph(X, use.dimred="PCA")
     are_graphs_same(ref, alt)
 
     # Ignores spike-in and subset.row specifications (correctly).
-    X <- calculateQCMetrics(X, feature_controls=list(ERCC=selected))
-    setSpike(X) <- "ERCC"
-    alt <- buildSNNGraph(X, use.dimred=TRUE)
+    isSpike(X, "ERCC") <- selected
+    alt <- buildSNNGraph(X, use.dimred="PCA")
     are_graphs_same(ref, alt)
 })
 
