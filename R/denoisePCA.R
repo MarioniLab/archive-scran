@@ -108,9 +108,8 @@ setMethod("denoisePCA", "SingleCellExperiment",
     } else if (value=="n") {
         metadata(x)$denoised.npcs <- out
     } else if (value=="lowrank") {
-        original <- assay(x, i=assay)
-        subset.row <- .subset_to_index(subset.row, original, byrow=TRUE)
-        output <- matrix(NA_real_, nrow(original), ncol(original))
+        subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
+        output <- matrix(NA_real_, nrow(x), ncol(x))
         output[subset.row,] <- out
         assay(x, i="lowrank") <- output
     }

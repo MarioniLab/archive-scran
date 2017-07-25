@@ -107,24 +107,23 @@ test_that("denoisePCA throws errors correctly", {
     expect_error(denoisePCA(unnamed.lcounts, technical=c(Whee=1)), "rows of 'x' should be named with gene names")
 })
 
-test_that("denoisePCA works with SCESet inputs", {
+test_that("denoisePCA works with SingleCellExperiment inputs", {
     # Checking for proper behaviour with SCESet.
-    X <- newSCESet(exprsData=lcounts, logExprsOffset=1, lowerDetectionLimit=0)
+    X <- SingleCellExperiment(list(exprs=lcounts))
     X2 <- denoisePCA(X, technical=fit$trend)
-    pcx <- reducedDimension(X2)
+    pcx <- reducedDim(X2, "PCA")
     rownames(pcx) <- NULL
     pcs <- denoisePCA(lcounts, technical=fit$trend)
     are_PCs_equal(pcx, pcs)
     
-    X <- calculateQCMetrics(X, feature_controls=list(Spike=is.spike))
-    setSpike(X) <- "Spike"
+    isSpike(X, "Spike") <- is.spike
     X2 <- denoisePCA(X, technical=fit$trend, get.spikes=TRUE)
-    pcx <- reducedDimension(X2)
+    pcx <- reducedDim(X2, "PCA")
     rownames(pcx) <- NULL
     are_PCs_equal(pcx, pcs)
     
     X2 <- denoisePCA(X, technical=fit$trend)
-    pcx <- reducedDimension(X2)
+    pcx <- reducedDim(X2, "PCA")
     rownames(pcx) <- NULL
     not.spike <- setdiff(seq_len(ngenes), is.spike)
     pcs <- denoisePCA(lcounts, technical=fit$trend, subset.row=not.spike)
@@ -133,12 +132,12 @@ test_that("denoisePCA works with SCESet inputs", {
     # Checking lowrank calculations.
     X3 <- denoisePCA(X, technical=fit$trend, value="lowrank")
     ref <- denoisePCA(exprs(X), technical=fit$trend, value="lowrank", subset.row=not.spike)
-    pcx <- assayDataElement(X3, "lowrank")
+    pcx <- assay(X3, "lowrank")
     expect_equal(pcx[not.spike,], ref)
     expect_true(all(is.na(pcx[is.spike,])))
     
     X3 <- denoisePCA(X, technical=fit$trend, value="lowrank", get.spikes=TRUE)
     ref <- denoisePCA(exprs(X), technical=fit$trend, value="lowrank")
-    pcx <- assayDataElement(X3, "lowrank")
+    pcx <- assay(X3, "lowrank")
     expect_equal(pcx, ref)
 })
