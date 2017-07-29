@@ -1,16 +1,16 @@
 \name{Spike-in normalization}
 \alias{computeSpikeFactors}
-\alias{computeSpikeFactors,SCESet-method}
+\alias{computeSpikeFactors,SingleCellExperiment-method}
 
 \title{Normalization with spike-in counts}
 \description{Compute size factors based on the coverage of spike-in transcripts.}
 
 \usage{
-\S4method{computeSpikeFactors}{SCESet}(x, type=NULL, sf.out=FALSE, general.use=TRUE)
+\S4method{computeSpikeFactors}{SingleCellExperiment}(x, type=NULL, sf.out=FALSE, general.use=TRUE)
 }
 
 \arguments{
-\item{x}{A SCESet object containing rows corresponding spike-in transcripts.}
+\item{x}{A SingleCellExperiment object containing rows corresponding spike-in transcripts.}
 \item{type}{A character vector specifying which spike-in sets to use.}
 \item{sf.out}{A logical scalar indicating whether only size factors should be returned.}
 \item{general.use}{A logical scalar indicating whether the size factors should be stored for general use by all genes.}

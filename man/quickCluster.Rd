@@ -1,31 +1,31 @@
 \name{Quick clustering}
 \alias{quickCluster}
-\alias{quickCluster,matrix-method}
-\alias{quickCluster,SCESet-method}
+\alias{quickCluster,ANY-method}
+\alias{quickCluster,SingleCellExperiment-method}
 
 \title{Quick clustering of cells}
 \description{Cluster similar cells based on rank correlations in their gene expression profiles.}
 
 \usage{
-\S4method{quickCluster}{matrix}(x, min.size=200, subset.row=NULL, get.ranks=FALSE, 
+\S4method{quickCluster}{ANY}(x, min.size=200, subset.row=NULL, get.ranks=FALSE, 
     method=c("hclust", "igraph"), ...)
 
-\S4method{quickCluster}{SCESet}(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE)
+\S4method{quickCluster}{SingleCellExperiment}(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE)
 }
 
 \arguments{
 \item{x}{
     A numeric count matrix where rows are genes and columns are cells.
-    Alternatively, a SCESet object containing such a matrix.
+    Alternatively, a SingleCellExperiment object containing such a matrix.
 }
 \item{min.size}{An integer scalar specifying the minimum size of each cluster for \code{method="hclust"}.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{get.ranks}{A logical scalar specifying whether a matrix of adjusted ranks should be returned.}
 \item{method}{A string specifying the clustering method to use.}
 \item{...}{
-    For \code{quickCluster,matrix-method}, additional arguments to be passed to \code{\link{cutreeDynamic}} for \code{method="hclust"}, 
+    For \code{quickCluster,ANY-method}, additional arguments to be passed to \code{\link{cutreeDynamic}} for \code{method="hclust"}, 
         or \code{\link{buildSNNGraph}} for \code{method="igraph"}.
-    For \code{quickCluster,SCESet-method}, additional arguments to pass to \code{quickCluster,matrix-method}.
+    For \code{quickCluster,SingleCellExperiment-method}, additional arguments to pass to \code{quickCluster,ANY-method}.
 }
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
@@ -55,7 +55,7 @@ Using \code{method="igraph"} should be used in situations where there are too ma
 It can also be used in cases with few cells, though it is less customizable than \code{method="hclust"} - for example, there are no options to control the minimum cluster size.
 (When there are many cells, the \dQuote{quick} in the function's name refers to the number of commands you have to call rather than the computation speed.)
 
-In \code{quickCluster,SCESet-method}, spike-in transcripts are not used by default as they provide little information on the biological similarities between cells.
+In \code{quickCluster,SingleCellExperiment-method}, spike-in transcripts are not used by default as they provide little information on the biological similarities between cells.
 This may not be the case if subpopulations differ by total RNA content, in which case setting \code{get.spikes=TRUE} may provide more discriminative power.
 Users can also set \code{subset.row} to specify which rows of \code{x} are to be used to calculate correlations.
 This is equivalent to but more efficient than subsetting \code{x} directly, as it avoids constructing a (potentially large) temporary matrix.

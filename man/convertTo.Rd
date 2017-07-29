@@ -1,20 +1,20 @@
 \name{convertTo}
 \alias{convertTo}
-\alias{convertTo,SCESet-method}
+\alias{convertTo,SingleCellExperiment-method}
 
 \title{Convert to other classes}
 \description{
-Convert a SCESet object into other classes for entry into other analysis pipelines.
+Convert a SingleCellExperiment object into other classes for entry into other analysis pipelines.
 }
 
 \usage{
-\S4method{convertTo}{SCESet}(x, type=c("edgeR", "DESeq2", "monocle"),
+\S4method{convertTo}{SingleCellExperiment}(x, type=c("edgeR", "DESeq2", "monocle"),
     fData.col=NULL, pData.col=NULL, ..., assay, 
     use.all.sf=TRUE, normalize=TRUE, subset.row=NULL, get.spikes=FALSE)
 }
 
 \arguments{
-\item{x}{A SCESet object.}
+\item{x}{A SingleCellExperiment object.}
 \item{type}{A string specifying the analysis for which the object should be prepared.}
 \item{fData.col}{Any set of indices specifying which columns of \code{fData(x)} should be retained in the returned object.}
 \item{pData.col}{Any set of indices specifying which columns of \code{pData(x)} should be retained.}
@@ -39,7 +39,7 @@ Additional gene- and cell-specific data is stored in the \code{fData} and \code{
 }
 
 \details{
-This function converts an SCESet object into various other classes in preparation for entry into other analysis pipelines, as specified by \code{type}.
+This function converts an SingleCellExperiment object into various other classes in preparation for entry into other analysis pipelines, as specified by \code{type}.
 Gene- and cell-specific data fields can be retained in the output object by setting \code{fData.col} and \code{pData.col}, respectively.
 Other arguments can be passed to the relevant constructors through the ellipsis.
 

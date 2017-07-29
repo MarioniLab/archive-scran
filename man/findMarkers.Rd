@@ -1,22 +1,22 @@
 \name{findMarkers}
 \alias{findMarkers}
-\alias{findMarkers,matrix-method}
-\alias{findMarkers,SCESet-method}
+\alias{findMarkers,ANY-method}
+\alias{findMarkers,SingleCellExperiment-method}
 
 \title{Find marker genes}
 \description{Find candidate marker genes for clusters of cells, by testing for differential expression between clusters.}
 
 \usage{
-\S4method{findMarkers}{matrix}(x, clusters, design=NULL, pval.type=c("any", "all"), 
+\S4method{findMarkers}{ANY}(x, clusters, design=NULL, pval.type=c("any", "all"), 
     direction=c("any", "up", "down"), min.mean=0.1, subset.row=NULL)
 
-\S4method{findMarkers}{SCESet}(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) 
+\S4method{findMarkers}{SingleCellExperiment}(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) 
 }
 
 \arguments{
 \item{x}{
-    A numeric matrix of normalized log-expression values, where each column corresponds to a cell and each row corresponds to an endogenous gene.
-    Alternatively, a SCESet object containing such a matrix.
+    A numeric matrix-like object of normalized log-expression values, where each column corresponds to a cell and each row corresponds to an endogenous gene.
+    Alternatively, a SingleCellExperiment object containing such a matrix.
 }
 \item{clusters}{
 A vector of cluster identities for all cells.
@@ -46,7 +46,7 @@ By default, the null hypothesis is that the gene is not DE in any of the contras
 In both cases, the reported value is intended only as a rough measure of significance.
 Properly correcting for multiple testing is not generally possible when \code{clusters} is determined from the same \code{x} used for DE testing.
 
-By default, spike-in transcripts are ignored in \code{findMarkers,SCESet-method} with \code{get.spikes=FALSE}.
+By default, spike-in transcripts are ignored in \code{findMarkers,SingleCellExperiment-method} with \code{get.spikes=FALSE}.
 This is overridden by any non-\code{NULL} value of \code{subset.row}.
 }
 

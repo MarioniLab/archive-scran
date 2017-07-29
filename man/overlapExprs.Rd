@@ -1,22 +1,22 @@
 \name{overlapExprs}
 \alias{overlapExprs}
-\alias{overlapExprs,matrix-method}
-\alias{overlapExprs,SCESet-method}
+\alias{overlapExprs,ANY-method}
+\alias{overlapExprs,SingleCellExperiment-method}
 
 \title{Overlap expression profiles}
 \description{Compute the gene-specific overlap in expression profiles between two groups of cells.}
 
 \usage{
-\S4method{overlapExprs}{matrix}(x, groups, design=NULL, residuals=FALSE, tol=1e-8, 
+\S4method{overlapExprs}{ANY}(x, groups, design=NULL, residuals=FALSE, tol=1e-8, 
     BPPARAM=SerialParam(), subset.row=NULL, lower.bound=NULL)
 
-\S4method{overlapExprs}{SCESet}(x, ..., subset.row=NULL, lower.bound=NULL, assay="exprs", get.spikes=FALSE) 
+\S4method{overlapExprs}{SingleCellExperiment}(x, ..., subset.row=NULL, lower.bound=NULL, assay="exprs", get.spikes=FALSE) 
 }
 
 \arguments{
 \item{x}{
     A numeric matrix of expression values, where each column corresponds to a cell and each row corresponds to an endogenous gene.
-    Alternatively, a SCESet object containing such a matrix.
+    Alternatively, a SingleCellExperiment object containing such a matrix.
 }
 \item{groups}{
 A vector of group assignments for all cells.
@@ -46,7 +46,7 @@ Expression values that are tied between groups are considered to be 50\% likely 
 Thus, if all values were tied, the overlap proportion would be 0.5.
 The tolerance with which ties are considered can be set by changing \code{tol}.
 
-By default, spike-in transcripts are ignored in \code{overlapExprs,SCESet-method} with \code{get.spikes=FALSE}.
+By default, spike-in transcripts are ignored in \code{overlapExprs,SingleCellExperiment-method} with \code{get.spikes=FALSE}.
 This is overridden by any non-\code{NULL} value of \code{subset.row}.
 }
 

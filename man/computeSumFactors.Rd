@@ -1,7 +1,7 @@
 \name{Deconvolution Methods}
 \alias{computeSumFactors}
 \alias{computeSumFactors,ANY-method}
-\alias{computeSumFactors,SCESet-method}
+\alias{computeSumFactors,SingleCellExperiment-method}
 
 \title{Normalization by deconvolution}
 \description{Methods to normalize single-cell RNA-seq data by deconvolving size factors from cell pools.}
@@ -10,14 +10,14 @@
 \S4method{computeSumFactors}{ANY}(x, sizes=seq(20, 100, 5), clusters=NULL, ref.clust=NULL,
     positive=FALSE, errors=FALSE, min.mean=1, subset.row=NULL)
 
-\S4method{computeSumFactors}{SCESet}(x, subset.row=NULL, ..., assay="counts", 
+\S4method{computeSumFactors}{SingleCellExperiment}(x, subset.row=NULL, ..., assay="counts", 
     get.spikes=FALSE, sf.out=FALSE)
 }
 
 \arguments{
 \item{x}{
     A numeric matrix-like object of counts, where rows are genes and columns are cells.
-    Alternatively, a SCESet object containing such a matrix.
+    Alternatively, a SingleCellExperiment object containing such a matrix.
 }
 \item{sizes}{A numeric vector of pool sizes, i.e., number of cells per pool.}
 \item{clusters}{An optional factor specifying which cells belong to which cluster, for deconvolution within clusters.}
@@ -26,7 +26,7 @@
 \item{errors}{A logical scalar indicating whether the standard error should be returned. This option is deprecated, see below.}
 \item{min.mean}{A numeric scalar specifying the minimum (library size-adjusted) average count of genes to be used for normalization.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
-\item{...}{Additional arguments to pass to \code{computeSumFactors,matrix-method}.}
+\item{...}{Additional arguments to pass to \code{computeSumFactors,ANY-method}.}
 \item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical scalar specifying whether spike-in transcripts should be used.}
 \item{sf.out}{A logical scalar indicating whether only size factors should be returned.}
@@ -100,7 +100,7 @@ Such occurrences are unavoidable -- rather, the aim is to prevent negative value
 }
 
 \section{Gene selection}{
-By default, \code{get.spikes=FALSE} in \code{quickCluster,SCESet-method} which means that spike-in transcripts are not included in the set of genes used for deconvolution.
+By default, \code{get.spikes=FALSE} in \code{quickCluster,SingleCellExperiment-method} which means that spike-in transcripts are not included in the set of genes used for deconvolution.
 This is because they can behave differently from the endogenous genes. 
 Users wanting to perform spike-in normalization should see \code{\link{computeSpikeFactors}} instead.
 
@@ -127,9 +127,9 @@ Standard errors can then be calculated as the standard deviation of the size fac
 }
 
 \value{
-For \code{computeSumFactors,matrix-method}, a numeric vector of size factors for all cells in \code{x} is returned.
+For \code{computeSumFactors,ANY-method}, a numeric vector of size factors for all cells in \code{x} is returned.
 
-For \code{computeSumFactors,SCESet-method}, an object of class \code{x} is returned containing the vector of size factors in \code{sizeFactors(x)}, if \code{sf.out=FALSE}.
+For \code{computeSumFactors,SingleCellExperiment-method}, an object of class \code{x} is returned containing the vector of size factors in \code{sizeFactors(x)}, if \code{sf.out=FALSE}.
 Otherwise, the vector of size factors is returned directly.
 }
 
