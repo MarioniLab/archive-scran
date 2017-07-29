@@ -12,7 +12,7 @@
 \arguments{
 \item{x}{A SingleCellExperiment object with rows corresponding spike-in transcripts.}
 \item{type}{A character vector specifying which spike-in sets to use.}
-\item{assay.time}{A string indicating which assay contains the counts.}
+\item{assay.type}{A string indicating which assay contains the counts.}
 \item{sf.out}{A logical scalar indicating whether only size factors should be returned.}
 \item{general.use}{A logical scalar indicating whether the size factors should be stored for general use by all genes.}
 }
@@ -65,7 +65,7 @@ cell.data <- matrix(rnbinom(ngenes*ncells, mu=cell.means, size=1/cell.disp), nco
 combined <- rbind(cell.data, spike.data)
 colnames(combined) <- seq_len(ncells)
 rownames(combined) <- seq_len(nrow(combined))
-y <- SingleCellExperiment(list(counts=combiend))
+y <- SingleCellExperiment(list(counts=combined))
 isSpike(y, "Spike") <- ngenes + seq_len(nspikes)
 
 ################

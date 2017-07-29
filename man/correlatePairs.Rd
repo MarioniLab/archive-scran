@@ -10,9 +10,10 @@
 \usage{
 correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE) 
 
-\S4method{correlatePairs}{ANY}(x, null.dist=NULL, design=NULL, BPPARAM=SerialParam(), 
-    tol=1e-8, iters=1e6, residuals=FALSE, use.names=TRUE, 
-    subset.row=NULL, per.gene=FALSE, lower.bound=NULL, block.size=100L)
+\S4method{correlatePairs}{ANY}(x, null.dist=NULL, tol=1e-8, iters=1e6, 
+    design=NULL, residuals=FALSE, lower.bound=NULL,
+    use.names=TRUE, subset.row=NULL, pairings=NULL, per.gene=FALSE,  
+    BPPARAM=SerialParam(), block.size=100L)
 
 \S4method{correlatePairs}{SingleCellExperiment}(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE,
     lower.bound=NULL, assay.type="exprs", get.spikes=FALSE)
@@ -34,8 +35,10 @@ correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE)
     A logical scalar specifying whether the row names of \code{exprs} should be used in the output.
     Alternatively, a character vector containing the names to use.
 }
-\item{subset.row}{A logical, integer or character vector indicating the rows of \code{x} to use.
-Alternatively, a list of 2 such vectors, or a integer/character matrix with 2 columns - see below for details.}
+\item{subset.row}{A logical, integer or character vector indicating the rows of \code{x} to use to compute correlations.}
+\item{pairings}{A \code{NULL} value indicating that all pairwise correlations should be computed;
+or a list of 2 vectors of genes between which correlations are to be computed;
+or a integer/character matrix with 2 columns of specific gene pairs - see below for details.}
 \item{per.gene}{A logical scalar specifying whether statistics should be summarized per gene.}
 \item{lower.bound}{A numeric scalar specifying the theoretical lower bound of values in \code{x}, only used when \code{residuals=TRUE}.}
 \item{block.size}{An integer scalar specifying the number of cells for which ranked expression values are stored in memory.
