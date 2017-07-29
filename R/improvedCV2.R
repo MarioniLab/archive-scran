@@ -76,7 +76,7 @@
 
 setGeneric("improvedCV2", function(x, ...) standardGeneric("improvedCV2"))
 
-setMethod("improvedCV2", "matrix", .improvedCV2)
+setMethod("improvedCV2", "ANY", .improvedCV2)
 
 setMethod("improvedCV2", "SingleCellExperiment", 
           function(x, spike.type=NULL, ..., assay.type="exprs", logged=NULL) {

@@ -78,7 +78,7 @@
 
 setGeneric("quickCluster", function(x, ...) standardGeneric("quickCluster"))
 
-setMethod("quickCluster", "matrix", .quick_cluster)
+setMethod("quickCluster", "ANY", .quick_cluster)
 
 setMethod("quickCluster", "SingleCellExperiment", 
           function(x, subset.row=NULL, ..., assay.type="counts", get.spikes=FALSE) { 

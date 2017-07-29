@@ -84,7 +84,7 @@
 
 setGeneric("buildSNNGraph", function(x, ...) standardGeneric("buildSNNGraph"))
 
-setMethod("buildSNNGraph", "matrix", .buildSNNGraph)
+setMethod("buildSNNGraph", "ANY", .buildSNNGraph)
 
 setMethod("buildSNNGraph", "SingleCellExperiment", 
           function(x, ..., subset.row=NULL, assay.type="exprs", get.spikes=FALSE, use.dimred=NULL) {

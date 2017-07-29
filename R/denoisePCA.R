@@ -94,7 +94,7 @@
 
 setGeneric("denoisePCA", function(x, ...) standardGeneric("denoisePCA"))
 
-setMethod("denoisePCA", "matrix", .denoisePCA)
+setMethod("denoisePCA", "ANY", .denoisePCA)
 
 setMethod("denoisePCA", "SingleCellExperiment", 
           function(x, ..., subset.row=NULL, value=c("pca", "n", "lowrank"), 

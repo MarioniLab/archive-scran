@@ -92,7 +92,7 @@
 
 setGeneric("overlapExprs", function(x, ...) standardGeneric("overlapExprs"))
 
-setMethod("overlapExprs", "matrix", .overlapExprs)
+setMethod("overlapExprs", "ANY", .overlapExprs)
 
 setMethod("overlapExprs", "SingleCellExperiment", 
           function(x, ..., subset.row=NULL, lower.bound=NULL, assay.type="exprs", get.spikes=FALSE) {

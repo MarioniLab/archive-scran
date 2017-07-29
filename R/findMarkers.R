@@ -138,7 +138,7 @@
 
 setGeneric("findMarkers", function(x, ...) standardGeneric("findMarkers"))
 
-setMethod("findMarkers", "matrix", .findMarkers)
+setMethod("findMarkers", "ANY", .findMarkers)
 
 setMethod("findMarkers", "SingleCellExperiment", 
           function(x, ..., subset.row=NULL, assay.type="exprs", get.spikes=FALSE) {

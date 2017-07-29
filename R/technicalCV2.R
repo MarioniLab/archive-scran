@@ -109,7 +109,7 @@
 
 setGeneric("technicalCV2", function(x, ...) standardGeneric("technicalCV2"))
 
-setMethod("technicalCV2", "matrix", .technicalCV2)
+setMethod("technicalCV2", "ANY", .technicalCV2)
 
 setMethod("technicalCV2", "SingleCellExperiment", function(x, spike.type=NULL, ..., assay.type="counts") {
     prep <- .prepare_cv2_data(x, spike.type=spike.type)

@@ -61,7 +61,7 @@ find.markers <- function(current.data, other.data, gene.names, fraction=0.5)
 
 setGeneric("sandbag", function(x, ...) standardGeneric("sandbag"))
 
-setMethod("sandbag", "matrix", function(x, phases, gene.names=rownames(x), fraction=0.5, subset.row=NULL) 
+setMethod("sandbag", "ANY", function(x, phases, gene.names=rownames(x), fraction=0.5, subset.row=NULL) 
 # Identifies the relevant pairs before running 'cyclone'.
 # Basically runs through all combinations of 'find.markers' for each phase. 
 #
