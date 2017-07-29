@@ -11,7 +11,7 @@
     value=c("pca", "n", "lowrank"), min.rank=5, max.rank=100, preserve.dim=FALSE)
 
 \S4method{denoisePCA}{SCESet}(x, ..., subset.row=NULL, 
-    value=c("pca", "n", "lowrank"), assay="exprs", get.spikes=FALSE)
+    value=c("pca", "n", "lowrank"), assay.type="exprs", get.spikes=FALSE)
 }
 
 \arguments{
@@ -27,7 +27,7 @@ All genes are used by default.}
 \item{min.rank, max.rank}{Integer scalars specifying the minimum and maximum number of PCs to retain.}
 \item{preserve.dim}{A logical scalar indicating whether the dimensions should be preserved when \code{subset.row} is not \code{NULL}.}
 \item{...}{Further arguments to pass to \code{denoisePCA,ANY-method}.}
-\item{assay}{A string specifying which assay values to use.}
+\item{assay.type}{A string specifying which assay values to use.}
 \item{get.spikes}{A logical specifying whether spike-in transcripts should be used.
 This is ignored if \code{subset.row} is specified.}
 }

@@ -20,7 +20,7 @@ exportMethods(
 
 importFrom("Rcpp", sourceCpp)
 
-importFrom("scater", calcAverage)
+importFrom("scater", calcAverage, areSizeFactorsCentred)
 
 importFrom("dynamicTreeCut", cutreeDynamic)
 importFrom("Matrix", sparseMatrix, qr, qr.coef, qr.qty, t, which)

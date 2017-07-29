@@ -12,7 +12,7 @@
     parametric=FALSE, start=NULL, min.mean=0.1,
     design=NULL, subset.row=NULL) 
 
-\S4method{trendVar}{SingleCellExperiment}(x, subset.row=NULL, ..., assay="exprs", use.spikes=TRUE)
+\S4method{trendVar}{SingleCellExperiment}(x, subset.row=NULL, ..., assay.type="exprs", use.spikes=TRUE)
 }
 
 \arguments{
@@ -30,7 +30,7 @@ This is automatically generated with the most suitable values if set to \code{NU
 \item{design}{A numeric matrix describing the uninteresting factors contributing to expression in each cell.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to \code{trendVar,ANY-method}.}
-\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
+\item{assay.type}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{use.spikes}{A logical scalar specifying whether the trend should be fitted to variances for spike-in transcripts or endogenous genes.}
 }
 
@@ -101,7 +101,7 @@ For example, the trend will not provide accurate estimates of the technical comp
 }
 
 \section{Warning on size factor centring}{ 
-If \code{assay="exprs"}, \code{trendVar,SingleCellExperiment-method} will attempt to determine if the expression values were computed from counts via \code{\link[scater]{normalize}}.
+If \code{assay.type="exprs"}, \code{trendVar,SingleCellExperiment-method} will attempt to determine if the expression values were computed from counts via \code{\link[scater]{normalize}}.
 If so, a warning will be issued if the size factors are not centred at unity.
 This is because different size factors are typically used for endogenous genes and spike-in transcripts.
 If these size factor sets are not centred at the same value, there will be systematic differences in abundance between these features.

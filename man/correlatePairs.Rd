@@ -15,7 +15,7 @@ correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE)
     subset.row=NULL, per.gene=FALSE, lower.bound=NULL, block.size=100L)
 
 \S4method{correlatePairs}{SingleCellExperiment}(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE,
-    lower.bound=NULL, assay="exprs", get.spikes=FALSE)
+    lower.bound=NULL, assay.type="exprs", get.spikes=FALSE)
 }
 
 \arguments{
@@ -41,7 +41,7 @@ Alternatively, a list of 2 such vectors, or a integer/character matrix with 2 co
 \item{block.size}{An integer scalar specifying the number of cells for which ranked expression values are stored in memory.
 Smaller values can be used in machines with less memory, at the cost of processing speed.}
 \item{...}{Additional arguments to pass to \code{correlatePairs,ANY-method}.}
-\item{assay}{A string specifying which assay values to use.}
+\item{assay.type}{A string specifying which assay values to use.}
 \item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
 }
 
@@ -65,7 +65,7 @@ Correction for multiple testing is done using the BH method.
 
 For \code{correlatePairs}, a pre-computed empirical distribution can be supplied as \code{null.dist} if available.
 Otherwise, it will be automatically constructed via \code{correlateNull} with \code{ncells} set to the number of columns in \code{exprs}.
-For \code{correlatePairs,SingleCellExperiment-method}, correlations should be computed for normalized expression values in the specified \code{assay}. 
+For \code{correlatePairs,SingleCellExperiment-method}, correlations should be computed for normalized expression values in the specified \code{assay.type}. 
 
 The lower bound of the p-values is determined by the value of \code{iters}.
 If the \code{limited} field is \code{TRUE} in the returned dataframe, it may be possible to obtain lower p-values by increasing \code{iters}.

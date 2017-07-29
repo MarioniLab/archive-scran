@@ -10,7 +10,7 @@
 \S4method{technicalCV2}{ANY}(x, is.spike, sf.cell=NULL, sf.spike=NULL, 
     cv2.limit=0.3, cv2.tol=0.8, min.bio.disp=0.25) 
 
-\S4method{technicalCV2}{SingleCellExperiment}(x, spike.type=NULL, ..., assay="counts")
+\S4method{technicalCV2}{SingleCellExperiment}(x, spike.type=NULL, ..., assay.type="counts")
 }
 
 \arguments{
@@ -25,7 +25,7 @@
 \item{min.bio.disp}{A numeric scalar specifying the minimum biological dispersion.}
 \item{spike.type}{A character vector containing the names of the spike-in sets to use.}
 \item{...}{Additional arguments to pass to \code{technicalCV2,ANY-method}.}
-\item{assay}{A string specifying which assay values to use.}
+\item{assay.type}{A string specifying which assay values to use.}
 }
 
 \details{

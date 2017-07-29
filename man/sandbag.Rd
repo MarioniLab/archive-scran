@@ -11,7 +11,7 @@
     fraction=0.5, subset.row=NULL)
 
 \S4method{sandbag}{SingleCellExperiment}(x, phases, subset.row=NULL, ..., 
-    assay="counts", get.spikes=FALSE)
+    assay.type="counts", get.spikes=FALSE)
 }
 
 \arguments{
@@ -25,7 +25,7 @@ This should typically be of length 3, with elements named as \code{"G1"}, \code{
 \item{fraction}{A numeric scalar specifying the minimum fraction to define a marker gene pair.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to \code{sandbag,ANY-method}.}
-\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
+\item{assay.type}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
 }
 

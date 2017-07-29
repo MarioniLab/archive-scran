@@ -9,7 +9,7 @@ Convert a SingleCellExperiment object into other classes for entry into other an
 
 \usage{
 \S4method{convertTo}{SingleCellExperiment}(x, type=c("edgeR", "DESeq2", "monocle"),
-    fData.col=NULL, pData.col=NULL, ..., assay, 
+    fData.col=NULL, pData.col=NULL, ..., assay.type, 
     use.all.sf=TRUE, normalize=TRUE, subset.row=NULL, get.spikes=FALSE)
 }
 
@@ -19,7 +19,7 @@ Convert a SingleCellExperiment object into other classes for entry into other an
 \item{fData.col}{Any set of indices specifying which columns of \code{fData(x)} should be retained in the returned object.}
 \item{pData.col}{Any set of indices specifying which columns of \code{pData(x)} should be retained.}
 \item{...}{Other arguments to be passed to pipeline-specific constructors.}
-\item{assay}{A string specifying which assay of \code{x} should be put in the returned object.}
+\item{assay.type}{A string specifying which assay of \code{x} should be put in the returned object.}
 \item{use.all.sf}{A logical scalar indicating whether multiple size factors should be used to generate the returned object.}
 \item{normalize}{A logical scalar specifying whether the assay values should be normalized for \code{type="monocle"}.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to return.}
@@ -43,11 +43,11 @@ This function converts an SingleCellExperiment object into various other classes
 Gene- and cell-specific data fields can be retained in the output object by setting \code{fData.col} and \code{pData.col}, respectively.
 Other arguments can be passed to the relevant constructors through the ellipsis.
 
-By default, for edgeR and DESeq2, \code{assay} is set to \code{"counts"} such that count data is stored in the output object.
+By default, for edgeR and DESeq2, \code{assay.type} is set to \code{"counts"} such that count data is stored in the output object.
 This is consistent with the required inputs to these analyses.
 Information about normalization is instead transmitted via size or normalization factors in the output object.
-For monocle, \code{assay} is ignored and counts are divided by the size factors to yield (roughly) log-normally distributed expression values.
-Values in \code{assay} can be used directly by setting \code{normalize=FALSE}.
+For monocle, \code{assay.type} is ignored and counts are divided by the size factors to yield (roughly) log-normally distributed expression values.
+Values in \code{assay.type} can be used directly by setting \code{normalize=FALSE}.
 
 In all cases, rows corresponding to spike-in transcripts are removed from the output object by default.
 As such, rows in the returned object may not correspond directly to rows in \code{x}.

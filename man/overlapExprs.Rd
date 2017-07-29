@@ -10,7 +10,8 @@
 \S4method{overlapExprs}{ANY}(x, groups, design=NULL, residuals=FALSE, tol=1e-8, 
     BPPARAM=SerialParam(), subset.row=NULL, lower.bound=NULL)
 
-\S4method{overlapExprs}{SingleCellExperiment}(x, ..., subset.row=NULL, lower.bound=NULL, assay="exprs", get.spikes=FALSE) 
+\S4method{overlapExprs}{SingleCellExperiment}(x, ..., subset.row=NULL, lower.bound=NULL, 
+    assay.type="exprs", get.spikes=FALSE) 
 }
 
 \arguments{
@@ -28,7 +29,7 @@ A vector of group assignments for all cells.
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{lower.bound}{A numeric scalar specifying the theoretical lower bound of values in \code{x}, only used when \code{residuals=TRUE}.}
 \item{...}{Additional arguments to pass to the matrix method.}
-\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
+\item{assay.type}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical scalar specifying whether decomposition should be performed for spike-ins.}
 }
 

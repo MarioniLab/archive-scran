@@ -10,7 +10,7 @@
 \S4method{computeSumFactors}{ANY}(x, sizes=seq(20, 100, 5), clusters=NULL, ref.clust=NULL,
     positive=FALSE, errors=FALSE, min.mean=1, subset.row=NULL)
 
-\S4method{computeSumFactors}{SingleCellExperiment}(x, subset.row=NULL, ..., assay="counts", 
+\S4method{computeSumFactors}{SingleCellExperiment}(x, subset.row=NULL, ..., assay.type="counts", 
     get.spikes=FALSE, sf.out=FALSE)
 }
 
@@ -27,7 +27,7 @@
 \item{min.mean}{A numeric scalar specifying the minimum (library size-adjusted) average count of genes to be used for normalization.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to \code{computeSumFactors,ANY-method}.}
-\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
+\item{assay.type}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical scalar specifying whether spike-in transcripts should be used.}
 \item{sf.out}{A logical scalar indicating whether only size factors should be returned.}
 }

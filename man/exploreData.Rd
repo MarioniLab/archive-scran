@@ -52,15 +52,11 @@ Karsten Bach
 
 \examples{
 # Set up example data
-example(newSCESet)
-x <- exprs(example_sceset)
-cell.data <- pData(example_sceset)
-gene.data <- data.frame("meanExp"=rowMeans(x))
-rownames(gene.data) <- rownames(x)
+example(SingleCellExperiment)
 
 # Mocking up  some reduced dimensions.
 library(Rtsne)
-tsn <- Rtsne(t(x), perplexity=10)
+tsn <- Rtsne(t(exprs(sce)), perplexity=10)
 red.dim <- tsn$Y[,1:2]
 
 # Creating the app object.

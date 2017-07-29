@@ -10,7 +10,7 @@
 \S4method{quickCluster}{ANY}(x, min.size=200, subset.row=NULL, get.ranks=FALSE, 
     method=c("hclust", "igraph"), ...)
 
-\S4method{quickCluster}{SingleCellExperiment}(x, subset.row=NULL, ..., assay="counts", get.spikes=FALSE)
+\S4method{quickCluster}{SingleCellExperiment}(x, subset.row=NULL, ..., assay.type="counts", get.spikes=FALSE)
 }
 
 \arguments{
@@ -27,7 +27,7 @@
         or \code{\link{buildSNNGraph}} for \code{method="igraph"}.
     For \code{quickCluster,SingleCellExperiment-method}, additional arguments to pass to \code{quickCluster,ANY-method}.
 }
-\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
+\item{assay.type}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical specifying whether spike-in transcripts should be used.}
 }
 

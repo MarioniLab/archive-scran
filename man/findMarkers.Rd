@@ -10,7 +10,7 @@
 \S4method{findMarkers}{ANY}(x, clusters, design=NULL, pval.type=c("any", "all"), 
     direction=c("any", "up", "down"), min.mean=0.1, subset.row=NULL)
 
-\S4method{findMarkers}{SingleCellExperiment}(x, ..., subset.row=NULL, assay="exprs", get.spikes=FALSE) 
+\S4method{findMarkers}{SingleCellExperiment}(x, ..., subset.row=NULL, assay.type="exprs", get.spikes=FALSE) 
 }
 
 \arguments{
@@ -27,7 +27,7 @@ A vector of cluster identities for all cells.
 \item{min.mean}{A numeric scalar specifying the mean threshold for computing empirical Bayes parameters.}
 \item{subset.row}{A logical, integer or character scalar indicating the rows of \code{x} to use.}
 \item{...}{Additional arguments to pass to the matrix method.}
-\item{assay}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
+\item{assay.type}{A string specifying which assay values to use, e.g., \code{counts} or \code{exprs}.}
 \item{get.spikes}{A logical scalar specifying whether decomposition should be performed for spike-ins.}
 }
 
