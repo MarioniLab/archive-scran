@@ -13,7 +13,7 @@ correlateNull(ncells, iters=1e6, design=NULL, residuals=FALSE)
 \S4method{correlatePairs}{ANY}(x, null.dist=NULL, tol=1e-8, iters=1e6, 
     design=NULL, residuals=FALSE, lower.bound=NULL,
     use.names=TRUE, subset.row=NULL, pairings=NULL, per.gene=FALSE,  
-    BPPARAM=SerialParam(), block.size=100L)
+    block.size=100L, BPPARAM=SerialParam())
 
 \S4method{correlatePairs}{SingleCellExperiment}(x, ..., use.names=TRUE, subset.row=NULL, per.gene=FALSE,
     lower.bound=NULL, assay.type="exprs", get.spikes=FALSE)

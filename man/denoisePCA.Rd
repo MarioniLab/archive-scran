@@ -7,7 +7,7 @@
 \description{Denoise log-expression data by removing principal components corresponding to technical noise.}
 
 \usage{
-\S4method{denoisePCA}{matrix}(x, technical, design=NULL, subset.row=NULL,
+\S4method{denoisePCA}{ANY}(x, technical, design=NULL, subset.row=NULL,
     value=c("pca", "n", "lowrank"), min.rank=5, max.rank=100, preserve.dim=FALSE)
 
 \S4method{denoisePCA}{SCESet}(x, ..., subset.row=NULL, 
@@ -95,17 +95,11 @@ rownames(counts) <- paste0("Gene", seq_len(ngenes))
 # Fitting a trend.
 lcounts <- log2(counts + 1)
 fit <- trendVar(lcounts, subset.row=is.spike)
-dec <- decomposeVar(lcounts, fit)
 
 # Denoising (not including the spike-ins in the PCA;
 # spike-ins are automatically removed with the SCESet method). 
 pcs <- denoisePCA(lcounts, technical=fit$trend, subset.row=-is.spike)
 dim(pcs)
-
-# Gets the same result as above, if you don't have the function.
-pcs2 <- denoisePCA(lcounts, technical=setNames(dec$tech, 
-    rownames(dec)), subset.row=-is.spike) # same result
-dim(pcs2)
 
 # With a design matrix.
 design <- model.matrix(~factor(rep(0:1, length.out=nsamples)))

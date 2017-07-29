@@ -53,6 +53,8 @@ Karsten Bach
 \examples{
 # Set up example data
 example(SingleCellExperiment)
+cell.data <- DataFrame(stuff=sample(LETTERS, ncol(sce), replace=TRUE))
+gene.data <- DataFrame(lengths=runif(nrow(sce)))
 
 # Mocking up  some reduced dimensions.
 library(Rtsne)
@@ -60,7 +62,7 @@ tsn <- Rtsne(t(exprs(sce)), perplexity=10)
 red.dim <- tsn$Y[,1:2]
 
 # Creating the app object.
-app <- exploreData(x, cell.data, gene.data, red.dim, run=FALSE)
+app <- exploreData(exprs(sce), cell.data, gene.data, red.dim, run=FALSE)
 if (interactive()) { shiny::runApp(app) }
 
 \dontrun{# Running directly from the function.
