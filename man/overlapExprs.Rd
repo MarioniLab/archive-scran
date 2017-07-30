@@ -84,7 +84,9 @@ Aaron Lun
 }
 
 \examples{
-example(computeSpikeFactors) # Using the mocked-up data 'y' from this example.
-groups <- sample(3, ncol(y), replace=TRUE)
-out <- overlapExprs(y, groups, subset.row=1:10)
+# Using the mocked-up data 'y2' from this example.
+example(computeSpikeFactors) 
+y2 <- normalize(y2)
+groups <- sample(3, ncol(y2), replace=TRUE)
+out <- overlapExprs(y2, groups, subset.row=1:10)
 }

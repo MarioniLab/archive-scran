@@ -97,9 +97,9 @@ Bioequivalence trials, intersection-union tests and equivalence confidence sets.
 }
 
 \examples{
-example(computeSpikeFactors) # Using the mocked-up data 'y' from this example.
-
-kout <- kmeans(t(exprs(y)), centers=2)
-
-out <- findMarkers(y, clusters=kout$cluster)
+# Using the mocked-up data 'y2' from this example.
+example(computeSpikeFactors) 
+y2 <- normalize(y2)
+kout <- kmeans(t(exprs(y2)), centers=2) # Any clustering method is okay.
+out <- findMarkers(y2, clusters=kout$cluster)
 }

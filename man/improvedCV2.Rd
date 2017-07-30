@@ -5,7 +5,7 @@
 
 \title{Stably model the technical coefficient of variation}
 \description{
-Model the decompose coefficient of variation as a function of the mean, and determine the significance of highly variable genes.
+Model the technical coefficient of variation as a function of the mean, and determine the significance of highly variable genes.
 This is intended to be a more stable version of \code{\link{technicalCV2}}.
 }
 
@@ -116,13 +116,13 @@ points(out$mean, out$trend, col="red", pch=16, cex=0.5)
 # Same again with an SingleCellExperiment.
 rownames(counts) <- paste0("X", seq_len(ngenes))
 colnames(counts) <- paste0("Y", seq_len(nsamples))
-X <- newSingleCellExperiment(countData=counts)
-X <- calculateQCMetrics(X, list(Spikes=is.spike))
-setSpike(X) <- "Spikes"
+X <- SingleCellExperiment(list(counts=counts))
+isSpike(X, "Spikes") <- is.spike
 
 # Dummying up some size factors (for convenience only, use computeSumFactors() instead).
 sizeFactors(X) <- 1
 X <- computeSpikeFactors(X, general.use=FALSE)
+X <- normalize(X)
 
 # Running it.
 out <- improvedCV2(X, spike.type="Spikes")

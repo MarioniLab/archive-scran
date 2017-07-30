@@ -1,7 +1,7 @@
 \name{Denoise with PCA}
 \alias{denoisePCA}
 \alias{denoisePCA,ANY-method}
-\alias{denoisePCA,SCESet-method}
+\alias{denoisePCA,SingleCellExperiment-method}
 
 \title{Denoise expression with PCA}
 \description{Denoise log-expression data by removing principal components corresponding to technical noise.}
@@ -10,13 +10,13 @@
 \S4method{denoisePCA}{ANY}(x, technical, design=NULL, subset.row=NULL,
     value=c("pca", "n", "lowrank"), min.rank=5, max.rank=100, preserve.dim=FALSE)
 
-\S4method{denoisePCA}{SCESet}(x, ..., subset.row=NULL, 
+\S4method{denoisePCA}{SingleCellExperiment}(x, ..., subset.row=NULL, 
     value=c("pca", "n", "lowrank"), assay.type="exprs", get.spikes=FALSE)
 }
 
 \arguments{
 \item{x}{A numeric matrix of log-expression values for \code{denoisePCA,ANY-method}, 
-or a SCESet object containing such values for \code{denoisePCA,SCESet-method}.}
+or a SingleCellExperiment object containing such values for \code{denoisePCA,SingleCellExperiment-method}.}
 \item{technical}{A named numeric vector containing the technical variance for each gene in \code{x}.
 Alternatively, a function that accepts the average log-expression and returns the technical variance.}
 \item{design}{A numeric matrix containing the experimental design.
@@ -37,7 +37,7 @@ For \code{denoisePCA,ANY-method}, a numeric matrix is returned containing the se
 If \code{value="n"}, it will return an integer scalar specifying the number of retained components.
 If \code{value="lowrank"}, it will return a low-rank approximation of \code{x} with the same dimensions.
 
-For \code{denoisePCA,SCESet-method}, a SCESet object is returned containing the PCs in the \code{reducedDimension} slot if \code{value="pca"}.
+For \code{denoisePCA,SingleCellExperiment-method}, a SingleCellExperiment object is returned containing the PCs in the \code{reducedDimension} slot if \code{value="pca"}.
 If \code{value="lowrank"}, it will return a low-rank approximation in \code{assays} slot, named \code{"lowrank"}.
 Currently, \code{value="n"} will return the object without modification.
 }
@@ -97,7 +97,7 @@ lcounts <- log2(counts + 1)
 fit <- trendVar(lcounts, subset.row=is.spike)
 
 # Denoising (not including the spike-ins in the PCA;
-# spike-ins are automatically removed with the SCESet method). 
+# spike-ins are automatically removed with the SingleCellExperiment method). 
 pcs <- denoisePCA(lcounts, technical=fit$trend, subset.row=-is.spike)
 dim(pcs)
 

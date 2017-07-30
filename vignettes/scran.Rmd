@@ -249,7 +249,8 @@ As with variance estimation, if uninteresting substructure is present, this shou
 
 ```{r}
 null.dist2 <- correlateNull(design=design, iter=1e5) # fewer iterations, to speed it up.
-cor.pairs2 <- correlatePairs(sce, subset.row=top.hvgs[1:200], null.dist=null.dist2, design=design)
+cor.pairs2 <- correlatePairs(sce, subset.row=top.hvgs[1:200], 
+    null.dist=null.dist2, design=design)
 ```
 
 The pairs can be used for choosing marker genes in experimental validation, and to construct gene-gene association networks.
@@ -258,7 +259,8 @@ This is often the case if we are to select a set of correlated HVGs for use in d
 To do so, we set `per.gene=TRUE` to compute a single set of statistics for each gene, rather than for each pair.
 
 ```{r}
-cor.genes <- correlatePairs(sce, subset.row=top.hvgs[1:200], null.dist=null.dist, per.gene=TRUE)
+cor.genes <- correlatePairs(sce, subset.row=top.hvgs[1:200], 
+    null.dist=null.dist, per.gene=TRUE)
 ```
 
 Significant correlations are defined at a false discovery rate (FDR) threshold of, e.g., 5%.

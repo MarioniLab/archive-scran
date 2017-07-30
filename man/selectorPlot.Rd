@@ -60,7 +60,6 @@ Aaron Lun
 \examples{
 # Setting up PCs.
 example(SingleCellExperiment)
-sce <- runPCA(sce)
 pcs <- reducedDim(sce, "PCA")
 x <- pcs[,1]
 y <- pcs[,2]
