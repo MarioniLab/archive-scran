@@ -15,6 +15,8 @@ extern "C" {
 
 SEXP forge_system (SEXP, SEXP, SEXP, SEXP);
 
+SEXP forge_NN_system (SEXP, SEXP, SEXP, SEXP);
+
 SEXP shuffle_scores (SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 SEXP get_null_rho (SEXP, SEXP);

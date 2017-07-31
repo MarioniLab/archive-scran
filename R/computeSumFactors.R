@@ -1,5 +1,6 @@
 .computeSumFactors <- function(x, sizes=seq(20, 100, 5), clusters=NULL, ref.clust=NULL, 
-                               positive=FALSE, errors=FALSE, min.mean=1, subset.row=NULL) 
+                               positive=FALSE, errors=FALSE, min.mean=1, subset.row=NULL,
+                               mode=c("classic", "experimental")) 
 # This contains the function that performs normalization on the summed counts.
 # It also provides support for normalization within clusters, and then between
 # clusters to make things comparable. It can also switch to linear inverse models
@@ -20,7 +21,8 @@
         indices <- list(seq_len(ncells))
     }
 
-    # Checking sizes.
+    # Checking sizes and mode.
+    mode <- match.arg(mode)
     sizes <- sort(as.integer(sizes))
     if (anyDuplicated(sizes)) { 
         stop("'sizes' are not unique") 
@@ -59,9 +61,14 @@
         use.ave.cell <- cur.out[[3]]
         ave.cell <- cur.out[[4]]
 
-        # Using our summation approach.
-        sphere <- .generateSphere(cur.libs)
-        new.sys <- .create_linear_system(exprs, use.ave.cell, sphere, cur.sizes) 
+        if (mode=="classic") { 
+            # Using our summation approach.
+            sphere <- .generateSphere(cur.libs)
+            new.sys <- .create_linear_system(exprs, use.ave.cell, sphere, cur.sizes) 
+        } else {
+            new.sys <- .create_linear_system2(exprs, cur.sizes) 
+            ave.cell[ave.cell >= 1e-8] <- new.sys$pseudo
+        }
         design <- new.sys$design
         output <- new.sys$output
 
@@ -117,6 +124,8 @@
     return(final.sf)
 }
 
+##################################### INTERNAL ##########################################
+
 .generateSphere <- function(lib.sizes) 
 # This function sorts cells by their library sizes, and generates an ordering vector.
 {
@@ -160,6 +169,43 @@ LOWWEIGHT <- 0.000001
 
     return(list(design=design, output=output))
 }
+
+.create_linear_system2 <- function(cur.exprs, pool.sizes, reference=200, ndim=10, BPPARAM=SerialParam()) {
+    # Ranking all values and performing PCA to get the top few PCs, then using those to find NNs.
+    ranked <- quickCluster(cur.exprs, get.ranks=TRUE)
+    pcs <- prcomp(t(ranked), rank.=ndim)
+    reference <- max(reference, max(pool.sizes))-1L
+    knn <- .find_knn(pcs$x, k=reference, BPPARAM=BPPARAM)
+    most.dense <- which.min(knn$nn.dist[,reference])
+
+    # Collating the linear system from the C++ code.
+    row.dex <- col.dex <- output <- vector("list", 2L)
+    out.nn <- .Call(cxx_forge_NN_system, cur.exprs, most.dense-1L, t(knn$nn.index-1L), pool.sizes)
+    row.dex[[1]] <- out.nn[[1]]
+    col.dex[[1]] <- out.nn[[2]]
+    output[[1]] <- out.nn[[3]]
+    pseudo.cell <- out.nn[[4]]
+
+    # Adding extra equations to guarantee solvability (downweighted).
+    cur.cells <- ncol(cur.exprs)
+    out.self <- .Call(cxx_forge_system, cur.exprs, pseudo.cell, rep(seq_len(cur.cells)-1L, 2), 1L)
+    row.dex[[2]] <- out.self[[1]] + cur.cells * length(pool.sizes)
+    col.dex[[2]] <- out.self[[2]]
+    output[[2]] <- out.self[[3]] * sqrt(LOWWEIGHT)
+
+    # Setting up the entries of the LHS matrix.
+    eqn.values <- rep(c(1, sqrt(LOWWEIGHT)), lengths(row.dex))
+
+    # Constructing a sparse matrix.
+    row.dex <- unlist(row.dex)
+    col.dex <- unlist(col.dex)
+    output <- unlist(output)
+    design <- sparseMatrix(i=row.dex + 1L, j=col.dex + 1L, x=eqn.values, dims=c(length(output), cur.cells))
+
+    return(list(design=design, output=output, pseudo=pseudo.cell))
+}
+
+################################## S4 DEFINITIONS #####################################
 
 setGeneric("computeSumFactors", function(x, ...) standardGeneric("computeSumFactors"))
 

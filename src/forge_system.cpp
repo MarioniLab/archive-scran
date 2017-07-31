@@ -224,17 +224,177 @@ SEXP forge_system (SEXP exprs, SEXP ref, SEXP ordering, SEXP poolsizes) {
             }       
         }
 
-/*
-        std::partial_sort(combined, combined+halfway+1, combined+ngenes);
-        if (is_even) {
-            ofptr[cell]=(combined[halfway]+combined[halfway-1])/2;
-        } else {
-            ofptr[cell]=combined[halfway];
-        } 
-*/
     }    
 
     return Rcpp::List::create(row_num, col_num, pool_factor);
+    END_RCPP
+}
+
+/*** Creating the linear system based on the nearest neighbours. ***/
+
+template<class M>
+void create_pseudo_cell (M mat, Rcpp::NumericVector& output, Rcpp::NumericVector& work,
+        const size_t i, Rcpp::IntegerMatrix::iterator order_start, const size_t nn) {
+    const size_t ngenes=mat->get_nrow();
+    mat->get_col(i, output.begin());
+    for (size_t j=0; j<nn; ++j) {
+        auto iIt=mat->get_const_col(*order_start, work.begin());
+        for (auto& o : output) {
+            o+=*iIt;
+            ++iIt;
+        }
+        ++order_start;
+    }   
+    for (auto& o : output) {
+        o/=(nn+1);
+    } 
+    return;    
+} 
+
+double compute_median (Rcpp::NumericVector& values, const size_t invalid=0) {
+    const size_t validgenes=values.size()-invalid;
+    const bool is_even=bool(validgenes%2==0);
+    const size_t halfway=size_t(validgenes/2);
+    
+    // Computing the median (faster than partial sort).
+    std::nth_element(values.begin(), values.begin()+halfway, values.end());
+    if (is_even) {
+        double medtmp=values[halfway];
+        std::nth_element(values.begin(), values.begin()+halfway-1, values.end());
+        return (medtmp+values[halfway-1])/2;
+    } else {
+        return values[halfway];
+    }       
+
+/*
+    std::partial_sort(values, values+halfway+1, values+ngenes)
+    if (is_even) {
+        return (values[halfway]+values[halfway-1])/2;
+    } else 
+        return values[halfway];
+    } 
+*/
+}
+
+SEXP forge_NN_system (SEXP exprs, SEXP ref, SEXP nearest, SEXP poolsizes) {
+    BEGIN_RCPP
+    auto emat=beachmat::create_numeric_matrix(exprs);
+    const size_t ngenes=emat->get_nrow();
+    const size_t ncells=emat->get_ncol();
+    if (ncells==0) { throw std::runtime_error("at least one cell required for normalization"); }
+   
+    // Checking the input sizes.
+    Rcpp::IntegerVector pool_sizes(poolsizes);
+    const size_t nsizes=pool_sizes.size();
+    if (nsizes==0) {
+        throw std::runtime_error("sizes should be a non-empty integer vector"); 
+    }
+    int last_size=-1, total_SIZE=0;
+    for (const auto& SIZE : pool_sizes) { 
+        if (SIZE < 1 || SIZE > ncells) { throw std::runtime_error("each element of sizes should be within [1, number of cells]"); }
+        if (SIZE < last_size) { throw std::runtime_error("sizes should be sorted"); }
+        total_SIZE+=SIZE;
+        last_size=SIZE;
+    }
+
+    // Checking ordering.
+    Rcpp::IntegerMatrix order(nearest);
+    if (order.ncol() != ncells) { throw std::runtime_error("number of columns in NN matrix should be equal to number of cells"); }
+    const size_t nn=order.nrow();
+    if (last_size - 1L > nn) { throw std::runtime_error("NN matrix has fewer rows than largest pool"); }
+    for (const auto& o : order) { 
+        if (o < 0 || o > ncells) { 
+            throw std::runtime_error("elements of ordering vector are out of range");
+        }
+    }
+
+    // Checking the pseudo cell.
+    Rcpp::IntegerVector chosen(ref);
+    if (chosen.size()!=1) { throw std::runtime_error("pseudo-cell specification should be an integer scalar"); }
+    Rcpp::NumericVector pseudo_cell(ngenes), incoming(ngenes);
+    create_pseudo_cell(emat.get(), pseudo_cell, incoming, chosen[0], order.begin() + chosen[0]*nn, nn);
+    
+    // Setting up the output vectors.
+    Rcpp::IntegerVector row_num(total_SIZE*ncells), col_num(total_SIZE*ncells);
+    Rcpp::NumericVector pool_factor(nsizes*ncells);
+    Rcpp::NumericVector combined(ngenes), ratios(ngenes), current_pseudo_cell(ngenes);
+
+    auto rowIt=row_num.begin(), colIt=col_num.begin();
+    auto ref_orIt=order.begin();
+
+    // Running through each cell and constructing the pool based on the nearest neighbours.
+    for (size_t cell=0; cell<ncells; ++cell) {
+        create_pseudo_cell(emat.get(), current_pseudo_cell, incoming, cell, ref_orIt, nn);
+
+        // Computing the ratio of the two current and overall reference.
+        double scaling=0; 
+        {
+            auto pcIt=pseudo_cell.begin();
+            auto cpcIt=current_pseudo_cell.begin();
+            int invalid=0;
+            for (auto& r : ratios) {
+                if ((*pcIt)==0) {
+                    r=R_PosInf; 
+                    if ((*cpcIt)==0) { 
+                        ++invalid;
+                    }
+                } else {
+                    r=(*cpcIt)/(*pcIt);
+                }
+                ++pcIt;
+                ++cpcIt;
+            }
+            scaling=compute_median(ratios, invalid);
+        }
+
+        // Copying self first before iteratively adding the nearest neighbours.
+        emat->get_col(cell, combined.begin()); 
+        auto orIt=ref_orIt;
+        int index=1;
+        int rownum=cell; 
+
+        for (const auto& SIZE : pool_sizes) { 
+            std::fill(rowIt, rowIt+SIZE, rownum);
+            rowIt+=SIZE;
+            (*colIt)=cell;
+            std::copy(ref_orIt, ref_orIt+SIZE-1, colIt+1);
+            colIt+=SIZE;
+
+            for (; index<SIZE; ++index) {
+                auto ceIt=emat->get_const_col(*orIt, incoming.begin());
+                for (auto& co : combined) {
+                    co+=(*ceIt);
+                    ++ceIt;
+                }
+                ++orIt;
+            }
+           
+            // Computing the ratio against the current reference.
+            auto cIt=combined.begin();
+            auto cpcIt=current_pseudo_cell.begin();
+            int invalid=0;
+            for (auto& r : ratios) {
+                if ((*cpcIt)==0) {
+                    r=R_PosInf; 
+                    if ((*cIt)==0) { 
+                        ++invalid;
+                    }
+                } else {
+                    r=(*cIt)/(*cpcIt);
+                }
+                ++cpcIt;
+                ++cIt;
+            }
+
+            pool_factor[rownum]=compute_median(ratios, invalid) * scaling;
+
+            // Bumping the row number so that all pools with the same SIZE form consecutive equations.
+            rownum+=ncells;
+        }
+        ref_orIt+=nn;
+    }    
+
+    return Rcpp::List::create(row_num, col_num, pool_factor, pseudo_cell);
     END_RCPP
 }
 
