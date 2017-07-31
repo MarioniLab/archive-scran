@@ -116,7 +116,54 @@ SEXP subset_and_divide(SEXP matrix, SEXP row_subset, SEXP col_subset) {
     END_RCPP
 }
 
+/******************** UTILITIES ************************/
+
+int calculate_ratios(const Rcpp::NumericVector& top, const Rcpp::NumericVector& bottom, Rcpp::NumericVector& ratios) {
+    int invalid=0;
+    auto tIt=top.begin();
+    auto bIt=bottom.begin();
+    for (auto& r : ratios) {
+        if ((*bIt)==0) {
+            r=R_PosInf; 
+            if ((*tIt)==0) { 
+                ++invalid;
+            }
+        } else {
+            r=(*tIt)/(*bIt);
+        }
+        ++bIt;
+        ++tIt;
+    }
+    return invalid;
+}
+
+double compute_median (Rcpp::NumericVector& values, const size_t invalid=0) {
+    const size_t validgenes=values.size()-invalid;
+    const bool is_even=bool(validgenes%2==0);
+    const size_t halfway=size_t(validgenes/2);
+    
+    // Computing the median (faster than partial sort).
+    std::nth_element(values.begin(), values.begin()+halfway, values.end());
+    if (is_even) {
+        double medtmp=values[halfway];
+        std::nth_element(values.begin(), values.begin()+halfway-1, values.end());
+        return (medtmp+values[halfway-1])/2;
+    } else {
+        return values[halfway];
+    }       
+
+/*
+    std::partial_sort(values, values+halfway+1, values+ngenes)
+    if (is_even) {
+        return (values[halfway]+values[halfway-1])/2;
+    } else 
+        return values[halfway];
+    } 
+*/
+}
+
 /*** A function to estimate the pooled size factors and construct the linear equations. ***/
+
 
 SEXP forge_system (SEXP exprs, SEXP ref, SEXP ordering, SEXP poolsizes) {
     BEGIN_RCPP
@@ -171,9 +218,7 @@ SEXP forge_system (SEXP exprs, SEXP ref, SEXP ordering, SEXP poolsizes) {
     Rcpp::NumericVector pool_factor(nsizes*ncells);
 
     // Various other bits and pieces.
-    std::vector<double> combined(ngenes), ratios(ngenes);
-    const bool is_even=bool(ngenes%2==0);
-    const int halfway=int(ngenes/2);
+    Rcpp::NumericVector combined(ngenes), ratios(ngenes);
     auto rowIt=row_num.begin(), colIt=col_num.begin();
     auto orIt=order.begin();
 
@@ -207,21 +252,9 @@ SEXP forge_system (SEXP exprs, SEXP ref, SEXP ordering, SEXP poolsizes) {
                 }
             }
            
-            // Computing the ratio against the reference.
-            auto rIt=ratios.begin(), cIt=combined.begin();
-            for (auto pcIt=pseudo_cell.begin(); pcIt!=pseudo_cell.end(); ++pcIt, ++rIt, ++cIt) {
-                (*rIt)=(*cIt)/(*pcIt);
-            }
-
-            // Computing the median (faster than partial sort).
-            std::nth_element(ratios.begin(), ratios.begin()+halfway, ratios.end());
-            if (is_even) {
-                double medtmp=ratios[halfway];
-                std::nth_element(ratios.begin(), ratios.begin()+halfway-1, ratios.end());
-                pool_factor[rownum]=(medtmp+ratios[halfway-1])/2;
-            } else {
-                pool_factor[rownum]=ratios[halfway];
-            }       
+            // Computing the median ratio against the reference.
+            int invalid=calculate_ratios(combined, pseudo_cell, ratios);
+            pool_factor[rownum]=compute_median(ratios, invalid);
         }
 
     }    
@@ -250,31 +283,6 @@ void create_pseudo_cell (M mat, Rcpp::NumericVector& output, Rcpp::NumericVector
     } 
     return;    
 } 
-
-double compute_median (Rcpp::NumericVector& values, const size_t invalid=0) {
-    const size_t validgenes=values.size()-invalid;
-    const bool is_even=bool(validgenes%2==0);
-    const size_t halfway=size_t(validgenes/2);
-    
-    // Computing the median (faster than partial sort).
-    std::nth_element(values.begin(), values.begin()+halfway, values.end());
-    if (is_even) {
-        double medtmp=values[halfway];
-        std::nth_element(values.begin(), values.begin()+halfway-1, values.end());
-        return (medtmp+values[halfway-1])/2;
-    } else {
-        return values[halfway];
-    }       
-
-/*
-    std::partial_sort(values, values+halfway+1, values+ngenes)
-    if (is_even) {
-        return (values[halfway]+values[halfway-1])/2;
-    } else 
-        return values[halfway];
-    } 
-*/
-}
 
 SEXP forge_NN_system (SEXP exprs, SEXP ref, SEXP nearest, SEXP poolsizes) {
     BEGIN_RCPP
@@ -327,25 +335,8 @@ SEXP forge_NN_system (SEXP exprs, SEXP ref, SEXP nearest, SEXP poolsizes) {
         create_pseudo_cell(emat.get(), current_pseudo_cell, incoming, cell, ref_orIt, nn);
 
         // Computing the ratio of the two current and overall reference.
-        double scaling=0; 
-        {
-            auto pcIt=pseudo_cell.begin();
-            auto cpcIt=current_pseudo_cell.begin();
-            int invalid=0;
-            for (auto& r : ratios) {
-                if ((*pcIt)==0) {
-                    r=R_PosInf; 
-                    if ((*cpcIt)==0) { 
-                        ++invalid;
-                    }
-                } else {
-                    r=(*cpcIt)/(*pcIt);
-                }
-                ++pcIt;
-                ++cpcIt;
-            }
-            scaling=compute_median(ratios, invalid);
-        }
+        int invalid=calculate_ratios(current_pseudo_cell, pseudo_cell, ratios);
+        const double scaling=compute_median(ratios, invalid);
 
         // Copying self first before iteratively adding the nearest neighbours.
         emat->get_col(cell, combined.begin()); 
@@ -370,22 +361,7 @@ SEXP forge_NN_system (SEXP exprs, SEXP ref, SEXP nearest, SEXP poolsizes) {
             }
            
             // Computing the ratio against the current reference.
-            auto cIt=combined.begin();
-            auto cpcIt=current_pseudo_cell.begin();
-            int invalid=0;
-            for (auto& r : ratios) {
-                if ((*cpcIt)==0) {
-                    r=R_PosInf; 
-                    if ((*cIt)==0) { 
-                        ++invalid;
-                    }
-                } else {
-                    r=(*cIt)/(*cpcIt);
-                }
-                ++cpcIt;
-                ++cIt;
-            }
-
+            int invalid=calculate_ratios(combined, current_pseudo_cell, ratios);
             pool_factor[rownum]=compute_median(ratios, invalid) * scaling;
 
             // Bumping the row number so that all pools with the same SIZE form consecutive equations.
