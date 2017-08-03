@@ -18,7 +18,7 @@ SEXP subset_and_divide_internal(const M in, SEXP inmat, SEXP row_subset, SEXP co
      * matrix and then subset it (i.e., two sets of writes).
      */
     V incoming(in->get_nrow());
-    std::deque<size_t> to_retain, to_retain_subset;
+    std::deque<size_t> to_retain;
     size_t start_row=0, end_row=0;
     {
         // Computing the row sums.
@@ -37,7 +37,6 @@ SEXP subset_and_divide_internal(const M in, SEXP inmat, SEXP row_subset, SEXP co
         for (size_t rs=0; rs<rslen; ++coIt, ++rsIt, ++rs) {
             if (*coIt >= 0.00000001) {
                 to_retain.push_back(*rsIt);
-                to_retain_subset.push_back(rs);
             }
         }
 
@@ -61,14 +60,17 @@ SEXP subset_and_divide_internal(const M in, SEXP inmat, SEXP row_subset, SEXP co
     auto omat=beachmat::create_numeric_output(final_nrow, cslen, oparam);
 
     auto lbIt=libsizes.begin();
-    size_t cs=0;
-    for (auto csIt=csubout.begin(); csIt!=csubout.end(); ++csIt, ++lbIt, ++cs) {
+    size_t out_c=0;
+    for (const auto& in_c : csubout) {
 
         // Extracting the column, subsetting the rows.
-        auto inIt=in->get_const_col(*csIt, incoming.begin(), start_row, end_row);
-        auto oIt=outgoing.begin();
-        for (auto trIt=to_retain.begin(); trIt!=to_retain.end(); ++trIt, ++oIt) {
-            (*oIt)=*(inIt + *trIt);
+        auto inIt=in->get_const_col(in_c, incoming.begin(), start_row, end_row);
+        {
+            auto oIt=outgoing.begin();
+            for (const auto& tr : to_retain) { 
+                (*oIt)=*(inIt + tr);
+                ++oIt;
+            }
         }
            
         // Dividing by the library size. 
@@ -79,13 +81,18 @@ SEXP subset_and_divide_internal(const M in, SEXP inmat, SEXP row_subset, SEXP co
         for (double& out : outgoing) {
             out/=curlib;
         }
+        ++lbIt;
 
-        omat->set_col(cs, outgoing.begin());
+        omat->set_col(out_c, outgoing.begin());
+        ++out_c;
 
         // Adding to the average.
-        oIt=outgoing.begin();
-        for (auto aIt=averaged.begin(); aIt!=averaged.end(); ++aIt, ++oIt) {
-            (*aIt)+=(*oIt);
+        {
+            auto oIt=outgoing.begin();
+            for (auto& ave : averaged) { 
+                ave+=(*oIt);
+                ++oIt;
+            }
         }
     }
 
@@ -93,14 +100,8 @@ SEXP subset_and_divide_internal(const M in, SEXP inmat, SEXP row_subset, SEXP co
      * (i.e., before removing all-zeroes). This ensures pseudo-cells are comparable 
      * between clusters. Done in C++ to avoid needing to pass back the subset vector.
      */
-    Rcpp::NumericVector full_averaged(rslen);
-    auto aIt=averaged.begin();
-    for (auto trIt=to_retain_subset.begin(); trIt!=to_retain_subset.end(); ++trIt, ++aIt) {
-        (*aIt)/=cslen;
-        full_averaged[*trIt]=(*aIt);
-    }
-
-    return Rcpp::List::create(libsizes, omat->yield(), averaged, full_averaged);
+    Rcpp::IntegerVector kept(to_retain.begin(), to_retain.end());
+    return Rcpp::List::create(libsizes, omat->yield(), averaged, kept);
 }
 
 SEXP subset_and_divide(SEXP matrix, SEXP row_subset, SEXP col_subset) {
@@ -266,21 +267,36 @@ SEXP forge_system (SEXP exprs, SEXP ref, SEXP ordering, SEXP poolsizes) {
 /*** Creating the linear system based on the nearest neighbours. ***/
 
 template<class M>
-void create_pseudo_cell (M mat, Rcpp::NumericVector& output, Rcpp::NumericVector& work,
-        const size_t i, Rcpp::IntegerMatrix::iterator order_start, const size_t nn) {
+void load_and_average_cache (M mat, Rcpp::NumericVector& cache, std::vector<Rcpp::NumericVector::const_iterator>& cache_iters, 
+        Rcpp::NumericVector& pseudo_cell, const size_t i, Rcpp::IntegerMatrix::iterator order_start, const size_t nn) { 
+
     const size_t ngenes=mat->get_nrow();
-    mat->get_col(i, output.begin());
+    auto cIt=cache.begin();
+    cache_iters[0]=mat->get_const_col(i, cIt);
+    cIt+=ngenes;
+
     for (size_t j=0; j<nn; ++j) {
-        auto iIt=mat->get_const_col(*order_start, work.begin());
-        for (auto& o : output) {
-            o+=*iIt;
-            ++iIt;
-        }
+        cache_iters[j+1]=mat->get_const_col(*order_start, cIt);
         ++order_start;
+        cIt+=ngenes;
     }   
-    for (auto& o : output) {
-        o/=(nn+1);
-    } 
+
+    // Setting up the pseudo cell.
+    std::copy(cache_iters[0], cache_iters[0]+ngenes, pseudo_cell.begin());
+    for (size_t j=0; j<nn; ++j) { 
+        auto ciIt=cache_iters[j+1];
+        auto psIt=pseudo_cell.begin();
+        for (size_t i=0; i<ngenes; ++i) { 
+            (*psIt)+=(*ciIt);
+            ++ciIt;
+            ++psIt;
+        }
+    }
+
+    const double ncells=nn+1;
+    for (auto& ps : pseudo_cell) {
+        ps/=ncells;
+    }
     return;    
 } 
 
@@ -316,31 +332,35 @@ SEXP forge_NN_system (SEXP exprs, SEXP ref, SEXP nearest, SEXP poolsizes) {
         }
     }
 
-    // Checking the pseudo cell.
+    // Constructing the cache parameters, and also checking the overall pseudo cell.
     Rcpp::IntegerVector chosen(ref);
     if (chosen.size()!=1) { throw std::runtime_error("pseudo-cell specification should be an integer scalar"); }
-    Rcpp::NumericVector pseudo_cell(ngenes), incoming(ngenes);
-    create_pseudo_cell(emat.get(), pseudo_cell, incoming, chosen[0], order.begin() + chosen[0]*nn, nn);
-    
+    Rcpp::NumericVector exprs_cache(ngenes*(nn+1));
+    std::vector<Rcpp::NumericVector::const_iterator> cache_iters(nn+1);
+    Rcpp::NumericVector pseudo_cell(ngenes);
+    load_and_average_cache(emat.get(), exprs_cache, cache_iters, pseudo_cell, 
+            chosen[0], order.begin() + chosen[0]*nn, nn);
+   
     // Setting up the output vectors.
     Rcpp::IntegerVector row_num(total_SIZE*ncells), col_num(total_SIZE*ncells);
     Rcpp::NumericVector pool_factor(nsizes*ncells);
     Rcpp::NumericVector combined(ngenes), ratios(ngenes), current_pseudo_cell(ngenes);
-
     auto rowIt=row_num.begin(), colIt=col_num.begin();
-    auto ref_orIt=order.begin();
+    auto orIt=order.begin();
 
-    // Running through each cell and constructing the pool based on the nearest neighbours.
+    // Running through each cell and constructing the pools based on the nearest neighbours.
+    // Each pool is normalized to the current pseudo cell, and then the results are scaled
+    // based on the normalization of the current pseudo cell to the overall pseudo cell.
     for (size_t cell=0; cell<ncells; ++cell) {
-        create_pseudo_cell(emat.get(), current_pseudo_cell, incoming, cell, ref_orIt, nn);
+        load_and_average_cache(emat.get(), exprs_cache, cache_iters, 
+                current_pseudo_cell, cell, orIt, nn);
 
-        // Computing the ratio of the two current and overall reference.
+        // Computing the ratio of the two current and overall pseudocell.
         int invalid=calculate_ratios(current_pseudo_cell, pseudo_cell, ratios);
         const double scaling=compute_median(ratios, invalid);
 
         // Copying self first before iteratively adding the nearest neighbours.
-        emat->get_col(cell, combined.begin()); 
-        auto orIt=ref_orIt;
+        std::copy(cache_iters[0], cache_iters[0]+ngenes, combined.begin());
         int index=1;
         int rownum=cell; 
 
@@ -348,16 +368,15 @@ SEXP forge_NN_system (SEXP exprs, SEXP ref, SEXP nearest, SEXP poolsizes) {
             std::fill(rowIt, rowIt+SIZE, rownum);
             rowIt+=SIZE;
             (*colIt)=cell;
-            std::copy(ref_orIt, ref_orIt+SIZE-1, colIt+1);
+            std::copy(orIt, orIt+SIZE-1, colIt+1);
             colIt+=SIZE;
 
             for (; index<SIZE; ++index) {
-                auto ceIt=emat->get_const_col(*orIt, incoming.begin());
+                auto ceIt=cache_iters[index];
                 for (auto& co : combined) {
                     co+=(*ceIt);
                     ++ceIt;
                 }
-                ++orIt;
             }
            
             // Computing the ratio against the current reference.
@@ -367,7 +386,7 @@ SEXP forge_NN_system (SEXP exprs, SEXP ref, SEXP nearest, SEXP poolsizes) {
             // Bumping the row number so that all pools with the same SIZE form consecutive equations.
             rownum+=ncells;
         }
-        ref_orIt+=nn;
+        orIt+=nn;
     }    
 
     return Rcpp::List::create(row_num, col_num, pool_factor, pseudo_cell);

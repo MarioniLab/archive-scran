@@ -59,7 +59,7 @@
         cur.libs <- cur.out[[1]]
         exprs <- cur.out[[2]]
         use.ave.cell <- cur.out[[3]]
-        ave.cell <- cur.out[[4]]
+        non.zero <- cur.out[[4]] + 1L
 
         if (mode=="classic") { 
             # Using our summation approach.
@@ -67,10 +67,12 @@
             new.sys <- .create_linear_system(exprs, use.ave.cell, sphere, cur.sizes) 
         } else {
             new.sys <- .create_linear_system2(exprs, cur.sizes) 
-            ave.cell[ave.cell >= 1e-8] <- new.sys$pseudo
+            use.ave.cell <- new.sys$pseudo
         }
         design <- new.sys$design
         output <- new.sys$output
+        ave.cell <- numeric(nrow(x))
+        ave.cell[non.zero] <- use.ave.cell
 
         # Weighted least-squares (inverse model for positivity).
         if (positive) { 
