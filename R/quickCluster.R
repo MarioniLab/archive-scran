@@ -5,11 +5,8 @@
 #
 # written by Karsten Bach, with modifications by Aaron Lun
 # created 1 December 2015
-# last modified 6 June 2017
+# last modified 4 August 2017
 {   
-    if (ncol(x) < min.size){
-        stop('fewer cells than the minimum cluster size')
-    }
     subset.row <- .subset_to_index(subset.row, x, byrow=TRUE)
 
     # Obtaining scaled/centred ranks to compute cosine distances.
@@ -21,6 +18,9 @@
         return(rkout)
     }
 
+    if (ncol(x) < min.size){
+        stop('fewer cells than the minimum cluster size')
+    }
     if (method=="igraph") { 
         g <- buildSNNGraph(rkout, ...)
         out <- cluster_fast_greedy(g)
