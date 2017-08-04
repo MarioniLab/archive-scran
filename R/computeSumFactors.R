@@ -173,9 +173,12 @@ LOWWEIGHT <- 0.000001
 }
 
 .create_linear_system2 <- function(cur.exprs, pool.sizes, reference=200, ndim=10, BPPARAM=SerialParam()) {
-    # Ranking all values and performing PCA to get the top few PCs, then using those to find NNs.
+    # Ranking all values and performing PCA to get the top few PCs.
     ranked <- quickCluster(cur.exprs, get.ranks=TRUE)
     pcs <- prcomp(t(ranked), rank.=ndim)
+
+    # Using those PCs to find NNs (assuming pool.sizes is already subsetted below cur.exprs).
+    reference <- min(reference, ncol(cur.exprs))
     reference <- max(reference, max(pool.sizes))-1L
     knn <- .find_knn(pcs$x, k=reference, BPPARAM=BPPARAM)
     most.dense <- which.min(knn$nn.dist[,reference])
